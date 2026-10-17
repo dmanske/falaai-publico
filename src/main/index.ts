@@ -63,8 +63,10 @@ if (!app.requestSingleInstanceLock()) {
     iniciarDitado();
 
     criarBandeja();
-    if (lerPreferencias().onboardingConcluido) abrirConfiguracoes();
-    else abrirOnboarding();
+    // Depois do onboarding, o FalaAi pode iniciar só na barra de menus (o ícone abre a janela).
+    const prefs = lerPreferencias();
+    if (!prefs.onboardingConcluido) abrirOnboarding();
+    else if (prefs.abrirJanelaAoIniciar) abrirConfiguracoes();
   });
 
   app.on("activate", () => abrirConfiguracoes());

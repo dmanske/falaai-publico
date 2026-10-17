@@ -5,7 +5,7 @@ const ENVELOPE = [0.3, 0.45, 0.6, 0.78, 0.92, 1, 0.92, 0.78, 0.6, 0.45, 0.3];
 const ALTURA_MIN = 4;
 /** Em silêncio as barras já formam um leque pequeno (o meio fica com ALTURA_MIN + REPOUSO). */
 const REPOUSO = 6;
-const ALTURA_MAX = 24;
+const ALTURA_MAX = 20;
 
 /** Onda simétrica que cresce com o volume da voz; cada barra varia um pouco para parecer viva. */
 export function Onda({ nivel, cor = "#ffffff" }: { nivel: number; cor?: string }) {
@@ -29,7 +29,7 @@ export function Onda({ nivel, cor = "#ffffff" }: { nivel: number; cor?: string }
   }, []);
 
   return (
-    <div className="flex h-6 items-center gap-[3px]">
+    <div className="flex h-5 items-center gap-[3px]">
       {alturas.map((a, i) => (
         <span
           key={i}

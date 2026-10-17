@@ -72,4 +72,6 @@ arquivo; componente usado por um módulo só fica no módulo.
 ## Pílula
 
 Preta, com ✕ à esquerda, onda simétrica no meio (cor por modo: branca ditado, azul pergunte, verde
-tradução) e ✓ à direita (ver `docs/modulos/ditado.md`).
+tradução) e ✓ à direita (ver `docs/modulos/ditado.md`). Desde 17/10/2026 é mais compacta e mais baixa:
+144×38 (tradução 188×38, erro 300×38), botões de 28 px, onda de até 20 px, 20 px acima do Dock
+(`TAMANHO` e `MARGEM_INFERIOR` em `src/main/janelas/pilula.ts`).

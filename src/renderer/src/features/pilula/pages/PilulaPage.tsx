@@ -10,7 +10,7 @@ const NOME_MODO: Record<ModoDitado, string> = { ditado: "Ditado", pergunte: "Per
 
 function Pontos() {
   return (
-    <div className="flex h-6 items-center gap-1.5">
+    <div className="flex h-5 items-center gap-1.5">
       {[0, 1, 2].map((i) => (
         <span
           key={i}
@@ -45,9 +45,9 @@ function BotaoCancelar() {
       type="button"
       title="Cancelar (Esc)"
       onClick={() => apiPilula.acao("cancelar")}
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30"
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30"
     >
-      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round">
+      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round">
         <path d="M6 6l12 12M18 6L6 18" />
       </svg>
     </button>
@@ -61,9 +61,9 @@ function BotaoConfirmar({ ativo }: { ativo: boolean }) {
       title="Terminar e colar"
       disabled={!ativo}
       onClick={() => apiPilula.acao("confirmar")}
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-neutral-950 hover:bg-white/90 disabled:opacity-40"
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white text-neutral-950 hover:bg-white/90 disabled:opacity-40"
     >
-      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round">
+      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round">
         <path d="M5 12.5l4.5 4.5L19 7.5" />
       </svg>
     </button>

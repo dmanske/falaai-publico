@@ -67,6 +67,8 @@ export interface Preferencias {
 
   // Geral
   abrirComSistema: boolean;
+  /** Ao iniciar, abrir a janela principal. Desligado = só o ícone na barra de menus/bandeja. */
+  abrirJanelaAoIniciar: boolean;
   /** Mac: ícone no Dock. Windows: ícone na barra de tarefas. */
   mostrarNoDock: boolean;
   tema: Tema;

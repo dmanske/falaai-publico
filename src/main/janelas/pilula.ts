@@ -8,13 +8,13 @@ import { CANAIS_PILULA, type ComandoPilula, type EstadoPilula } from "@shared/ip
 
 /** Tamanho da janela por estado (px). A pílula ocupa a janela inteira. */
 const TAMANHO = {
-  normal: { largura: 168, altura: 44 },
-  /** Modo tradução: cabe a sigla do idioma (ex.: "EN") ao lado da onda. */
-  traducao: { largura: 206, altura: 44 },
-  erro: { largura: 340, altura: 44 },
+  normal: { largura: 144, altura: 38 },
+  /** Modo tradução: cabe a bandeira e a sigla do idioma (ex.: "EN") ao lado da onda. */
+  traducao: { largura: 188, altura: 38 },
+  erro: { largura: 300, altura: 38 },
 };
-/** Distância da pílula até a borda de baixo da área útil da tela (px). */
-const MARGEM_INFERIOR = 72;
+/** Distância da pílula até a borda de baixo da área útil da tela, logo acima do Dock (px). */
+const MARGEM_INFERIOR = 20;
 
 let janela: BrowserWindow | null = null;
 

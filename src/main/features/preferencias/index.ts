@@ -30,6 +30,7 @@ const PADRAO: Preferencias = {
   guardarAudio: true,
   retencaoDias: null,
   abrirComSistema: true,
+  abrirJanelaAoIniciar: false,
   mostrarNoDock: true,
   tema: "sistema",
   fundo: "topo",

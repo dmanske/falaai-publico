@@ -17,6 +17,12 @@ export function SecaoGeral({ preferencias, salvar }: PropsSecaoPreferencias) {
         aoMudar={(v) => void salvar({ abrirComSistema: v })}
       />
       <Interruptor
+        rotulo="Abrir a janela ao iniciar"
+        descricao={`Desligado, o FalaAi inicia só com o ícone na ${mac ? "barra de menus" : "bandeja"}; clique nele para abrir.`}
+        ligado={preferencias.abrirJanelaAoIniciar}
+        aoMudar={(v) => void salvar({ abrirJanelaAoIniciar: v })}
+      />
+      <Interruptor
         rotulo={mac ? "Mostrar ícone no Dock" : "Mostrar na barra de tarefas"}
         descricao="Desligado, o FalaAi fica só na barra de menus / bandeja."
         ligado={preferencias.mostrarNoDock}
