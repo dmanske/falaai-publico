@@ -451,6 +451,10 @@ func interpretarAtalhos(_ bruto: Any?) -> (lista: [AtalhoCfg], erro: String?) {
 // MARK: - Teclado (CGEventTap)
 
 private let kVKEscape: Int64 = 53     // kVK_Escape
+/// Tecla 🌐 "Globo": ao SOLTAR o Fn, o macOS manda também keyDown/keyUp com este código
+/// (visto no Mac do Daniel em 17/10/2026). Não digita nada e não pode contar como "outra tecla"
+/// — senão cancela o toque duplo do Fn e dispara "combinado". Ignorada em toda a lógica.
+private let kVKGlobo: Int64 = 179
 private let kVKKeypadEnter: Int64 = 76
 private let kVKReturn: Int64 = 36
 private let kVKV: Int64 = 9           // kVK_ANSI_V (usado em simularCmdV)
@@ -623,10 +627,12 @@ let callbackTeclado: CGEventTapCallBack = { _, tipo, evento, _ in
     case .keyDown:
         // Evento injetado por nós (Backspace do toque duplo): passa direto, fora de toda a lógica.
         if evento.getIntegerValueField(.eventSourceUserData) == marcaInjetada { break }
+        if evento.getIntegerValueField(.keyboardEventKeycode) == kVKGlobo { break }
         if let cap = captura { return capturaTeclaDesce(cap, evento) ? nil : Unmanaged.passUnretained(evento) }
         if tratarKeyDown(evento) { return nil }
     case .keyUp:
         if evento.getIntegerValueField(.eventSourceUserData) == marcaInjetada { break }
+        if evento.getIntegerValueField(.keyboardEventKeycode) == kVKGlobo { break }
         if let cap = captura { return capturaTeclaSobe(cap, evento) ? nil : Unmanaged.passUnretained(evento) }
         if tratarKeyUp(evento) { return nil }
     default:
