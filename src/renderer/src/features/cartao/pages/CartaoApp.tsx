@@ -24,11 +24,11 @@ export function CartaoApp() {
   async function copiar() {
     if (!c) return;
     try {
-      await navigator.clipboard.writeText(c.resposta);
+      await window.ponte.sistema.copiarTexto(c.resposta);
       setCopiado(true);
       setTimeout(() => setCopiado(false), 1500);
     } catch {
-      /* sem permissão de área de transferência: o usuário ainda pode selecionar o texto */
+      /* falhou ao copiar: o usuário ainda pode selecionar o texto */
     }
   }
 

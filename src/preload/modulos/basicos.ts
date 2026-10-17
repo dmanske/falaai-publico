@@ -41,6 +41,7 @@ export const ponteSistema: PonteSistema = {
   info: () => invocar(CANAIS_SISTEMA.INFO),
   verificarAtualizacao: () => invocar(CANAIS_SISTEMA.VERIFICAR_ATUALIZACAO),
   abrirLink: (url) => invocar(CANAIS_SISTEMA.ABRIR_LINK, url),
+  copiarTexto: (texto) => invocar(CANAIS_SISTEMA.COPIAR_TEXTO, texto),
 };
 
 export const ponteAtalhos: PonteAtalhos = {

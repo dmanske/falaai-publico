@@ -8,7 +8,7 @@ export function useCopiar() {
 
   const copiar = useCallback(async (id: string, texto: string) => {
     try {
-      await navigator.clipboard.writeText(texto);
+      await window.ponte.sistema.copiarTexto(texto);
       setCopiadoId(id);
       clearTimeout(timer.current);
       timer.current = setTimeout(() => setCopiadoId(null), COPIADO_MS);
