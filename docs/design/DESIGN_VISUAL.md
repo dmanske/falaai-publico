@@ -36,9 +36,9 @@ instalado** (CSS/tema do pacote), não estimados pelo print.
 
 ## Toques próprios
 
-- Ondas azul-claro no fundo da área principal do hub (o menu lateral não tem), com duas opções na
-  preferência `fundo` (Configurações > Geral > Fundo): `"topo"` (padrão, ondas atrás do título) e
-  `"completo"` (ondas em cima e no pé da janela). Rolam com o conteúdo, não pegam cliques e no modo escuro
+- Ondas azul-claro no fundo da área principal do hub (o menu lateral não tem), com três opções na
+  preferência `fundo` (Configurações > Geral > Fundo): `"topo"` (padrão, ondas atrás do título),
+  `"completo"` (ondas em cima e no pé da janela) e `"nenhum"` (só o pontilhado). Rolam com o conteúdo, não pegam cliques e no modo escuro
   ficam bem discretas (opacidade 0,12). CSS em `.fundo-ondas-topo`, `.fundo-ondas-completo` e `.ondas-pe`
   (`estilos.css`). Substituem o antigo brilho atrás do título, que foi removido.
 - Logos das empresas (provedores de IA e transcrição) e bandeiras dos idiomas, em
@@ -46,8 +46,9 @@ instalado** (CSS/tema do pacote), não estimados pelo print.
   só invertem no modo escuro.
 - Logo do FalaAi (`assets/marca/logo.png`, já com o nome) no menu lateral e nas boas-vindas.
 - Calendário de dias ativos com células vazias **hachuradas** (`.celula-vazia`), como na referência.
-- Rodapé do menu: "Criado por Daniel Manske" e a marca da última atualização (data, hora e código
-  aleatório do build — `src/shared/build.ts`), que muda a cada build.
+- Rodapé do menu: botões de Configurações e Sobre centralizados, "Criado por Daniel Manske" e a marca
+  da última atualização (data e hora). O código aleatório do build (`src/shared/build.ts`) aparece só na
+  dica ao passar o mouse e em Configurações > Sobre.
 
 ## Boas-vindas (onboarding)
 

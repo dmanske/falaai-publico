@@ -13,8 +13,8 @@ export type FormatoAudio = "input_audio" | "file";
 
 export type Tema = "sistema" | "claro" | "escuro";
 
-/** Fundo do hub: "topo" = ondas atrás do título; "completo" = ondas em cima e embaixo. */
-export type FundoHub = "topo" | "completo";
+/** Fundo do hub: "topo" = ondas atrás do título; "completo" = ondas em cima e embaixo; "nenhum" = só o pontilhado. */
+export type FundoHub = "topo" | "completo" | "nenhum";
 
 export interface Preferencias {
   // IA (catálogo em src/shared/provedores.ts)

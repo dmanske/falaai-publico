@@ -36,7 +36,7 @@ function BotaoIcone({ ativo, titulo, onClick, children }: { ativo: boolean; titu
 }
 
 function Assinatura() {
-  const { quando, id } = atualizacaoCurta();
+  const { quando } = atualizacaoCurta();
   const iniciais = AUTOR.split(" ")
     .map((p) => p[0])
     .slice(0, 2)
@@ -55,12 +55,12 @@ function Assinatura() {
           <span className="block text-[11px] text-suave">Criador do FalaAi</span>
         </span>
       </div>
-      <div className="flex items-center justify-between px-1.5 text-[11px] text-suave" title={`Última atualização: ${descreverBuild()}`}>
+      {/* O código do build fica só na dica (passar o mouse) e em Configurações > Sobre. */}
+      <div className="flex items-center justify-center px-1.5 text-[11px] text-suave" title={`Última atualização: ${descreverBuild()}`}>
         <span className="flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-sucesso" />
           Atualizado {quando}
         </span>
-        <span className="font-mono text-[10px] text-apagado">#{id}</span>
       </div>
     </div>
   );
@@ -92,7 +92,7 @@ export function MenuLateral({ pagina, secao, onIr }: Props) {
         ))}
       </ul>
       <div style={arrastar} className="min-h-4 flex-1" />
-      <div style={semArrastar} className="flex items-center gap-1 border-t border-borda px-1 pt-3">
+      <div style={semArrastar} className="flex items-center justify-center gap-1 border-t border-borda px-1 pt-3">
         <BotaoIcone ativo={pagina === "configuracoes" && secao !== "sobre" && secao !== "atualizacoes"} titulo="Configurações" onClick={() => onIr("configuracoes")}>
           <IconeConfig />
         </BotaoIcone>

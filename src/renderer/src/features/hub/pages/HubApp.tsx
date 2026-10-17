@@ -3,12 +3,20 @@ import { ConfiguracoesPage } from "@/features/configuracoes";
 import { DicionarioPage } from "@/features/dicionario";
 import { HistoricoPage } from "@/features/historico";
 import { InicioPage } from "@/features/inicio";
+import type { FundoHub } from "@shared/ipc";
 import { MenuLateral } from "../components/MenuLateral";
 import { useFundo } from "../hooks/useFundo";
 import { useNavegacao } from "../hooks/useNavegacao";
 import { useTema } from "../hooks/useTema";
 
 const arrastar = { WebkitAppRegion: "drag" } as React.CSSProperties;
+
+/** Classe da área principal conforme Configurações > Geral > Fundo ("nenhum" = só o pontilhado). */
+const CLASSE_FUNDO: Record<FundoHub, string> = {
+  topo: "fundo-ondas-topo",
+  completo: "fundo-ondas-completo",
+  nenhum: "",
+};
 
 export function HubApp() {
   useTema();
@@ -21,7 +29,7 @@ export function HubApp() {
       <main className="relative min-w-0 flex-1">
         {/* Faixa do topo arrastável (mover a janela). */}
         <div style={arrastar} className="absolute inset-x-0 top-0 z-10 h-8" />
-        <div className={`fundo-pontilhado ${fundo === "completo" ? "fundo-ondas-completo" : "fundo-ondas-topo"} h-full overflow-y-auto`}>
+        <div className={`fundo-pontilhado ${CLASSE_FUNDO[fundo]} h-full overflow-y-auto`}>
           {/* z-[1]: o conteúdo fica sempre acima das ondas (inclusive a faixa presa no pé). */}
           <div className="relative z-[1] mx-auto min-h-full max-w-5xl px-10 pb-12 pt-12">
             {destino.pagina === "inicio" && <InicioPage />}
