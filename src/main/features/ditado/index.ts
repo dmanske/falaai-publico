@@ -13,9 +13,10 @@ import {
   GRAVACAO_MINIMA_MS,
   JANELA_FN_COMBINADO_MS,
   TOQUE_RAPIDO_MS,
+  siglaIdioma,
 } from "@shared/config";
 import type { IdAtalho } from "@shared/atalhos";
-import { CANAIS_PILULA, type AudioPilula, type ModoDitado } from "@shared/ipc";
+import { CANAIS_PILULA, type AcaoPilula, type AudioPilula, type ModoDitado } from "@shared/ipc";
 import { mostrarCartao } from "../../janelas/cartao";
 import { comandarPilula, idWebContentsPilula, mostrarEstadoPilula } from "../../janelas/pilula";
 import { observarEdicao, palavrasParaPrompt } from "../dicionario";
@@ -25,7 +26,7 @@ import type { DadosContexto } from "../ia/prompts";
 import { auxiliar } from "../nativo";
 import type { ContextoApp, EventoAuxiliar } from "../nativo/types";
 import { garantirMicrofone } from "../permissoes";
-import { lerPreferencias } from "../preferencias";
+import { lerPreferencias, salvarPreferencias } from "../preferencias";
 import { ajustarEspacoInicial, limparInicio } from "./lib/espacamento";
 
 /** Tempo máximo para a pílula devolver o áudio depois do "parar" (ms). */
@@ -52,12 +53,31 @@ let primeiroDesceuEm = 0;
 let seguros = new Set<IdAtalho>();
 let contextoSessao: Promise<ContextoApp | null> = Promise.resolve(null);
 let silenciou = false;
+/** Idioma de destino da gravação atual (modo tradução). Troca na hora com ⇧ ou clique na sigla. */
+let idiomaDestino = "en";
 let timerMaximo: NodeJS.Timeout | null = null;
 let timerPilula: NodeJS.Timeout | null = null;
 let ultimaTranscricao = "";
 const esperandoAudio = new Map<number, (a: AudioPilula) => void>();
 
 const sons = () => lerPreferencias().sons;
+
+/** Sigla do idioma para a pílula, só no modo tradução. */
+const siglaAtual = (m: ModoDitado) => (m === "traducao" ? siglaIdioma(idiomaDestino) : null);
+
+function mostrarGravando(): void {
+  mostrarEstadoPilula({ estado: "gravando", modo, maosLivres, idioma: siglaAtual(modo) });
+}
+
+/** Passa para o próximo idioma favorito da tradução e lembra a escolha para a próxima vez. */
+function proximoIdioma(): void {
+  if (estado !== "gravando" || modo !== "traducao") return;
+  const favoritos = lerPreferencias().idiomasTraducao;
+  if (favoritos.length < 2) return;
+  idiomaDestino = favoritos[(favoritos.indexOf(idiomaDestino) + 1) % favoritos.length];
+  salvarPreferencias({ idiomaTraducao: idiomaDestino });
+  mostrarGravando();
+}
 
 /**
  * Modo de teste (só com FALAAI_TESTE=1 no ambiente): os atalhos podem ser simulados pelo inspetor,
@@ -118,7 +138,8 @@ async function iniciar(novoModo: ModoDitado, atalho: IdAtalho): Promise<void> {
   seguros = new Set([atalho]);
   const minhaSessao = ++sessao;
   if (timerPilula) clearTimeout(timerPilula);
-  mostrarEstadoPilula({ estado: "gravando", modo, maosLivres: false });
+  idiomaDestino = lerPreferencias().idiomaTraducao;
+  mostrarGravando();
 
   // Contexto lido já no início: o campo e a seleção ainda são os do usuário.
   contextoSessao = MODO_TESTE
@@ -185,7 +206,7 @@ async function parar(): Promise<void> {
   const minhaSessao = sessao;
   const meuModo = modo;
   await dessilenciar(); // antes do bipe de fim
-  mostrarEstadoPilula({ estado: "processando", modo: meuModo });
+  mostrarEstadoPilula({ estado: "processando", modo: meuModo, idioma: siglaAtual(meuModo) });
   const promessa = esperarAudio(minhaSessao);
   comandarPilula({ acao: "parar", sessao: minhaSessao, sons: sons() });
   const audio = await promessa;
@@ -210,7 +231,7 @@ async function parar(): Promise<void> {
     wav,
   };
 
-  const r = await executarModo({ wav, modo: meuModo, contexto: dadosDoContexto(ctx), selecionado });
+  const r = await executarModo({ wav, modo: meuModo, contexto: dadosDoContexto(ctx), selecionado, idiomaDestino });
   if (sessao !== minhaSessao) return; // cancelado (✕/Esc) enquanto a IA respondia
   if (!r.ok) {
     registrarDitado({ ...base, texto: "", status: "erro", erro: r.erro });
@@ -271,7 +292,10 @@ function aoAtalho(id: IdAtalho, desceu: boolean): void {
       else if (modoDoAtalho !== modo) {
         // Ex.: segurando Fn (ditado) e apertou Espaço → vira "pergunte".
         modo = modoDoAtalho;
-        mostrarEstadoPilula({ estado: "gravando", modo, maosLivres });
+        mostrarGravando();
+      } else if (modo === "traducao") {
+        // Já traduzindo e apertou ⇧ de novo (ainda segurando Fn): próximo idioma favorito.
+        proximoIdioma();
       }
     }
     return;
@@ -281,7 +305,7 @@ function aoAtalho(id: IdAtalho, desceu: boolean): void {
   if (estado !== "gravando" || maosLivres || seguros.size > 0) return;
   if (agora - primeiroDesceuEm < TOQUE_RAPIDO_MS) {
     maosLivres = true;
-    mostrarEstadoPilula({ estado: "gravando", modo, maosLivres: true });
+    mostrarGravando();
   } else {
     void parar();
   }
@@ -316,9 +340,10 @@ export function iniciarDitado(): void {
     esperandoAudio.get(a.sessao)?.(a);
     esperandoAudio.delete(a.sessao);
   });
-  ipcMain.on(CANAIS_PILULA.ACAO, (e, acao: "confirmar" | "cancelar") => {
+  ipcMain.on(CANAIS_PILULA.ACAO, (e, acao: AcaoPilula) => {
     if (e.sender.id !== idWebContentsPilula()) return;
     if (acao === "confirmar") void parar();
+    else if (acao === "proximo-idioma") proximoIdioma();
     else cancelar();
   });
 }

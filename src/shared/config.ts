@@ -44,6 +44,14 @@ export const JANELA_FN_COMBINADO_MS = 800;
 export const TAXA_AMOSTRAGEM = 16_000;
 /** Por quanto tempo a pílula mostra uma mensagem de erro (ms). */
 export const ERRO_PILULA_MS = 3500;
+/** Quantos idiomas favoritos a tradução pode ter para trocar na hora. */
+export const MAX_IDIOMAS_TRADUCAO = 4;
+
+/** Sigla curta mostrada na pílula ("pt-BR" → "PT", "en" → "EN"). */
+export function siglaIdioma(codigo: string): string {
+  return codigo.split("-")[0].toUpperCase();
+}
+
 /** Sons de início/fim do ditado (item 10 do PRD). Volume de 0 a 1. */
 export const VOLUME_SONS = 0.12;
 

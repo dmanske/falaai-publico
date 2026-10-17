@@ -24,6 +24,8 @@ export interface PedidoModo {
   contexto: DadosContexto;
   /** Texto selecionado no app (modo pergunte). Vazio = sem seleção. */
   selecionado: string;
+  /** Modo tradução: idioma de destino escolhido na hora (se omitido, o das preferências). */
+  idiomaDestino?: string;
 }
 
 export type ResultadoModo =
@@ -52,7 +54,7 @@ export async function executarModo(p: PedidoModo): Promise<ResultadoModo> {
   let sistema: string;
   let instrucao: string;
   if (p.modo === "traducao") {
-    sistema = promptTraducao(prefs.idiomaTraducao) + blocoContexto({ ...p.contexto, antes: "", depois: "" });
+    sistema = promptTraducao(p.idiomaDestino ?? prefs.idiomaTraducao) + blocoContexto({ ...p.contexto, antes: "", depois: "" });
     instrucao = "Traduza este áudio.";
   } else if (comSelecao) {
     sistema = PROMPT_COMANDO_SELECAO + blocoContexto({ ...p.contexto, antes: "", depois: "" });

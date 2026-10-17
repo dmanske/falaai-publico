@@ -25,8 +25,13 @@ export interface Preferencias {
   sons: boolean;
   /** Idiomas que o usuário fala (BCP-47, ex.: ["pt-BR", "en"]). Vazio = detectar sozinho. */
   idiomas: string[];
-  /** Idioma de destino do modo tradução (ex.: "en"). */
+  /** Idioma de destino do modo tradução agora (ex.: "en"). Lembra o último usado. */
   idiomaTraducao: string;
+  /**
+   * Idiomas favoritos da tradução, na ordem (até MAX_IDIOMAS_TRADUCAO). Durante a gravação, cada
+   * toque em ⇧ (segurando Fn) ou clique na sigla da pílula passa para o próximo.
+   */
+  idiomasTraducao: string[];
   /** deviceId do microfone escolhido; null = o padrão do sistema. Se sumir, cai no padrão. */
   microfoneId: string | null;
   /** Silenciar o som do computador (música, vídeo) enquanto grava. */

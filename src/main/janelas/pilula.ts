@@ -7,7 +7,12 @@ import { join } from "node:path";
 import { CANAIS_PILULA, type ComandoPilula, type EstadoPilula } from "@shared/ipc";
 
 /** Tamanho da janela por estado (px). A pílula ocupa a janela inteira. */
-const TAMANHO = { normal: { largura: 168, altura: 44 }, erro: { largura: 340, altura: 44 } };
+const TAMANHO = {
+  normal: { largura: 168, altura: 44 },
+  /** Modo tradução: cabe a sigla do idioma (ex.: "EN") ao lado da onda. */
+  traducao: { largura: 206, altura: 44 },
+  erro: { largura: 340, altura: 44 },
+};
 /** Distância da pílula até a borda de baixo da área útil da tela (px). */
 const MARGEM_INFERIOR = 72;
 
@@ -81,7 +86,9 @@ export function mostrarEstadoPilula(estado: EstadoPilula): void {
     janela.hide();
     return;
   }
-  posicionar(estado.estado === "erro" || estado.estado === "aviso" ? TAMANHO.erro : TAMANHO.normal);
+  const tamanho =
+    estado.estado === "erro" || estado.estado === "aviso" ? TAMANHO.erro : estado.idioma ? TAMANHO.traducao : TAMANHO.normal;
+  posicionar(tamanho);
   if (!janela.isVisible()) janela.showInactive();
 }
 

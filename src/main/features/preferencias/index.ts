@@ -15,6 +15,7 @@ const PADRAO: Preferencias = {
   sons: true,
   idiomas: ["pt-BR", "en"],
   idiomaTraducao: "en",
+  idiomasTraducao: ["en", "es"],
   microfoneId: null,
   silenciarFundo: false,
   atalhos: atalhosPadrao(process.platform),
@@ -32,7 +33,11 @@ const eventos = new EventEmitter<{ mudou: [nova: Preferencias, anterior: Prefere
 export function lerPreferencias(): Preferencias {
   const lidas = lerJson(ARQUIVO, PADRAO);
   // Atalhos salvos parcialmente (versão antiga) completam com o padrão.
-  return { ...lidas, atalhos: { ...PADRAO.atalhos, ...lidas.atalhos } };
+  const prefs = { ...lidas, atalhos: { ...PADRAO.atalhos, ...lidas.atalhos } };
+  // O destino atual sempre faz parte dos favoritos (e a lista nunca fica vazia).
+  const favoritos = prefs.idiomasTraducao?.length ? prefs.idiomasTraducao : [prefs.idiomaTraducao];
+  prefs.idiomasTraducao = favoritos.includes(prefs.idiomaTraducao) ? favoritos : [prefs.idiomaTraducao, ...favoritos];
+  return prefs;
 }
 
 export function salvarPreferencias(parcial: Partial<Preferencias>): Preferencias {

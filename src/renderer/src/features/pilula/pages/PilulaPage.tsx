@@ -21,6 +21,21 @@ function Pontos() {
   );
 }
 
+/** Idioma de destino da tradução; clicar (ou ⇧ segurando Fn) passa para o próximo favorito. */
+function SiglaIdioma({ sigla, trocavel }: { sigla: string; trocavel: boolean }) {
+  return (
+    <button
+      type="button"
+      title={trocavel ? "Trocar o idioma (ou aperte ⇧ segurando Fn)" : undefined}
+      disabled={!trocavel}
+      onClick={() => apiPilula.acao("proximo-idioma")}
+      className="shrink-0 rounded-md bg-white/12 px-1.5 py-0.5 font-titulo text-[11px] font-semibold tracking-wider text-[#6fe0a6] hover:bg-white/20 disabled:hover:bg-white/12"
+    >
+      {sigla}
+    </button>
+  );
+}
+
 function BotaoCancelar() {
   return (
     <button
@@ -68,6 +83,7 @@ export function PilulaPage() {
   return (
     <div className="flex h-screen w-screen items-center justify-between rounded-full bg-neutral-950 px-1.5" title={NOME_MODO[estado.modo]}>
       <BotaoCancelar />
+      {estado.idioma && <SiglaIdioma sigla={estado.idioma} trocavel={estado.estado === "gravando"} />}
       {estado.estado === "gravando" ? <Onda nivel={nivel} cor={COR_MODO[estado.modo]} /> : <Pontos />}
       <BotaoConfirmar ativo={estado.estado === "gravando"} />
     </div>

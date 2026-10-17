@@ -5,7 +5,7 @@ export const CANAIS_PILULA = {
   ESTADO: "pilula:estado",
   /** pílula → main: gravação terminada (WAV) ou falha. */
   AUDIO: "pilula:audio",
-  /** pílula → main: clique no ✓ (terminar e colar) ou no ✕ (cancelar). */
+  /** pílula → main: clique no ✓ (terminar e colar), no ✕ (cancelar) ou na sigla do idioma. */
   ACAO: "pilula:acao",
 } as const;
 
@@ -18,11 +18,14 @@ export type ComandoPilula =
 
 export type EstadoPilula =
   | { estado: "oculta" }
-  | { estado: "gravando"; modo: ModoDitado; maosLivres: boolean }
-  | { estado: "processando"; modo: ModoDitado }
+  /** `idioma`: sigla do destino no modo tradução (ex.: "EN"); null nos outros modos. */
+  | { estado: "gravando"; modo: ModoDitado; maosLivres: boolean; idioma: string | null }
+  | { estado: "processando"; modo: ModoDitado; idioma: string | null }
   | { estado: "erro"; mensagem: string }
   /** Aviso curto e neutro (ex.: "Palavra adicionada ao dicionário: Lovable"). */
   | { estado: "aviso"; mensagem: string };
+
+export type AcaoPilula = "confirmar" | "cancelar" | "proximo-idioma";
 
 export type AudioPilula =
   | { sessao: number; ok: true; wav: ArrayBuffer; duracaoMs: number }
@@ -33,5 +36,5 @@ export interface PontePilula {
   aoComando(cb: (c: ComandoPilula) => void): () => void;
   aoEstado(cb: (e: EstadoPilula) => void): () => void;
   enviarAudio(a: AudioPilula): void;
-  acao(acao: "confirmar" | "cancelar"): void;
+  acao(acao: AcaoPilula): void;
 }
