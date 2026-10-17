@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
 import { CANAIS_HISTORICO, type FiltroHistorico, type ItemHistorico } from "@shared/ipc";
 import { banco } from "../../lib/banco";
+import { ajustarReprocessamento } from "../estatisticas/lib/totais";
 import { transcreverERefinar } from "../ia/transcrever";
 import { avisarMudanca } from "./index";
 import { apagarAudio, lerAudio } from "./lib/audios";
@@ -57,6 +58,16 @@ async function reprocessar(id: string): Promise<ItemHistorico> {
   if (!r.ok) throw new Error(r.erro);
   const palavras = contarPalavras(r.texto);
   banco().prepare("UPDATE historico SET texto = ?, palavras = ?, status = 'ok', erro = NULL WHERE id = ?").run(r.texto, palavras, id);
+  // Ajusta a diferença de palavras nos totais permanentes (falha não impede o reprocessamento).
+  try {
+    ajustarReprocessamento(
+      banco(),
+      { criadoEm: linha.criado_em, modo: linha.modo, palavras: linha.palavras, duracaoMs: linha.duracao_ms, app: linha.app, status: linha.status },
+      palavras,
+    );
+  } catch (e) {
+    console.error("[estatisticas] falha ao ajustar os totais no reprocessamento", e);
+  }
   const item = linhaParaItem({ ...linha, texto: r.texto, palavras, status: "ok", erro: null });
   avisarMudanca(item);
   return item;

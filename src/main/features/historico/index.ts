@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { BrowserWindow } from "electron";
 import { CANAIS_HISTORICO, type ItemHistorico, type ModoDitado } from "@shared/ipc";
 import { banco, migrar } from "../../lib/banco";
+import { somarDitado } from "../estatisticas/lib/totais";
 import { aoMudarPreferencias, lerPreferencias } from "../preferencias";
 import { apagarAudio, gravarAudio } from "./lib/audios";
 import { contarPalavras } from "./lib/contarPalavras";
@@ -113,6 +114,20 @@ export function registrarDitado(d: NovoDitado): ItemHistorico | null {
          VALUES (:id, :criado_em, :modo, :texto, :texto_selecionado, :duracao_ms, :palavras, :app, :app_id, :url, :status, :erro, :audio_arquivo)`,
       )
       .run({ ...linha });
+    // Totais permanentes das estatísticas: falha aqui não pode impedir o ditado de ser salvo.
+    if (linha.status === "ok") {
+      try {
+        somarDitado(banco(), {
+          criadoEm: linha.criado_em,
+          modo: linha.modo,
+          palavras: linha.palavras,
+          duracaoMs: linha.duracao_ms,
+          app: linha.app,
+        });
+      } catch (e) {
+        console.error("[estatisticas] falha ao somar o ditado nos totais", e);
+      }
+    }
     const item = linhaParaItem(linha);
     avisarMudanca(item);
     return item;

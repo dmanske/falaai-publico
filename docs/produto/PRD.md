@@ -60,6 +60,7 @@ depois (itens com "—" e 33 em diante). Ficam de fora: veja "Fora do escopo".
 | 20 | Guardar o áudio para reprocessar | F3 | ✅ pronto |
 | 21 | Limpeza automática do histórico | F3 | construído |
 | 22 | Estatísticas (palavras, tempo economizado, ppm) | F3 | ✅ pronto (testado) |
+| 22b | Estatísticas permanentes: apagar o histórico não zera os números (tabela `estatisticas_dia`, ver modulos/estatisticas.md) | F3 | construído, testado só com banco em memória |
 | 22a | Números do Início sobem contando (animação como no Typeless) | F3 | construído, conferir no app |
 | 23 | Insights (gráficos por app e por dia) | F3 | ✅ pronto (calendário e apps mais usados) |
 | 24 | Configurações gerais: abrir com o sistema, **iniciar só na barra de menus** (padrão; a janela não abre sozinha), Dock, tema claro/escuro/sistema com botão de troca rápida no menu, fundo (ondas no topo, completo ou nenhum) | F3 | construído |

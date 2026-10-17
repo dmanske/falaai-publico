@@ -14,7 +14,7 @@ export function ApagarTudo({ desativado, aoConfirmar }: { desativado: boolean; a
   }
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-suave">Apagar todo o histórico e os áudios?</span>
+      <span className="text-sm text-suave">Apagar todo o histórico e os áudios? Os números do Início continuam.</span>
       <Botao
         variante="perigo"
         onClick={() => {

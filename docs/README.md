@@ -26,6 +26,7 @@ Versão 1.0.0 (17/10/2026). Repositório privado `dmanske/falaai-oficial`; cópi
 | [modulos/configuracoes-ia.md](modulos/configuracoes-ia.md) | Provedores de IA, chaves, modelos, serviços de transcrição e teste da chave |
 | [modulos/formatacao-ditado.md](modulos/formatacao-ditado.md) | Pausas, fala rápida, listas e tópicos: ritmo medido no Mac e regras do prompt |
 | [modulos/envio-automatico.md](modulos/envio-automatico.md) | Enter automático depois do ditado, por voz ou por app |
+| [modulos/estatisticas.md](modulos/estatisticas.md) | Números do Início permanentes: tabela de totais por dia e app, que apagar histórico não zera |
 | [modulos/pilula-estilos.md](modulos/pilula-estilos.md) | Estilos da pílula, clubes de futebol e tema do app com as cores do clube |
 
 ## Integrações e operação

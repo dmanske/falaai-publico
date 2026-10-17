@@ -9,6 +9,7 @@ import { iniciarDitado } from "./features/ditado";
 import { registrarIpcAtalhos } from "./features/ditado/atalhosIpc";
 import { manterTecladoAtivo } from "./features/ditado/teclado";
 import { registrarIpcEstatisticas } from "./features/estatisticas/ipc";
+import { iniciarEstatisticas } from "./features/estatisticas";
 import { iniciarHistorico } from "./features/historico";
 import { registrarIpcHistorico } from "./features/historico/ipc";
 import { registrarIpcIa } from "./features/ia/ipc";
@@ -40,6 +41,7 @@ if (!app.requestSingleInstanceLock()) {
 
     // Dados
     iniciarHistorico();
+    iniciarEstatisticas();
     iniciarDicionario();
 
     // IPC
