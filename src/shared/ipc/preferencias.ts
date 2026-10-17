@@ -1,4 +1,5 @@
 import type { Atalho, IdAtalho } from "../atalhos";
+import type { IdProvedor, IdTranscricao } from "../provedores";
 
 export const CANAIS_PREFERENCIAS = {
   LER: "preferencias:ler",
@@ -13,8 +14,17 @@ export type FormatoAudio = "input_audio" | "file";
 export type Tema = "sistema" | "claro" | "escuro";
 
 export interface Preferencias {
-  // IA
+  // IA (catálogo em src/shared/provedores.ts)
+  /** Quem limpa o texto (e, se ouve áudio, também transcreve). */
+  provedor: IdProvedor;
+  /** Modelo escolhido em cada provedor (lembra a escolha ao trocar de provedor). */
+  modeloPorProvedor: Partial<Record<IdProvedor, string>>;
+  /** Modelo do provedor atual (= modeloPorProvedor[provedor]; mantido por compatibilidade). */
   modelo: string;
+  /** Serviço de transcrição quando o modelo não ouve áudio; null = ainda não escolhido. */
+  transcricao: IdTranscricao | null;
+  /** Modelo escolhido em cada serviço de transcrição. */
+  modeloPorTranscricao: Partial<Record<IdTranscricao, string>>;
   /** null = ainda não testado. */
   formatoAudio: FormatoAudio | null;
   /** Mandar o contexto do app em foco (nome, janela, texto ao redor do cursor) para a IA. */
@@ -37,6 +47,12 @@ export interface Preferencias {
   /** Silenciar o som do computador (música, vídeo) enquanto grava. */
   silenciarFundo: boolean;
   atalhos: Record<IdAtalho, Atalho>;
+
+  // Envio automático (Enter depois de colar)
+  /** Apps (appId: bundle id no Mac / exe no Windows) onde o FalaAi aperta Enter sozinho depois de colar. */
+  enviarNosApps: string[];
+  /** Terminar a fala com o comando "enviar"/"manda" aperta Enter naquela vez (em qualquer app). */
+  enviarPorVoz: boolean;
 
   // Dicionário e histórico
   /** Observar correções feitas logo após colar e adicionar as palavras ao dicionário. */

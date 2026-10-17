@@ -1,4 +1,5 @@
-// Tipos do módulo de IA (chamadas ao gateway da Lovable).
+// Tipos do módulo de IA (chat com os provedores, transcrição e lista do OpenRouter).
+import type { IdProvedor } from "@shared/provedores";
 
 export type ParteConteudo =
   | { type: "text"; text: string }
@@ -11,6 +12,8 @@ export interface MensagemChat {
 }
 
 export interface PedidoChat {
+  /** Quem recebe o pedido (define URL, formato e nome nas mensagens de erro). */
+  provedor: IdProvedor;
   chave: string;
   modelo: string;
   mensagens: MensagemChat[];

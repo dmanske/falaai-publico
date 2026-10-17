@@ -30,6 +30,7 @@ Todo comando tem `id` (número) e `cmd`. A resposta sempre traz o mesmo `id` e `
 | `desmutar_saida` | — | — | só desfaz se foi o `mutar_saida` que silenciou |
 | `capturar_atalho` | — | `teclas: string[]` | ver "Captura de atalho"; responde só quando a captura termina (até 10 s) |
 | `cancelar_captura` | — | — | encerra uma captura em andamento (a resposta dela vem com `ok:false`, erro "Captura cancelada.") |
+| `apertar_enter` | — | — | v3.1: aperta Enter no app em foco (envio automático depois de colar); evento marcado, o detector de atalhos o ignora |
 | `sair` | — | — | restaura pendências e encerra |
 
 ### Resposta de `contexto`

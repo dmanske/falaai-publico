@@ -1,10 +1,12 @@
+import type { NomeChave } from "../provedores";
+
+export type { NomeChave };
+
 export const CANAIS_CHAVES = {
   STATUS: "chaves:status",
   SALVAR: "chaves:salvar",
   APAGAR: "chaves:apagar",
 } as const;
-
-export type NomeChave = "lovable";
 
 /** O que a tela pode saber de uma chave: nunca o valor inteiro. */
 export interface StatusChave {

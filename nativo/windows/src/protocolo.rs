@@ -18,6 +18,8 @@ pub enum Comando {
     PararTeclado,
     ConfigurarAtalhos(Vec<Atalho>),
     Colar(String),
+    /// v3.1: aperta Enter no app em foco (envio automático depois de colar).
+    ApertarEnter,
     Contexto,
     LerCampo,
     MutarSaida,
@@ -118,6 +120,7 @@ pub fn interpretar(linha: &str) -> Result<(Value, Comando), (Value, String)> {
             Some(t) => Comando::Colar(t.to_string()),
             None => return Err((id, "Campo 'texto' ausente.".into())),
         },
+        "apertar_enter" => Comando::ApertarEnter,
         "contexto" => Comando::Contexto,
         "ler_campo" => Comando::LerCampo,
         "mutar_saida" => Comando::MutarSaida,
@@ -187,6 +190,7 @@ mod testes {
         assert!(matches!(c, Comando::Permissoes { pedir: true }));
         assert!(matches!(interpretar(r#"{"id":1,"cmd":"sair"}"#).unwrap().1, Comando::Sair));
         assert!(matches!(interpretar(r#"{"id":1,"cmd":"mutar_saida"}"#).unwrap().1, Comando::MutarSaida));
+        assert!(matches!(interpretar(r#"{"id":1,"cmd":"apertar_enter"}"#).unwrap().1, Comando::ApertarEnter));
     }
 
     #[test]

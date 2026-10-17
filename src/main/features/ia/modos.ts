@@ -1,22 +1,22 @@
-// Executa um modo do ditado com uma chamada à IA:
+// Executa um modo do ditado (1 chamada com áudio, ou transcrição + limpeza; ver motor.ts):
 //  - ditado: transcreve e limpa (PROMPT_DITADO + contexto);
 //  - traducao: transcreve e traduz para o idioma escolhido;
 //  - pergunte com seleção: aplica a instrução falada ao texto selecionado;
 //  - pergunte sem seleção: responde a pergunta (vai para o cartão).
 import type { ModoDitado } from "@shared/ipc";
-import { lerChave } from "../chaves";
 import { lerPreferencias } from "../preferencias";
-import { chamarLovable } from "./api/lovable";
+import { executarPedidoIa } from "./motor";
 import {
   blocoContexto,
   MARCA_SEM_FALA,
   PROMPT_COMANDO_SELECAO,
   PROMPT_DITADO,
+  mensagemTranscricao,
   PROMPT_PERGUNTA,
   promptTraducao,
   type DadosContexto,
 } from "./prompts";
-import { limparResposta, parteAudio } from "./transcrever";
+import { limparResposta } from "./audio";
 
 export interface PedidoModo {
   wav: Buffer;
@@ -46,43 +46,38 @@ export function lerRespostaPergunta(bruto: string): { pergunta: string; resposta
 }
 
 export async function executarModo(p: PedidoModo): Promise<ResultadoModo> {
-  const chave = lerChave("lovable");
-  if (!chave) return { ok: false, erro: "Sem chave da Lovable. Abra as Configurações.", ms: 0 };
   const prefs = lerPreferencias();
 
   const comSelecao = p.modo === "pergunte" && p.selecionado.trim() !== "";
   let sistema: string;
-  let instrucao: string;
+  let instrucaoAudio: string;
+  let instrucaoTexto: (transcricao: string) => string = mensagemTranscricao;
   if (p.modo === "traducao") {
     sistema = promptTraducao(p.idiomaDestino ?? prefs.idiomaTraducao) + blocoContexto({ ...p.contexto, antes: "", depois: "" });
-    instrucao = "Traduza este áudio.";
+    instrucaoAudio = "Traduza este áudio.";
   } else if (comSelecao) {
     sistema = PROMPT_COMANDO_SELECAO + blocoContexto({ ...p.contexto, antes: "", depois: "" });
-    instrucao = `TEXTO SELECIONADO:\n«${p.selecionado}»\n\nA instrução está no áudio.`;
+    instrucaoAudio = `TEXTO SELECIONADO:\n«${p.selecionado}»\n\nA instrução está no áudio.`;
+    instrucaoTexto = (t) => `TEXTO SELECIONADO:\n«${p.selecionado}»\n\nA instrução está na transcrição abaixo.\n\n${mensagemTranscricao(t)}`;
   } else if (p.modo === "pergunte") {
     sistema = PROMPT_PERGUNTA + blocoContexto({ ...p.contexto, antes: "", depois: "", dicionario: p.contexto.dicionario });
-    instrucao = "Responda à pergunta deste áudio.";
+    instrucaoAudio = "Responda à pergunta deste áudio.";
   } else {
     sistema = PROMPT_DITADO + blocoContexto(p.contexto);
-    instrucao = "Transcreva e limpe este ditado.";
+    instrucaoAudio = "Transcreva e limpe este ditado.";
   }
 
-  const r = await chamarLovable({
-    chave,
-    modelo: prefs.modelo,
-    mensagens: [
-      { role: "system", content: sistema },
-      {
-        role: "user",
-        content: [
-          { type: "text", text: instrucao },
-          parteAudio(prefs.formatoAudio ?? "input_audio", p.wav.toString("base64")),
-        ],
-      },
-    ],
+  const r = await executarPedidoIa({
+    sistema,
+    instrucaoAudio,
+    instrucaoTexto,
+    wav: p.wav,
+    idiomas: p.contexto.idiomas,
+    termos: p.contexto.dicionario,
   });
   if (!r.ok) return { ok: false, erro: r.erro, ms: r.ms };
-  if (r.texto.trim() === MARCA_SEM_FALA) return { ok: true, acao: "colar", texto: "", ms: r.ms };
+  // Transcrição vazia ou "<vazio>": o ditado mostra "Não entendi nenhuma fala".
+  if (r.semFala || r.texto.trim() === MARCA_SEM_FALA) return { ok: true, acao: "colar", texto: "", ms: r.ms };
 
   if (p.modo === "pergunte" && !comSelecao) {
     const { pergunta, resposta } = lerRespostaPergunta(r.texto);

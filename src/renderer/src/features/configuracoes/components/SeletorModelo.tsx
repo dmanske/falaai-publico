@@ -1,37 +1,29 @@
-import { useEffect, useState } from "react";
-import { MODELOS_IA } from "@shared/config";
+import { useState } from "react";
+import type { ModeloCatalogo } from "@shared/provedores";
 import { CampoTexto } from "@/components/ui";
 import { Seletor } from "./Seletor";
 
 const OUTRO = "__outro__";
 
 interface Props {
+  rotulo: string;
+  modelos: ModeloCatalogo[];
   modelo: string;
   onMudar(modelo: string): void;
+  placeholderOutro?: string;
 }
 
-/** Lista dos modelos recomendados + opção de digitar outro id do gateway da Lovable. */
-export function SeletorModelo({ modelo, onMudar }: Props) {
-  const conhecido = MODELOS_IA.some((m) => m.id === modelo);
-  const [digitado, setDigitado] = useState(conhecido ? "" : modelo);
+/** Lista do catálogo (nome + "recomendado") + "Outro (digitar id)". Use `key` para reiniciar ao trocar de provedor. */
+export function SeletorModelo({ rotulo, modelos, modelo, onMudar, placeholderOutro = "id do modelo" }: Props) {
+  const conhecido = modelos.some((m) => m.id === modelo);
   const [outro, setOutro] = useState(!conhecido);
-
-  useEffect(() => {
-    if (!MODELOS_IA.some((m) => m.id === modelo)) {
-      setOutro(true);
-      setDigitado(modelo);
-    }
-  }, [modelo]);
-
-  const atual = MODELOS_IA.find((m) => m.id === modelo);
+  const [digitado, setDigitado] = useState(conhecido ? "" : modelo);
+  const atual = modelos.find((m) => m.id === modelo);
 
   return (
-    <div className="space-y-2 py-3">
-      <label className="block text-sm font-medium" htmlFor="modelo">
-        Modelo de IA
-      </label>
+    <div className="space-y-2">
+      <label className="block text-sm font-medium">{rotulo}</label>
       <Seletor
-        id="modelo"
         className="w-full"
         value={outro ? OUTRO : modelo}
         onChange={(e) => {
@@ -42,21 +34,22 @@ export function SeletorModelo({ modelo, onMudar }: Props) {
           }
         }}
       >
-        {MODELOS_IA.map((m) => (
+        {modelos.map((m) => (
           <option key={m.id} value={m.id}>
             {m.nome}
             {m.recomendado ? " (recomendado)" : ""}
           </option>
         ))}
-        <option value={OUTRO}>Outro (digitar o id)…</option>
+        <option value={OUTRO}>Outro (digitar id)…</option>
       </Seletor>
       {outro ? (
         <CampoTexto
           spellCheck={false}
-          placeholder="ex.: google/gemini-3-flash-preview"
+          placeholder={placeholderOutro}
           value={digitado}
           onChange={(e) => setDigitado(e.target.value)}
-          onBlur={() => digitado.trim() && onMudar(digitado.trim())}
+          onBlur={() => digitado.trim() && digitado.trim() !== modelo && onMudar(digitado.trim())}
+          onKeyDown={(e) => e.key === "Enter" && digitado.trim() && onMudar(digitado.trim())}
           className="font-mono"
         />
       ) : (

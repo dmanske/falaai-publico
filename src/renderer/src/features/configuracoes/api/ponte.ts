@@ -6,3 +6,4 @@ export const apiPermissoes = window.ponte.permissoes;
 export const apiSistema = window.ponte.sistema;
 export const plataforma = window.ponte.plataforma;
 export const apiAtalhos = window.ponte.atalhos;
+export const apiHistorico = window.ponte.historico;

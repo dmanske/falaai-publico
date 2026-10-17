@@ -19,11 +19,13 @@ function Linha({ titulo, etapa }: { titulo: string; etapa: ResultadoEtapa }) {
   );
 }
 
+/** Etapas do teste: texto, transcrição (só se o modelo não ouve áudio) e o caminho completo com áudio. */
 export function ResultadoTeste({ resultado }: { resultado: ResultadoTesteIa }) {
   return (
     <div className="space-y-2">
       <Linha titulo="Texto" etapa={resultado.texto} />
-      {resultado.audio && <Linha titulo="Áudio (transcrição da amostra)" etapa={resultado.audio} />}
+      {resultado.transcricao && <Linha titulo="Transcrição da amostra" etapa={resultado.transcricao} />}
+      {resultado.audio && <Linha titulo="Ditado completo (áudio → texto final)" etapa={resultado.audio} />}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 // Processo principal: ciclo de vida do app, registro do IPC, bandeja e janelas.
-import { app } from "electron";
+import { app, nativeImage } from "electron";
 import { NOME_APP } from "@shared/config";
 import { criarBandeja } from "./bandeja";
 import { registrarIpcChaves } from "./features/chaves/ipc";
@@ -23,6 +23,7 @@ import { abrirConfiguracoes } from "./janelas/configuracoes";
 import { abrirOnboarding, registrarIpcOnboarding } from "./janelas/onboarding";
 import { criarPilula } from "./janelas/pilula";
 import { fecharBanco } from "./lib/banco";
+import { caminhoRecurso } from "./lib/recursos";
 
 app.setName(NOME_APP);
 
@@ -33,6 +34,10 @@ if (!app.requestSingleInstanceLock()) {
   app.on("second-instance", () => abrirConfiguracoes());
 
   void app.whenReady().then(() => {
+    // Em desenvolvimento o Dock mostraria o ícone do Electron: usa o do FalaAi (o app instalado já
+    // traz o ícone em build/icon.png).
+    if (process.platform === "darwin" && !app.isPackaged) app.dock?.setIcon(nativeImage.createFromPath(caminhoRecurso("icone-app.png")));
+
     // Dados
     iniciarHistorico();
     iniciarDicionario();

@@ -42,6 +42,13 @@ instalado** (CSS/tema do pacote), não estimados pelo print.
 - Rodapé do menu: "Criado por Daniel Manske" e a marca da última atualização (data, hora e código
   aleatório do build — `src/shared/build.ts`), que muda a cada build.
 
+## Ícone do app
+
+Gerado por `scripts/gerar-icone-app.swift`: quadrado arredondado branco com balão de fala preto
+brilhante e 5 barras de onda (a do meio em azul `#1F5DF2`). Saídas: `build/icon.png` (1024, para o
+instalador), `resources/icone-app.png` (512, Dock em dev e janela) e os ícones de bandeja *template*.
+No menu lateral o mesmo símbolo é o SVG `IconeMarca` (`features/hub/components/Icones.tsx`).
+
 ## Componentes comuns (src/renderer/src/components/ui/index.tsx)
 
 `TituloPagina`, `TituloSecao`, `Cartao`, `Numero`, `Botao` (primario/destaque/secundario/fantasma/perigo),

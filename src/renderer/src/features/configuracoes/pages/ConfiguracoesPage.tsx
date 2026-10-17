@@ -4,6 +4,7 @@ import { TituloPagina } from "@/components/ui";
 import { SecaoAtalhos } from "../components/secoes/SecaoAtalhos";
 import { SecaoAudio } from "../components/secoes/SecaoAudio";
 import { SecaoDados } from "../components/secoes/SecaoDados";
+import { SecaoEnvio } from "../components/secoes/SecaoEnvio";
 import { SecaoGeral } from "../components/secoes/SecaoGeral";
 import { SecaoIa } from "../components/secoes/SecaoIa";
 import { SecaoIdiomas } from "../components/secoes/SecaoIdiomas";
@@ -15,6 +16,7 @@ import type { SecaoConfig } from "../types";
 const SECOES: { id: SecaoConfig; rotulo: string }[] = [
   { id: "geral", rotulo: "Geral" },
   { id: "atalhos", rotulo: "Atalhos" },
+  { id: "envio", rotulo: "Envio automático" },
   { id: "idiomas", rotulo: "Idiomas" },
   { id: "audio", rotulo: "Áudio" },
   { id: "dados", rotulo: "Dados e privacidade" },
@@ -69,6 +71,7 @@ export function ConfiguracoesPage({ secaoInicial = null }: { secaoInicial?: stri
           {secao === "permissoes" && <SecaoPermissoes />}
           {props && secao === "geral" && <SecaoGeral {...props} />}
           {props && secao === "atalhos" && <SecaoAtalhos {...props} />}
+          {props && secao === "envio" && <SecaoEnvio {...props} />}
           {props && secao === "idiomas" && <SecaoIdiomas {...props} />}
           {props && secao === "audio" && <SecaoAudio {...props} />}
           {props && secao === "dados" && <SecaoDados {...props} />}

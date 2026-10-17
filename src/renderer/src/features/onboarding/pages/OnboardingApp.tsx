@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { Botao } from "@/components/ui";
-import { PassoAtalho, PassoBoasVindas, PassoChave, PassoMicrofone, PassoPermissoes, PassoPronto } from "../components/Passos";
+import { PassoAtalho, PassoBoasVindas, PassoMicrofone, PassoPermissoes, PassoPronto } from "../components/Passos";
+import { PassoChave } from "../components/PassoChave";
 import { usePreferencias } from "../hooks/usePreferencias";
 import { useTema } from "../hooks/useTema";
 

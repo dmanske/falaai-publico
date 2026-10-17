@@ -4,6 +4,7 @@ import { BrowserWindow, shell } from "electron";
 import { join } from "node:path";
 import { HUB_TAMANHO, NOME_APP } from "@shared/config";
 import { gravarJson, lerJson } from "../lib/arquivoJson";
+import { caminhoRecurso } from "../lib/recursos";
 import { CANAIS_JANELAS, type PaginaHub } from "@shared/ipc";
 
 let janela: BrowserWindow | null = null;
@@ -43,6 +44,8 @@ export function abrirHub(pagina: PaginaHub = "inicio", secao?: string): BrowserW
     minWidth: HUB_TAMANHO.minLargura,
     minHeight: HUB_TAMANHO.minAltura,
     title: NOME_APP,
+    // Windows/Linux: ícone da janela e da barra de tarefas (no Mac vale o do app/Dock).
+    icon: caminhoRecurso("icone-app.png"),
     show: false,
     // Mac: sem barra de título; os botões vermelho/amarelo/verde ficam dentro do menu lateral.
     ...(mac ? { titleBarStyle: "hiddenInset" as const, trafficLightPosition: { x: 22, y: 22 } } : {}),

@@ -334,6 +334,10 @@ fn tratar_linha(linha: &str) {
                 Err(e) => responder_erro(&id, &e),
             }
         }
+        Comando::ApertarEnter => {
+            teclado::apertar_enter();
+            responder_ok(&id, json!({}));
+        }
         Comando::Contexto => {
             let app = contexto::app_em_foco();
             std::thread::spawn(move || {

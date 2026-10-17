@@ -29,6 +29,7 @@ export const pontePreferencias: PontePreferencias = {
 
 export const ponteIa: PonteIa = {
   testar: () => invocar(CANAIS_IA.TESTAR),
+  modelosOpenRouter: (opcoes) => invocar(CANAIS_IA.MODELOS_OPENROUTER, opcoes ?? {}),
 };
 
 export const pontePermissoes: PontePermissoes = {

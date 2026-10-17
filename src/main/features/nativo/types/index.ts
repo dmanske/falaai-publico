@@ -33,6 +33,7 @@ export type ComandoAuxiliar =
   | { cmd: "parar_teclado" }
   | { cmd: "configurar_atalhos"; atalhos: { id: IdAtalho; teclas: Atalho }[] }
   | { cmd: "colar"; texto: string }
+  | { cmd: "apertar_enter" }
   | { cmd: "contexto" }
   | { cmd: "ler_campo" }
   | { cmd: "capturar_atalho" }

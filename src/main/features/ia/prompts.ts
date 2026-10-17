@@ -111,3 +111,13 @@ export function blocoContexto(c: DadosContexto): string {
   }
   return partes.length ? `\n\n## Contexto\n${partes.join("\n\n")}` : "";
 }
+
+/**
+ * Vai no INÍCIO do sistema quando o modelo não ouve áudio (caminho de 2 chamadas): em vez do
+ * áudio, ele recebe a transcrição de um serviço de reconhecimento de fala.
+ */
+export const AVISO_TRANSCRICAO_AUTOMATICA =
+  "Em vez do áudio, você recebe a TRANSCRIÇÃO AUTOMÁTICA da fala (pode ter erros de reconhecimento). Trate-a como a fala da pessoa: corrija erros óbvios usando o contexto e o dicionário.\n\n";
+
+/** Mensagem do usuário no caminho de 2 chamadas. */
+export const mensagemTranscricao = (transcricao: string): string => `TRANSCRIÇÃO:\n«${transcricao}»`;

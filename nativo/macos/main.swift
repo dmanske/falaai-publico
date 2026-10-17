@@ -1013,6 +1013,18 @@ func simularCmdV() {
     }
 }
 
+/// Aperta Enter no app em foco (envio automático depois de colar). Evento marcado: o tap o ignora,
+/// para não contar como "outra tecla" no toque duplo nem disparar atalhos.
+func apertarEnter() {
+    let fonte = CGEventSource(stateID: .combinedSessionState)
+    for descendo in [true, false] {
+        guard let e = CGEvent(keyboardEventSource: fonte, virtualKey: CGKeyCode(kVKReturn), keyDown: descendo) else { continue }
+        e.flags = []
+        e.setIntegerValueField(.eventSourceUserData, value: marcaInjetada)
+        e.post(tap: .cghidEventTap)
+    }
+}
+
 /// Colagem cuja restauração ainda não rodou (somente main thread).
 /// `original` é o que o USUÁRIO tinha na área de transferência; `contagem` é o changeCount
 /// logo depois de gravarmos o nosso texto.
@@ -1147,6 +1159,14 @@ func tratarLinha(_ linha: String) {
             return
         }
         colar(id: id, texto: texto)
+
+    case "apertar_enter":
+        guard AXIsProcessTrusted() else {
+            responderErro(id, "Sem permissão de Acessibilidade para apertar Enter.")
+            return
+        }
+        apertarEnter()
+        responderOk(id)
 
     case "sair":
         // Deixa terminar consultas de Acessibilidade já em andamento (respondem antes de sair).

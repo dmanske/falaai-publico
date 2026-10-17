@@ -20,6 +20,8 @@ const VK_NEUTRA: u16 = 0xE8;
 
 /// VK_BACK.
 const VK_BACKSPACE: u32 = 0x08;
+/// VK_RETURN.
+const VK_ENTER: u32 = 0x0D;
 
 pub struct Gancho(HHOOK);
 
@@ -143,4 +145,10 @@ pub fn modificadores_pressionados() -> Vec<u32> {
         .copied()
         .filter(|&vk| unsafe { GetAsyncKeyState(vk as i32) } as u16 & 0x8000 != 0)
         .collect()
+}
+
+/// Aperta Enter no app em foco (envio automático depois de colar). Marcado como todo evento nosso:
+/// o hook o ignora.
+pub fn apertar_enter() {
+    enviar_teclas(&[(VK_ENTER, false), (VK_ENTER, true)]);
 }

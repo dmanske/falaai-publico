@@ -27,12 +27,15 @@ import { auxiliar } from "../nativo";
 import type { ContextoApp, EventoAuxiliar } from "../nativo/types";
 import { garantirMicrofone } from "../permissoes";
 import { lerPreferencias, salvarPreferencias } from "../preferencias";
+import { extrairComandoEnviar } from "./lib/comandoEnviar";
 import { ajustarEspacoInicial, limparInicio } from "./lib/espacamento";
 
 /** Tempo máximo para a pílula devolver o áudio depois do "parar" (ms). */
 const TIMEOUT_AUDIO_MS = 8000;
 /** Espera para silenciar o som de fundo depois do bipe de início (ms), senão o bipe some. */
 const ATRASO_SILENCIAR_MS = 250;
+/** Espera entre colar e apertar Enter no envio automático (ms): o app precisa receber o texto antes. */
+const ESPERA_ENTER_MS = 180;
 /** Quanto tempo o aviso "Adicionado ao dicionário" fica na pílula (ms). */
 const AVISO_MS = 2500;
 
@@ -86,6 +89,7 @@ function proximoIdioma(): void {
  */
 const MODO_TESTE = process.env.FALAAI_TESTE === "1";
 let ultimaColagemTeste: string | null = null;
+let ultimoEnterTeste = false;
 
 // ── Pílula ──────────────────────────────────────────────────────────────────
 
@@ -247,15 +251,25 @@ async function parar(): Promise<void> {
 
   if (!r.texto) return terminarComErro("Não entendi nenhuma fala.");
   const antes = ctx?.campo?.antes ?? "";
-  const texto = meuModo === "pergunte" ? r.texto : limparInicio(antes, r.texto);
+  const prefs = lerPreferencias();
+  // Envio automático: comando de voz no fim da fala ("…Enviar.") ou app marcado nas Configurações.
+  const comando = meuModo !== "pergunte" && prefs.enviarPorVoz ? extrairComandoEnviar(r.texto) : { texto: r.texto, enviar: false };
+  const enviar = comando.enviar || (!!base.appId && prefs.enviarNosApps.includes(base.appId));
+  if (!comando.texto && !comando.enviar) return terminarComErro("Não entendi nenhuma fala.");
+  const texto = meuModo === "pergunte" ? comando.texto : limparInicio(antes, comando.texto);
   // Substituindo uma seleção, o texto entra no lugar dela: não mexe no espaço.
   const final = meuModo === "pergunte" ? texto : ajustarEspacoInicial(antes, texto);
-  ultimaTranscricao = texto;
-  registrarDitado({ ...base, texto, status: "ok", erro: null });
+  if (texto) {
+    ultimaTranscricao = texto;
+    registrarDitado({ ...base, texto, status: "ok", erro: null });
+  }
 
-  const colou = MODO_TESTE
-    ? ((ultimaColagemTeste = final), { ok: true, erro: undefined })
-    : await auxiliar.enviar({ cmd: "colar", texto: final });
+  // Só o comando ("Enviar.") sem texto: nada a colar, só aperta Enter.
+  const colou = !final
+    ? { ok: true, erro: undefined }
+    : MODO_TESTE
+      ? ((ultimaColagemTeste = final), { ok: true, erro: undefined })
+      : await auxiliar.enviar({ cmd: "colar", texto: final });
   if (!colou.ok) {
     // Não deu para colar sozinho: deixa na área de transferência para o usuário colar.
     clipboard.writeText(texto);
@@ -264,7 +278,12 @@ async function parar(): Promise<void> {
   estado = "ocioso";
   ocultar();
 
-  if (meuModo === "ditado" && !MODO_TESTE) {
+  if (enviar) {
+    if (MODO_TESTE) ultimoEnterTeste = true;
+    else setTimeout(() => void auxiliar.enviar({ cmd: "apertar_enter" }), final ? ESPERA_ENTER_MS : 0);
+  }
+
+  if (meuModo === "ditado" && texto && !enviar && !MODO_TESTE) {
     observarEdicao(final.trim(), base.appId, (termos) => {
       if (estado === "ocioso") mostrarTemporario("aviso", `Adicionado ao dicionário: ${termos.join(", ")}`, AVISO_MS);
     });
@@ -332,6 +351,12 @@ export function iniciarDitado(): void {
     (globalThis as Record<string, unknown>).__falaaiTeste = {
       evento: aoEvento,
       ultimaColagem: () => ultimaColagemTeste,
+      /** Envio automático no modo de teste: o Enter não é apertado de verdade, só marcado aqui. */
+      ultimoEnter: () => {
+        const v = ultimoEnterTeste;
+        ultimoEnterTeste = false;
+        return v;
+      },
       estado: () => ({ estado, modo, maosLivres }),
     };
   }

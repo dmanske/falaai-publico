@@ -4,7 +4,8 @@
 "tipo", sem pontuação) e não sabe onde você está escrevendo.
 
 **Solução:** segura uma tecla, fala, solta. A IA transcreve, limpa e formata conforme o app em foco,
-e o texto aparece onde o cursor está. Tudo local, com a chave da Lovable do próprio usuário.
+e o texto aparece onde o cursor está. Tudo local, com a chave de IA do próprio usuário (Lovable, Gemini, OpenRouter, OpenAI, Anthropic, Groq,
+Mistral ou DeepSeek).
 
 **Para quem:** o Daniel (uso pessoal), no Mac e no Windows.
 
@@ -24,6 +25,9 @@ login/conta, sincronização na nuvem, plano/assinatura, banners/pesquisas/convi
 |---|---|---|---|
 | — | Chave da Lovable na tela, criptografada, com botão de teste (texto + áudio) | F0 | ✅ pronto |
 | — | Escolha do modelo de IA (lista + id digitado) | F0 | ✅ pronto |
+| — | Vários provedores de IA, chave por provedor, lista do OpenRouter e serviço de transcrição (ver modulos/configuracoes-ia.md) | — | construído — Lovable testada; os outros precisam de chave real |
+| — | Envio automático: Enter depois do ditado, por voz ("manda") ou por app (ver modulos/envio-automatico.md) | — | construído — falta testar ao vivo |
+| — | Ícone próprio do app (balão de fala com onda) no Dock, janela e barra de menus | — | ✅ pronto (no .app só depois de empacotar de novo) |
 | — | Permissões na tela (microfone, Acessibilidade, aviso da tecla 🌐) | F1 | ✅ pronto |
 | — | Instalável no Mac (FalaAi.app / .dmg, assinatura ad-hoc) | F5 | ✅ gerado e verificado; não aberto |
 | — | "Criado por Daniel Manske" + marca da última atualização (muda a cada build) | — | ✅ pronto |

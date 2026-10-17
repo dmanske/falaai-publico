@@ -51,14 +51,27 @@ export const IconeSobre = () => (
   </Base>
 );
 
-/** Marca do FalaAi: microfone com ondas (desenho próprio). */
-export function IconeMarca({ tamanho = 26 }: { tamanho?: number }) {
+/** Símbolo do FalaAi (o mesmo do ícone do app): balão de fala com a onda, a barra do meio em azul. */
+export function IconeMarca({ tamanho = 28 }: { tamanho?: number }) {
   return (
     <svg width={tamanho} height={tamanho} viewBox="0 0 32 32" fill="none" aria-hidden>
-      <rect width="32" height="32" rx="9" className="fill-destaque" />
-      <rect x="12.5" y="6.5" width="7" height="12" rx="3.5" fill="white" />
-      <path d="M9 15.5a7 7 0 0 0 14 0" stroke="white" strokeWidth="2" strokeLinecap="round" />
-      <path d="M16 22.5v3" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <defs>
+        <linearGradient id="falaai-balao" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#3a3a3a" />
+          <stop offset="1" stopColor="#050505" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M10 5.5h12a8.5 8.5 0 0 1 0 17h-8.3c-1.6 1.9-3.9 3.1-6.4 3.4.9-1 1.5-2.3 1.6-3.6A8.5 8.5 0 0 1 10 5.5Z"
+        fill="url(#falaai-balao)"
+        strokeWidth="0.8"
+        className="stroke-transparent dark:stroke-white/30"
+      />
+      <rect x="7.6" y="12.2" width="2" height="4.6" rx="1" fill="white" />
+      <rect x="11.3" y="10.4" width="2" height="8.2" rx="1" fill="white" />
+      <rect x="15" y="8.6" width="2" height="11.8" rx="1" className="fill-destaque" />
+      <rect x="18.7" y="10.4" width="2" height="8.2" rx="1" fill="white" />
+      <rect x="22.4" y="12.2" width="2" height="4.6" rx="1" fill="white" />
     </svg>
   );
 }
