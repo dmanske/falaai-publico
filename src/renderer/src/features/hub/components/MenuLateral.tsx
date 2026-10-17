@@ -2,8 +2,9 @@ import type { ReactNode } from "react";
 import { AUTOR } from "@shared/config";
 import { atualizacaoCurta, descreverBuild } from "@shared/build";
 import type { PaginaHub } from "@shared/ipc";
-import { plataforma } from "../api/ponte";
-import { IconeConfig, IconeDicionario, IconeHistorico, IconeInicio, IconeSobre } from "./Icones";
+import { apiPreferencias, plataforma } from "../api/ponte";
+import { useEscuro } from "../hooks/useEscuro";
+import { IconeConfig, IconeDicionario, IconeHistorico, IconeInicio, IconeLua, IconeSobre, IconeSol } from "./Icones";
 import { Logo } from "./Logo";
 
 const semArrastar = { WebkitAppRegion: "no-drag" } as React.CSSProperties;
@@ -32,6 +33,17 @@ function BotaoIcone({ ativo, titulo, onClick, children }: { ativo: boolean; titu
     >
       {children}
     </button>
+  );
+}
+
+/** Troca entre claro e escuro na hora (fixa o tema; "Sistema" continua em Configurações > Geral). */
+function BotaoTema() {
+  const escuro = useEscuro();
+  const titulo = escuro ? "Usar tema claro" : "Usar tema escuro";
+  return (
+    <BotaoIcone ativo={false} titulo={titulo} onClick={() => void apiPreferencias.salvar({ tema: escuro ? "claro" : "escuro" })}>
+      {escuro ? <IconeSol /> : <IconeLua />}
+    </BotaoIcone>
   );
 }
 
@@ -99,6 +111,7 @@ export function MenuLateral({ pagina, secao, onIr }: Props) {
         <BotaoIcone ativo={pagina === "configuracoes" && (secao === "sobre" || secao === "atualizacoes")} titulo="Sobre" onClick={() => onIr("configuracoes", "sobre")}>
           <IconeSobre />
         </BotaoIcone>
+        <BotaoTema />
       </div>
       {/* Assinatura do criador e marca do build (muda a cada atualização). */}
       <Assinatura />
