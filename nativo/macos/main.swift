@@ -2,7 +2,7 @@
 //
 // O app Electron inicia este binário como processo filho e conversa por JSON,
 // uma mensagem por linha (stdin = comandos, stdout = respostas e eventos).
-// Protocolo v2: veja docs/design/PROTOCOLO_AUXILIAR.md e nativo/macos/README.md.
+// Protocolo v3: veja docs/design/PROTOCOLO_AUXILIAR.md e nativo/macos/README.md.
 //
 // Regras importantes:
 //  - Nada além de JSON pode ir para o stdout. Logs de depuração vão para stderr.
@@ -387,9 +387,10 @@ final class AtalhoCfg {
     let id: String
     let mods: [Familia: Lado]
     let tecla: Int64?        // nil = atalho só de modificadores
+    let duplo: Bool          // toque duplo (v3): `mods` tem 1 modificador OU `tecla` é a tecla tocada
     var ativo = false        // já emitimos "desce" e ainda não "sobe"
-    init(id: String, mods: [Familia: Lado], tecla: Int64?) {
-        self.id = id; self.mods = mods; self.tecla = tecla
+    init(id: String, mods: [Familia: Lado], tecla: Int64?, duplo: Bool = false) {
+        self.id = id; self.mods = mods; self.tecla = tecla; self.duplo = duplo
     }
 }
 
@@ -406,6 +407,20 @@ func interpretarAtalhos(_ bruto: Any?) -> (lista: [AtalhoCfg], erro: String?) {
             return ([], "Atalho '\(id)' sem teclas.")
         }
         if !ids.insert(id).inserted { return ([], "Atalho '\(id)' repetido.") }
+        // Toque duplo (v3): ["Duplo", X], X = uma tecla (modificadora ou comum).
+        if teclas.contains(where: { ($0 as? String) == "Duplo" }) {
+            guard teclas.count == 2, (teclas[0] as? String) == "Duplo", let nome = teclas[1] as? String else {
+                return ([], "Atalho '\(id)': 'Duplo' deve vir primeiro, seguido de exatamente uma tecla.")
+            }
+            if let (f, lado) = nomesModificadores[nome] {
+                lista.append(AtalhoCfg(id: id, mods: [f: lado], tecla: nil, duplo: true))
+            } else if let c = nomesTeclas[nome] {
+                lista.append(AtalhoCfg(id: id, mods: [:], tecla: c, duplo: true))
+            } else {
+                return ([], "Atalho '\(id)': tecla desconhecida (\(nome)).")
+            }
+            continue
+        }
         var mods: [Familia: Lado] = [:]
         var tecla: Int64? = nil
         var nomeTecla = ""
@@ -443,7 +458,8 @@ private let kVKV: Int64 = 9           // kVK_ANSI_V (usado em simularCmdV)
 /// Estado do tap (somente main thread).
 var tap: CFMachPort? = nil
 var fonteDoTap: CFRunLoopSource? = nil
-var atalhos: [AtalhoCfg] = []                 // lista configurada
+var atalhos: [AtalhoCfg] = []                 // atalhos segurados configurados (sem toque duplo)
+var duplos: [AtalhoCfg] = []                  // atalhos de toque duplo (v3)
 var modsSegurados = Set<Int64>()              // keycodes de modificadores seguros agora
 var teclasEngolidas = Set<Int64>()            // teclas comuns cujo keyDown engolimos (engolir o keyUp também)
 var combinadoEmitido = false                  // "combinado" já emitido neste pressionamento
@@ -505,12 +521,20 @@ func soltarAtalhosAtivos() {
         a.ativo = false
         emitirAtalho(a, false)
     }
+    for a in duplos where a.ativo {
+        a.ativo = false
+        emitirAtalho(a, false)
+    }
+    duploReiniciar()
     combinadoEmitido = false
 }
 
 func tratarFlags(_ evento: CGEvent) {
     let codigo = evento.getIntegerValueField(.keyboardEventKeycode)
-    guard let f = familiaDoCodigo[codigo], let info = infoFamilia[f] else { return }
+    guard let f = familiaDoCodigo[codigo], let info = infoFamilia[f] else {
+        if captura == nil { duploOutraTecla() }   // flagsChanged de algo que não é modificador de atalho (CapsLock...)
+        return
+    }
     let flags = evento.flags
     let presente = flags.contains(info.mascara)
     if f == .fn {
@@ -530,6 +554,13 @@ func tratarFlags(_ evento: CGEvent) {
             if let d = io.dir { modsSegurados.remove(d) }
         }
     }
+    let apertada = modsSegurados.contains(codigo)
+    if let cap = captura {
+        // Captura: só junta as teclas; nenhum atalho é emitido.
+        if apertada { capturaApertou(cap, codigo) } else { capturaSoltou(cap, codigo) }
+        return
+    }
+    if apertada { _ = duploTeclaDesce(codigo, modificador: true) } else { duploTeclaSobe(codigo) }
     reavaliarAtalhos()
 }
 
@@ -555,6 +586,10 @@ func tratarKeyDown(_ evento: CGEvent) -> Bool {
             combinadoEmitido = true
             emitir(["evento": "combinado"])
         }
+        // Toque duplo de tecla comum: o 2º desce é engolido (e o caractere do 1º toque, apagado).
+        if duploTeclaDesce(codigo, modificador: false) { return true }
+    } else if dtFase == .primeiroDescido && codigo == dtCodigo {
+        duploReiniciar()   // auto-repetição: a tecla foi segurada, não é um toque
     }
     return false
 }
@@ -562,6 +597,7 @@ func tratarKeyDown(_ evento: CGEvent) -> Bool {
 func tratarKeyUp(_ evento: CGEvent) -> Bool {
     var codigo = evento.getIntegerValueField(.keyboardEventKeycode)
     if codigo == kVKKeypadEnter { codigo = kVKReturn }
+    duploTeclaSobe(codigo)   // fim do 1º toque ou do 2º desce do toque duplo
     guard teclasEngolidas.remove(codigo) != nil else { return false }
     for a in atalhos where a.tecla == codigo && a.ativo {
         a.ativo = false
@@ -579,13 +615,19 @@ let callbackTeclado: CGEventTapCallBack = { _, tipo, evento, _ in
         if let t = tap { CGEvent.tapEnable(tap: t, enable: true) }
         modsSegurados.removeAll()
         teclasEngolidas.removeAll()
+        capturaPerdeuEventos()
         soltarAtalhosAtivos()
         log("tap reativado")
     case .flagsChanged:
         tratarFlags(evento)
     case .keyDown:
+        // Evento injetado por nós (Backspace do toque duplo): passa direto, fora de toda a lógica.
+        if evento.getIntegerValueField(.eventSourceUserData) == marcaInjetada { break }
+        if let cap = captura { return capturaTeclaDesce(cap, evento) ? nil : Unmanaged.passUnretained(evento) }
         if tratarKeyDown(evento) { return nil }
     case .keyUp:
+        if evento.getIntegerValueField(.eventSourceUserData) == marcaInjetada { break }
+        if let cap = captura { return capturaTeclaSobe(cap, evento) ? nil : Unmanaged.passUnretained(evento) }
         if tratarKeyUp(evento) { return nil }
     default:
         break
@@ -620,6 +662,7 @@ func iniciarTeclado() -> Bool {
 }
 
 func pararTeclado() {
+    capturaTerminar(erro: "O teclado foi parado.")
     soltarAtalhosAtivos()
     if let t = tap {
         CGEvent.tapEnable(tap: t, enable: false)
@@ -635,7 +678,294 @@ func pararTeclado() {
 /// Substitui a lista inteira de atalhos (já validada).
 func trocarAtalhos(_ nova: [AtalhoCfg]) {
     soltarAtalhosAtivos()   // não deixa nada "descido" da configuração antiga
-    atalhos = nova
+    atalhos = nova.filter { !$0.duplo }
+    duplos = nova.filter { $0.duplo }
+}
+
+// MARK: - Toque duplo (v3)
+
+/// Marca (eventSourceUserData) nos eventos que o próprio auxiliar injeta: o tap os ignora.
+let marcaInjetada: Int64 = 0x46414C41   // "FALA"
+private let kVKDelete: Int64 = 51        // kVK_Delete (Backspace)
+
+/// Teclas que digitam algo ao serem tocadas (o 1º toque de um toque duplo precisa ser apagado).
+let teclasQueDigitam: Set<Int64> = Set(nomesTeclas.filter { nome, _ in
+    nome.count == 1 || nome == "Space" || nome == "Tab"
+}.map { $0.value })
+
+let limiteToque: UInt64 = 300_000_000        // tecla descida no máximo 300 ms
+let limiteIntervalo: UInt64 = 350_000_000    // 2º desce até 350 ms depois do 1º subir
+
+enum FaseDuplo { case ocioso, primeiroDescido, aguardando, segundoDescido }
+var dtFase = FaseDuplo.ocioso
+var dtCodigo: Int64 = -1                     // keycode da tecla em jogo
+var dtMarca: UInt64 = 0                      // instante do desce (primeiroDescido) ou do sobe (aguardando)
+var dtAtivos: [AtalhoCfg] = []               // atalhos que emitiram "desce" no 2º toque
+
+func agora() -> UInt64 { DispatchTime.now().uptimeNanoseconds }
+
+func duploReiniciar() {
+    dtFase = .ocioso
+    dtCodigo = -1
+    dtAtivos = []
+}
+
+/// Outra tecla no meio: descarta o toque em andamento (menos se o 2º toque já está segurado).
+func duploOutraTecla() {
+    if dtFase != .segundoDescido { duploReiniciar() }
+}
+
+/// Esta tecla (keycode) é o gatilho do atalho de toque duplo?
+func gatilhoCombina(_ a: AtalhoCfg, _ codigo: Int64) -> Bool {
+    if let t = a.tecla { return t == codigo }
+    guard let (f, lado) = a.mods.first, let i = infoFamilia[f] else { return false }
+    switch lado {
+    case .qualquer: return i.esq == codigo || i.dir == codigo
+    case .esq: return i.esq == codigo
+    case .dir: return i.dir == codigo
+    }
+}
+
+/// Backspace injetado (marcado) para apagar o caractere do 1º toque. Fora do callback do tap.
+func enviarBackspace() {
+    let fonte = CGEventSource(stateID: .combinedSessionState)
+    for descendo in [true, false] {
+        guard let e = CGEvent(keyboardEventSource: fonte, virtualKey: CGKeyCode(kVKDelete), keyDown: descendo) else { continue }
+        e.flags = []
+        e.setIntegerValueField(.eventSourceUserData, value: marcaInjetada)
+        e.post(tap: .cghidEventTap)
+    }
+}
+
+/// Uma tecla desceu (sem ser auto-repetição). Devolve true se o evento deve ser engolido
+/// (só o 2º desce de uma tecla comum).
+func duploTeclaDesce(_ codigo: Int64, modificador: Bool) -> Bool {
+    if duplos.isEmpty { return false }
+    if dtFase == .segundoDescido {
+        if codigo != dtCodigo { return false }   // outra tecla enquanto o 2º toque é segurado: ignora
+        duploSoltarAtivos()                      // desceu de novo sem subir: o "sobe" se perdeu
+    }
+    let candidatos = duplos.filter { gatilhoCombina($0, codigo) }
+    // Nenhum atalho para esta tecla, ou outro modificador segurado (Shift é tolerado em tecla comum).
+    let outrosMods = modsSegurados.subtracting(modificador ? [codigo] : [56, 60])
+    if candidatos.isEmpty || !outrosMods.isEmpty {
+        duploReiniciar()
+        return false
+    }
+    let t = agora()
+    if dtFase == .aguardando && dtCodigo == codigo && t &- dtMarca <= limiteIntervalo {
+        dtFase = .segundoDescido
+        dtAtivos = candidatos
+        for a in candidatos { a.ativo = true; emitirAtalho(a, true) }
+        if modificador { return false }
+        teclasEngolidas.insert(codigo)           // engole o 2º desce e o sobe
+        if teclasQueDigitam.contains(codigo) {
+            DispatchQueue.main.async { enviarBackspace() }
+        }
+        return true
+    }
+    dtFase = .primeiroDescido
+    dtCodigo = codigo
+    dtMarca = t
+    dtAtivos = []
+    return false
+}
+
+/// Uma tecla subiu (ou um modificador foi solto).
+func duploTeclaSobe(_ codigo: Int64) {
+    switch dtFase {
+    case .primeiroDescido:
+        guard codigo == dtCodigo else { return }   // soltar outra tecla não interfere
+        let t = agora()
+        if t &- dtMarca <= limiteToque {
+            dtFase = .aguardando
+            dtMarca = t
+        } else {
+            duploReiniciar()                       // segurou demais: não foi toque
+        }
+    case .segundoDescido:
+        if codigo == dtCodigo { duploSoltarAtivos() }
+    default:
+        break
+    }
+}
+
+/// Fim do 2º toque: emite "sobe" e volta ao repouso.
+func duploSoltarAtivos() {
+    for a in dtAtivos where a.ativo {
+        a.ativo = false
+        emitirAtalho(a, false)
+    }
+    duploReiniciar()
+}
+
+// MARK: - Captura de atalho (v3)
+
+enum FaseCaptura { case coletando, aguardando, segundo }
+
+/// Captura em andamento (somente main thread). Enquanto existir, o tap não emite atalhos.
+final class Captura {
+    let id: Any
+    var fase = FaseCaptura.coletando
+    var seguradas = Set<Int64>()    // teclas apertadas durante a captura e ainda seguras
+    var acumulado = Set<Int64>()    // teclas do acorde atual
+    var engolidas = Set<Int64>()    // teclas comuns cujo desce engolimos (engolir o sobe também)
+    var primeiro: Int64? = nil      // tecla única do 1º acorde (esperando o 2º toque)
+    var espera = 0                  // geração do timer de 400 ms
+    var ultimo: UInt64 = agora()    // último evento de tecla
+    init(id: Any) { self.id = id }
+}
+var captura: Captura? = nil
+
+let nomesModCodigo: [Int64: String] = [
+    63: "Fn", 59: "CtrlLeft", 62: "CtrlRight", 58: "OptionLeft", 61: "OptionRight",
+    55: "CmdLeft", 54: "CmdRight", 56: "ShiftLeft", 60: "ShiftRight",
+]
+/// Ordem na resposta: Fn, Ctrl, Option, Cmd, Shift (esquerdo antes do direito).
+let ordemModCodigos: [Int64] = [63, 59, 62, 58, 61, 55, 54, 56, 60]
+let nomesTeclaCodigo: [Int64: String] = {
+    var m: [Int64: String] = [:]
+    for (n, c) in nomesTeclas { m[c] = n }
+    return m
+}()
+
+func nomeDoCodigo(_ c: Int64) -> String? { nomesModCodigo[c] ?? nomesTeclaCodigo[c] }
+
+let esperaSegundoToque = 0.4
+let prazoCaptura = 10.0
+
+func iniciarCaptura(id: Any) {
+    if captura != nil {
+        responderErro(id, "Já há uma captura em andamento.")
+        return
+    }
+    if tap == nil {
+        responderErro(id, "O teclado não está ativo (permissão de Acessibilidade).")
+        return
+    }
+    soltarAtalhosAtivos()   // nada fica "descido" enquanto captura (também zera o toque duplo)
+    let cap = Captura(id: id)
+    captura = cap
+    agendarPrazo(cap, em: prazoCaptura)
+}
+
+/// 10 s sem nenhuma tecla: erro (se houver tecla "presa" sem soltar, encerra com o que juntou).
+func agendarPrazo(_ cap: Captura, em segundos: Double) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + segundos) {
+        guard captura === cap else { return }
+        let decorrido = Double(agora() &- cap.ultimo) / 1e9
+        if decorrido < prazoCaptura - 0.01 {
+            agendarPrazo(cap, em: prazoCaptura - decorrido)
+        } else if cap.fase == .aguardando {
+            return   // o timer de 400 ms resolve
+        } else if cap.acumulado.isEmpty {
+            capturaTerminar(erro: "Nenhuma tecla apertada.")
+        } else {
+            cap.seguradas.removeAll()
+            capturaAcordeConcluido(cap)
+        }
+    }
+}
+
+/// Encerra a captura (se houver) com erro e responde ao `capturar_atalho`.
+func capturaTerminar(erro: String) {
+    guard let cap = captura else { return }
+    captura = nil
+    cap.espera += 1
+    responderErro(cap.id, erro)
+}
+
+func capturaTerminarOk(_ cap: Captura, _ teclas: [String]) {
+    guard captura === cap else { return }
+    captura = nil
+    cap.espera += 1
+    responderOk(cap.id, ["teclas": teclas])
+}
+
+/// O tap foi desligado pelo sistema: perdemos eventos, então descarta o acorde em andamento.
+func capturaPerdeuEventos() {
+    guard let cap = captura else { return }
+    cap.seguradas.removeAll()
+    cap.acumulado.removeAll()
+    cap.engolidas.removeAll()
+    cap.primeiro = nil
+    cap.fase = .coletando
+    cap.espera += 1
+}
+
+func capturaApertou(_ cap: Captura, _ codigo: Int64) {
+    cap.ultimo = agora()
+    if cap.fase == .aguardando {
+        cap.espera += 1   // cancela o timer de 400 ms
+        if codigo == cap.primeiro && cap.seguradas.isEmpty {
+            cap.fase = .segundo
+        } else {
+            cap.fase = .coletando   // outra tecla: começa um acorde novo
+            cap.primeiro = nil
+        }
+        cap.acumulado.removeAll()
+    }
+    cap.seguradas.insert(codigo)
+    cap.acumulado.insert(codigo)
+}
+
+func capturaSoltou(_ cap: Captura, _ codigo: Int64) {
+    guard cap.seguradas.remove(codigo) != nil else { return }   // soltar tecla que já vinha segura: ignora
+    cap.ultimo = agora()
+    if cap.seguradas.isEmpty && !cap.acumulado.isEmpty { capturaAcordeConcluido(cap) }
+}
+
+/// Todas as teclas do acorde foram soltas.
+func capturaAcordeConcluido(_ cap: Captura) {
+    let ac = cap.acumulado
+    if cap.fase == .segundo, let p = cap.primeiro, ac == [p], let nome = nomeDoCodigo(p) {
+        capturaTerminarOk(cap, ["Duplo", nome])
+        return
+    }
+    if ac.count == 1, let k = ac.first {
+        // Tecla só: espera 400 ms por um 2º toque.
+        cap.fase = .aguardando
+        cap.primeiro = k
+        cap.acumulado.removeAll()
+        cap.espera += 1
+        let geracao = cap.espera
+        DispatchQueue.main.asyncAfter(deadline: .now() + esperaSegundoToque) {
+            guard captura === cap, cap.fase == .aguardando, cap.espera == geracao else { return }
+            if k == kVKEscape {
+                capturaTerminar(erro: "Captura cancelada.")
+            } else if let nome = nomeDoCodigo(k) {
+                capturaTerminarOk(cap, [nome])
+            }
+        }
+        return
+    }
+    // Combinação: modificadores (Fn, Ctrl, Option, Cmd, Shift), tecla comum por último.
+    let comuns = ac.filter { nomesModCodigo[$0] == nil }
+    if comuns.count > 1 {
+        capturaTerminar(erro: "Só pode haver uma tecla comum no atalho.")
+        return
+    }
+    var nomes = ordemModCodigos.filter { ac.contains($0) }.compactMap { nomesModCodigo[$0] }
+    if let c = comuns.first, let n = nomesTeclaCodigo[c] { nomes.append(n) }
+    capturaTerminarOk(cap, nomes)
+}
+
+/// keyDown em modo de captura. Sempre engole (nada é digitado nem dispara).
+func capturaTeclaDesce(_ cap: Captura, _ evento: CGEvent) -> Bool {
+    var codigo = evento.getIntegerValueField(.keyboardEventKeycode)
+    if codigo == kVKKeypadEnter { codigo = kVKReturn }
+    cap.engolidas.insert(codigo)
+    if evento.getIntegerValueField(.keyboardEventAutorepeat) != 0 { return true }
+    if nomeDoCodigo(codigo) != nil { capturaApertou(cap, codigo) }   // teclas sem nome são engolidas e ignoradas
+    return true
+}
+
+func capturaTeclaSobe(_ cap: Captura, _ evento: CGEvent) -> Bool {
+    var codigo = evento.getIntegerValueField(.keyboardEventKeycode)
+    if codigo == kVKKeypadEnter { codigo = kVKReturn }
+    guard cap.engolidas.remove(codigo) != nil else { return false }
+    capturaSoltou(cap, codigo)
+    return true
 }
 
 // MARK: - Colar
@@ -699,6 +1029,7 @@ func restaurarPendente() {
 /// Encerra o processo, executando antes qualquer restauração pendente
 /// (senão a área de transferência do usuário ficaria com o texto colado, ou o som mudo).
 func encerrar() -> Never {
+    capturaTerminar(erro: "Auxiliar encerrando.")
     restaurarPendente()
     desfazerMute()
     descarregarSaida()
@@ -784,6 +1115,13 @@ func tratarLinha(_ linha: String) {
             responderOk(id)
         }
 
+    case "capturar_atalho":
+        iniciarCaptura(id: id)
+
+    case "cancelar_captura":
+        capturaTerminar(erro: "Captura cancelada.")
+        responderOk(id)
+
     case "contexto":
         filaAX.async { responderOk(id, montarContexto()) }
 
@@ -822,7 +1160,7 @@ signal(SIGPIPE, SIG_IGN)
 let app = NSApplication.shared
 app.setActivationPolicy(.prohibited)
 
-emitir(["evento": "pronto", "versao": 2])
+emitir(["evento": "pronto", "versao": 3])
 
 // Leitura do stdin em background; cada comando é tratado na main queue.
 let threadStdin = Thread {

@@ -79,7 +79,8 @@ class Auxiliar extends EventEmitter<{ evento: [EventoAuxiliar]; caiu: [string] }
     p.resolver(resp);
   }
 
-  enviar(comando: ComandoAuxiliar): Promise<RespostaAuxiliar> {
+  /** `timeoutMs`: comandos longos (ex.: capturar_atalho, até 10 s) passam um prazo maior. */
+  enviar(comando: ComandoAuxiliar, timeoutMs = TIMEOUT_COMANDO_MS): Promise<RespostaAuxiliar> {
     const proc = this.proc;
     if (!proc) return Promise.resolve({ id: null, ok: false, erro: this.erro ?? "Auxiliar nativo indisponível." });
     const id = this.proximoId++;
@@ -87,7 +88,7 @@ class Auxiliar extends EventEmitter<{ evento: [EventoAuxiliar]; caiu: [string] }
       const timer = setTimeout(() => {
         this.pendentes.delete(id);
         resolver({ id, ok: false, erro: "O auxiliar nativo não respondeu a tempo." });
-      }, TIMEOUT_COMANDO_MS);
+      }, timeoutMs);
       this.pendentes.set(id, { resolver, timer });
       proc.stdin.write(`${JSON.stringify({ id, ...comando })}\n`);
     });

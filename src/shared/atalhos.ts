@@ -9,8 +9,12 @@ export type IdAtalho = "ditado" | "pergunte" | "traducao" | "colarUltima";
  * Cmd, CmdLeft, CmdRight (Windows: Win*), Shift, ShiftLeft, ShiftRight.
  * No máximo uma tecla comum: Space, A–Z, 0–9, F1–F20, Enter, Tab, Esc.
  * "Ctrl"/"Option"/"Cmd"/"Shift" sem lado aceitam qualquer um dos dois lados.
+ * Toque duplo: ["Duplo", X] — tocar X duas vezes rápido (X = uma tecla qualquer).
  */
 export type Atalho = string[];
+
+/** Marcador de toque duplo (protocolo v3 do auxiliar nativo). */
+export const DUPLO = "Duplo";
 
 export const NOMES_ATALHOS: Record<IdAtalho, string> = {
   ditado: "Ditado",
@@ -76,6 +80,63 @@ const ROTULOS_WIN: Record<string, string> = {
 };
 
 export function rotuloTecla(tecla: string, plataforma: string): string {
+  if (tecla === DUPLO) return "2×";
   const tabela = plataforma === "win32" ? ROTULOS_WIN : ROTULOS_MAC;
   return tabela[tecla] ?? tecla;
+}
+
+// ── Validação (usada pela tela de Configurações; regras do protocolo v3) ─────────────────────────
+
+const MODIFICADORES = new Set([
+  "Fn", "Ctrl", "CtrlLeft", "CtrlRight", "Option", "OptionLeft", "OptionRight", "Alt", "AltLeft", "AltRight",
+  "Cmd", "CmdLeft", "CmdRight", "Win", "Shift", "ShiftLeft", "ShiftRight",
+]);
+export const ehModificador = (t: string) => MODIFICADORES.has(t);
+const ehTeclaF = (t: string) => /^F([1-9]|1[0-9]|20)$/.test(t);
+/** Teclas que digitam algo: no toque duplo, o primeiro toque chega a escrever o caractere. */
+const digita = (t: string) => /^[A-Z0-9]$/.test(t) || t === "Space" || t === "Tab";
+
+const chave = (a: Atalho) => (a[0] === DUPLO ? `${DUPLO}:${a[1]}` : [...a].sort().join("+"));
+
+export interface ResultadoValidacao {
+  /** Impede salvar. */
+  erro: string | null;
+  /** Salva, mas avisa (ex.: toque duplo de letra). */
+  aviso: string | null;
+}
+
+export function validarAtalho(id: IdAtalho, novo: Atalho, todos: Record<IdAtalho, Atalho>): ResultadoValidacao {
+  const ok = (aviso: string | null = null): ResultadoValidacao => ({ erro: null, aviso });
+  const falha = (erro: string): ResultadoValidacao => ({ erro, aviso: null });
+  if (novo.length === 0) return falha("Escolha pelo menos uma tecla.");
+
+  const duplo = novo[0] === DUPLO;
+  if (novo.indexOf(DUPLO, 1) > 0) return falha("O toque duplo vale para uma tecla só.");
+  if (duplo && novo.length !== 2) return falha("O toque duplo vale para uma tecla só.");
+
+  const teclas = duplo ? novo.slice(1) : novo;
+  const comuns = teclas.filter((t) => !ehModificador(t));
+  if (comuns.length > 1) return falha("Use no máximo uma tecla comum (letra, número, Espaço…).");
+  if (!duplo && teclas.length === 1 && comuns.length === 1 && !ehTeclaF(comuns[0])) {
+    return falha("Uma tecla comum sozinha digitaria texto. Combine com um modificador ou use toque duplo.");
+  }
+
+  for (const outro of Object.keys(todos) as IdAtalho[]) {
+    if (outro === id) continue;
+    const dele = todos[outro];
+    if (chave(dele) === chave(novo)) return falha(`Esse atalho já é usado em "${NOMES_ATALHOS[outro]}".`);
+    // Toque duplo de X e "segurar X" na mesma tecla brigariam: o 1º toque já dispararia o outro.
+    const alvo = duplo ? novo[1] : novo.length === 1 ? novo[0] : null;
+    const doOutro = dele[0] === DUPLO ? dele[1] : dele.length === 1 ? dele[0] : null;
+    if (alvo && doOutro === alvo && (duplo || dele[0] === DUPLO)) {
+      return falha(`A tecla já é usada em "${NOMES_ATALHOS[outro]}" (segurar e toque duplo na mesma tecla se atrapalham).`);
+    }
+  }
+
+  if (duplo && digita(novo[1])) {
+    return ok(
+      "Toque duplo em letra/número: o FalaAi apaga a letra do 1º toque sozinho, mas palavras com letra dobrada (ex.: Isaac, cooperar) também disparam. Prefira uma tecla modificadora.",
+    );
+  }
+  return ok();
 }

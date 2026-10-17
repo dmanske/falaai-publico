@@ -35,6 +35,8 @@ export type ComandoAuxiliar =
   | { cmd: "colar"; texto: string }
   | { cmd: "contexto" }
   | { cmd: "ler_campo" }
+  | { cmd: "capturar_atalho" }
+  | { cmd: "cancelar_captura" }
   | { cmd: "mutar_saida" }
   | { cmd: "desmutar_saida" }
   | { cmd: "sair" };

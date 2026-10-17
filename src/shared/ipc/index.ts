@@ -1,6 +1,7 @@
 // Contrato entre as telas (renderer) e o processo principal, separado por módulo.
 // Cada módulo tem seu arquivo com os nomes de canal, os tipos e a parte da ponte.
 // Canal novo: entra no arquivo do módulo; nunca string de canal solta no código.
+import type { PonteAtalhos } from "./atalhos";
 import type { PonteChaves } from "./chaves";
 import type { PonteDicionario } from "./dicionario";
 import type { PonteEstatisticas } from "./estatisticas";
@@ -12,6 +13,7 @@ import type { PontePilula } from "./pilula";
 import type { PontePreferencias } from "./preferencias";
 import type { PonteSistema } from "./sistema";
 
+export * from "./atalhos";
 export * from "./chaves";
 export * from "./dicionario";
 export * from "./estatisticas";
@@ -37,4 +39,5 @@ export interface Ponte {
   dicionario: PonteDicionario;
   janelas: PonteJanelas;
   sistema: PonteSistema;
+  atalhos: PonteAtalhos;
 }

@@ -20,13 +20,15 @@ interface Props {
   atalho: Atalho;
   editando: boolean;
   erro: string | null;
+  /** Aviso depois de salvar (ex.: toque duplo de letra). */
+  aviso: string | null;
   onEditar(): void;
   onCancelar(): void;
   onEscolher(atalho: Atalho): void;
 }
 
 /** Uma função com seu atalho atual; "Alterar" abre sugestões prontas e o modo "Gravar". */
-export function LinhaAtalho({ id, atalho, editando, erro, onEditar, onCancelar, onEscolher }: Props) {
+export function LinhaAtalho({ id, atalho, editando, erro, aviso, onEditar, onCancelar, onEscolher }: Props) {
   const gravador = useGravarAtalho(onEscolher);
   const sugestoes = SUGESTOES[plataforma === "win32" ? "win32" : "darwin"];
 
@@ -36,6 +38,7 @@ export function LinhaAtalho({ id, atalho, editando, erro, onEditar, onCancelar, 
         <div>
           <div className="mb-1.5 text-sm font-medium">{NOMES_ATALHOS[id]}</div>
           <Teclas atalho={atalho} />
+          {aviso && !editando && <p className="mt-2 max-w-md text-xs text-[#b45309] dark:text-[#fbbf24]">{aviso}</p>}
         </div>
         {editando ? (
           <Botao
@@ -66,15 +69,15 @@ export function LinhaAtalho({ id, atalho, editando, erro, onEditar, onCancelar, 
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Botao variante={gravador.gravando ? "primario" : "secundario"} onClick={() => (gravador.gravando ? gravador.parar() : gravador.iniciar())}>
-              {gravador.gravando ? "Gravando… segure as teclas e solte" : "Gravar combinação"}
+            <Botao variante={gravador.gravando ? "destaque" : "secundario"} onClick={() => (gravador.gravando ? gravador.parar() : void gravador.iniciar())}>
+              {gravador.gravando ? "Ouvindo o teclado… (clique para cancelar)" : "Gravar atalho"}
             </Botao>
-            {gravador.gravando && gravador.atual.length > 0 && <Teclas atalho={gravador.atual} />}
           </div>
-          <p className="text-xs text-suave">
-            A tecla Fn não pode ser gravada (o navegador não a enxerga): para usá-la, escolha uma das sugestões acima. Esc cancela a gravação.
+          <p className="text-xs leading-relaxed text-suave">
+            Aperte a combinação que quiser (vale Fn) e solte. Para <b className="font-medium text-medio">toque duplo</b>, toque a tecla
+            duas vezes rápido — ex.: 2× ⌥ dir. Esc cancela.
           </p>
-          {erro && <p className="text-xs text-perigo">{erro}</p>}
+          {(erro ?? gravador.erro) && <p className="text-xs text-perigo">{erro ?? gravador.erro}</p>}
         </div>
       )}
     </div>

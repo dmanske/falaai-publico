@@ -6,6 +6,7 @@ import { registrarIpcChaves } from "./features/chaves/ipc";
 import { iniciarDicionario } from "./features/dicionario";
 import { registrarIpcDicionario } from "./features/dicionario/ipc";
 import { iniciarDitado } from "./features/ditado";
+import { registrarIpcAtalhos } from "./features/ditado/atalhosIpc";
 import { manterTecladoAtivo } from "./features/ditado/teclado";
 import { registrarIpcEstatisticas } from "./features/estatisticas/ipc";
 import { iniciarHistorico } from "./features/historico";
@@ -47,6 +48,7 @@ if (!app.requestSingleInstanceLock()) {
     registrarIpcSistema();
     registrarIpcCartao();
     registrarIpcOnboarding();
+    registrarIpcAtalhos();
 
     // Sistema, teclado e ditado
     iniciarSistema();

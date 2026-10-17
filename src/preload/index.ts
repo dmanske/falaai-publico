@@ -2,7 +2,7 @@
 // Cada módulo monta sua parte em preload/modulos/; o contrato está em src/shared/ipc/.
 import { contextBridge } from "electron";
 import type { Ponte } from "@shared/ipc";
-import { ponteChaves, ponteIa, pontePermissoes, pontePreferencias, ponteSistema } from "./modulos/basicos";
+import { ponteAtalhos, ponteChaves, ponteIa, pontePermissoes, pontePreferencias, ponteSistema } from "./modulos/basicos";
 import { ponteDicionario, ponteEstatisticas, ponteHistorico } from "./modulos/dados";
 import { ponteJanelas, pontePilula } from "./modulos/janelas";
 
@@ -18,6 +18,7 @@ const ponte: Ponte = {
   dicionario: ponteDicionario,
   janelas: ponteJanelas,
   sistema: ponteSistema,
+  atalhos: ponteAtalhos,
 };
 
 contextBridge.exposeInMainWorld("ponte", ponte);

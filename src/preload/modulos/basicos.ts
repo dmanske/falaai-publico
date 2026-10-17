@@ -1,10 +1,12 @@
 // Ponte dos módulos de configuração: chaves, preferências, IA, permissões e sistema.
 import {
+  CANAIS_ATALHOS,
   CANAIS_CHAVES,
   CANAIS_IA,
   CANAIS_PERMISSOES,
   CANAIS_PREFERENCIAS,
   CANAIS_SISTEMA,
+  type PonteAtalhos,
   type PonteChaves,
   type PonteIa,
   type PontePermissoes,
@@ -38,4 +40,9 @@ export const ponteSistema: PonteSistema = {
   info: () => invocar(CANAIS_SISTEMA.INFO),
   verificarAtualizacao: () => invocar(CANAIS_SISTEMA.VERIFICAR_ATUALIZACAO),
   abrirLink: (url) => invocar(CANAIS_SISTEMA.ABRIR_LINK, url),
+};
+
+export const ponteAtalhos: PonteAtalhos = {
+  capturar: () => invocar(CANAIS_ATALHOS.CAPTURAR),
+  cancelarCaptura: () => invocar(CANAIS_ATALHOS.CANCELAR_CAPTURA),
 };

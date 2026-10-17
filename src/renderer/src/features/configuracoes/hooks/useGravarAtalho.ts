@@ -1,60 +1,37 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Atalho } from "@shared/atalhos";
-import { codigoParaTecla, ehModificador } from "../lib/atalhos";
-import { plataforma } from "../api/ponte";
+import { apiAtalhos } from "../api/ponte";
 
 /**
- * Captura uma combinação de teclas: segure as teclas e solte tudo; o que foi segurado vira o atalho.
- * Esc cancela. A tecla Fn não chega ao navegador, então não dá para gravá-la.
+ * Grava um atalho pelo auxiliar nativo: enxerga Fn, lados das teclas e toque duplo, e não deixa o
+ * atalho disparar um ditado enquanto grava. Esc (ou Cancelar) desiste.
  */
 export function useGravarAtalho(aoTerminar: (atalho: Atalho) => void) {
   const [gravando, setGravando] = useState(false);
-  const [atual, setAtual] = useState<Atalho>([]);
-  const segurando = useRef(new Set<string>());
-  const coletado = useRef<Atalho>([]);
+  const [erro, setErro] = useState<string | null>(null);
   const callback = useRef(aoTerminar);
   callback.current = aoTerminar;
+  const ativo = useRef(false);
 
-  const parar = useCallback(() => {
+  const iniciar = useCallback(async () => {
+    setErro(null);
+    setGravando(true);
+    ativo.current = true;
+    const r = await apiAtalhos.capturar();
+    ativo.current = false;
     setGravando(false);
-    setAtual([]);
-    segurando.current.clear();
-    coletado.current = [];
+    if (r.ok) callback.current(r.teclas);
+    else if (r.erro !== "Captura cancelada.") setErro(r.erro);
   }, []);
 
-  useEffect(() => {
-    if (!gravando) return;
-    const aoDescer = (e: KeyboardEvent) => {
-      e.preventDefault();
-      if (e.code === "Escape") return parar();
-      const tecla = codigoParaTecla(e.code, plataforma);
-      if (!tecla) return;
-      segurando.current.add(e.code);
-      if (!coletado.current.includes(tecla)) {
-        const nova = [...coletado.current, tecla];
-        // Modificadores primeiro, tecla comum por último, no máximo uma.
-        const mods = nova.filter(ehModificador);
-        const comuns = nova.filter((t) => !ehModificador(t));
-        coletado.current = [...mods, ...comuns.slice(0, 1)];
-        setAtual(coletado.current);
-      }
-    };
-    const aoSubir = (e: KeyboardEvent) => {
-      e.preventDefault();
-      segurando.current.delete(e.code);
-      if (segurando.current.size === 0 && coletado.current.length > 0) {
-        const resultado = coletado.current;
-        parar();
-        callback.current(resultado);
-      }
-    };
-    window.addEventListener("keydown", aoDescer, true);
-    window.addEventListener("keyup", aoSubir, true);
-    return () => {
-      window.removeEventListener("keydown", aoDescer, true);
-      window.removeEventListener("keyup", aoSubir, true);
-    };
-  }, [gravando, parar]);
+  const parar = useCallback(() => {
+    if (ativo.current) void apiAtalhos.cancelarCaptura();
+  }, []);
 
-  return { gravando, atual, iniciar: () => setGravando(true), parar };
+  // Saiu da tela no meio da gravação: cancela para o teclado voltar ao normal.
+  useEffect(() => () => {
+    if (ativo.current) void apiAtalhos.cancelarCaptura();
+  }, []);
+
+  return { gravando, erro, iniciar, parar };
 }
