@@ -11,6 +11,7 @@ o cursor está. Inspirado nas funcionalidades do Typeless, com código próprio.
 
 ```bash
 npm install
+npm run nativo:mac # compila o auxiliar nativo do Mac (teclado e colar)
 npm run dev        # desenvolvimento, com recarga
 npm run build      # compila para out/
 npm start          # roda o compilado

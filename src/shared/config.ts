@@ -29,6 +29,23 @@ export const MODELO_PADRAO = MODELOS_IA[0].id;
 /** Tempo máximo de uma chamada à IA (ms). O Typeless usa 40 s no /ai/voice_flow. */
 export const TIMEOUT_IA_MS = 40_000;
 
+// ── Ditado ────────────────────────────────────────────────────────────────────
+
+/** Soltar Fn antes disso (ms) = toque rápido → liga o modo mãos livres. */
+export const TOQUE_RAPIDO_MS = 300;
+/** Gravações mais curtas que isso (ms) são descartadas (toque sem fala). */
+export const GRAVACAO_MINIMA_MS = 400;
+/** Limite de uma gravação (s). 6 min de WAV 16 kHz ≈ 11,5 MB. */
+export const GRAVACAO_MAXIMA_S = 360;
+/** Fn combinada com outra tecla até este tempo (ms) após descer = atalho do sistema, não ditado. */
+export const JANELA_FN_COMBINADO_MS = 800;
+/** Taxa de amostragem enviada para a IA. */
+export const TAXA_AMOSTRAGEM = 16_000;
+/** Por quanto tempo a pílula mostra uma mensagem de erro (ms). */
+export const ERRO_PILULA_MS = 3500;
+/** Sons de início/fim do ditado (item 10 do PRD). Volume de 0 a 1. */
+export const VOLUME_SONS = 0.12;
+
 /** Frase falada na amostra resources/amostra-teste.wav (gerada por scripts/gerar-amostra-teste.sh). */
 export const FRASE_AMOSTRA = "Teste de ditado, um, dois, três.";
 /** Palavra que precisa aparecer na transcrição para o teste de áudio passar. */

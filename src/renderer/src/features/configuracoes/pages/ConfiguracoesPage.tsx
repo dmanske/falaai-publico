@@ -1,5 +1,7 @@
 import { FRASE_AMOSTRA, NOME_APP } from "@shared/config";
 import { CampoChave } from "../components/CampoChave";
+import { Permissoes } from "../components/Permissoes";
+import { usePermissoes } from "../hooks/usePermissoes";
 import { ResultadoTeste } from "../components/ResultadoTeste";
 import { SeletorModelo } from "../components/SeletorModelo";
 import { useChaveLovable } from "../hooks/useChaveLovable";
@@ -10,6 +12,7 @@ export function ConfiguracoesPage() {
   const chave = useChaveLovable();
   const { preferencias, salvar: salvarPreferencias, recarregar } = usePreferencias();
   const teste = useTesteIa();
+  const permissoes = usePermissoes();
 
   async function testar() {
     await teste.testar();
@@ -20,8 +23,13 @@ export function ConfiguracoesPage() {
     <main className="mx-auto max-w-xl space-y-8 p-8">
       <header>
         <h1 className="text-2xl font-semibold">{NOME_APP}</h1>
-        <p className="text-sm text-neutral-500">Configurações da IA. Tudo fica neste computador.</p>
+        <p className="text-sm text-neutral-500">
+          Segure <kbd className="rounded border px-1 text-xs">Fn</kbd>, fale e solte. Toque rápido = mãos livres; Esc cancela;
+          Ctrl+Cmd+V cola a última de novo. Tudo fica neste computador.
+        </p>
       </header>
+
+      {permissoes.status && <Permissoes status={permissoes.status} onPedir={(q) => void permissoes.pedir(q)} />}
 
       <section className="space-y-6">
         <CampoChave

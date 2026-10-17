@@ -17,13 +17,14 @@ login/conta, sincronização na nuvem, plano/assinatura, banners/pesquisas/convi
 |---|---|---|---|
 | — | Chave da Lovable na tela, criptografada, com botão de teste (texto + áudio) | F0 | ✅ pronto |
 | — | Escolha do modelo de IA (lista + id digitado) | F0 | ✅ pronto |
-| 1 | Ditado: segura a tecla, fala, solta, texto colado no cursor | F1 | a fazer |
-| 2 | Refinar com IA (tira vícios de fala, pontua, organiza) | F1 | a fazer |
-| 3 | Pílula flutuante com onda de áudio e "processando…" | F1 | a fazer |
-| 4 | Modo mãos livres (toca para começar, toca para parar) | F1 | a fazer |
-| 5 | Cancelar no meio (Esc) | F1 | a fazer |
-| 6 | Colar de novo a última transcrição | F1 | a fazer |
-| 10 | Sons de início e fim | F1 | a fazer |
+| — | Permissões na tela (microfone, Acessibilidade, aviso da tecla 🌐) | F1 | ✅ pronto |
+| 1 | Ditado: segura a tecla, fala, solta, texto colado no cursor | F1 | construído — falta teste com Fn real |
+| 2 | Refinar com IA (tira vícios de fala, pontua, organiza) | F1 | construído — falta teste com Fn real |
+| 3 | Pílula flutuante com onda de áudio e "processando…" | F1 | construído — falta teste com Fn real |
+| 4 | Modo mãos livres (toca para começar, toca para parar) | F1 | construído — falta teste com Fn real |
+| 5 | Cancelar no meio (Esc) | F1 | construído — falta teste com Fn real |
+| 6 | Colar de novo a última transcrição | F1 | construído — falta teste com Fn real |
+| 10 | Sons de início e fim | F1 | construído — falta teste com Fn real |
 | 11 | Contexto do app em foco (tom/formatação) | F2 | a fazer |
 | 12 | Texto ao redor do cursor | F2 | a fazer |
 | 13 | "Pergunte qualquer coisa" (comando sobre o texto selecionado / cartão de resposta) | F2 | a fazer |

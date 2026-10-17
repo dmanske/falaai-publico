@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "amostra-teste": "bash scripts/gerar-amostra-teste.sh",
     "icones": "swift scripts/gerar-icone-bandeja.swift resources",
-    "test": "node --test \"src/**/*.test.ts\""
+    "test": "node --test \"src/**/*.test.ts\"",
+    "nativo:mac": "bash scripts/compilar-auxiliar-mac.sh"
   },
   "dependencies": {},
   "devDependencies": {

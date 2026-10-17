@@ -4,7 +4,7 @@ import type { Preferencias } from "@shared/ipc";
 import { gravarJson, lerJson } from "../../lib/arquivoJson";
 
 const ARQUIVO = "preferencias.json";
-const PADRAO: Preferencias = { modelo: MODELO_PADRAO, formatoAudio: null };
+const PADRAO: Preferencias = { modelo: MODELO_PADRAO, formatoAudio: null, sons: true };
 
 export function lerPreferencias(): Preferencias {
   return lerJson(ARQUIVO, PADRAO);

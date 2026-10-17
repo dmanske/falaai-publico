@@ -1,6 +1,13 @@
 // Ponte segura entre a tela e o processo principal. A tela só enxerga o que está aqui.
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 import { CANAIS, type Ponte } from "@shared/ipc";
+
+/** Registra um ouvinte e devolve a função que o remove. */
+function ouvir<T>(canal: string, cb: (dado: T) => void): () => void {
+  const ouvinte = (_e: IpcRendererEvent, dado: T) => cb(dado);
+  ipcRenderer.on(canal, ouvinte);
+  return () => ipcRenderer.removeListener(canal, ouvinte);
+}
 
 const ponte: Ponte = {
   plataforma: process.platform,
@@ -15,6 +22,15 @@ const ponte: Ponte = {
   },
   ia: {
     testar: () => ipcRenderer.invoke(CANAIS.IA_TESTAR),
+  },
+  permissoes: {
+    ler: () => ipcRenderer.invoke(CANAIS.PERMISSOES_LER),
+    pedir: (qual) => ipcRenderer.invoke(CANAIS.PERMISSOES_PEDIR, qual),
+  },
+  pilula: {
+    aoComando: (cb) => ouvir(CANAIS.PILULA_COMANDO, cb),
+    aoEstado: (cb) => ouvir(CANAIS.PILULA_ESTADO, cb),
+    enviarAudio: (a) => ipcRenderer.send(CANAIS.PILULA_AUDIO, a),
   },
 };
 

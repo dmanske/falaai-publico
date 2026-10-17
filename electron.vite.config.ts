@@ -19,5 +19,14 @@ export default defineConfig({
   renderer: {
     resolve: { alias: { ...compartilhado, "@": resolve("src/renderer/src") } },
     plugins: [react(), tailwindcss()],
+    build: {
+      // Uma página HTML por janela.
+      rollupOptions: {
+        input: {
+          index: resolve("src/renderer/index.html"),
+          pilula: resolve("src/renderer/pilula.html"),
+        },
+      },
+    },
   },
 });

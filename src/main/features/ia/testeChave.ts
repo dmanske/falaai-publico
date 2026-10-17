@@ -10,15 +10,9 @@ import { caminhoRecurso } from "../../lib/recursos";
 import { lerChave } from "../chaves";
 import { lerPreferencias, salvarPreferencias } from "../preferencias";
 import { chamarLovable } from "./api/lovable";
-import type { ParteConteudo } from "./types";
+import { transcreverERefinar } from "./transcrever";
 
 const ORDEM_FORMATOS: FormatoAudio[] = ["input_audio", "file"];
-
-function parteAudio(formato: FormatoAudio, base64: string): ParteConteudo {
-  return formato === "input_audio"
-    ? { type: "input_audio", input_audio: { data: base64, format: "wav" } }
-    : { type: "file", file: { filename: "amostra-teste.wav", file_data: `data:audio/wav;base64,${base64}` } };
-}
 
 function normalizar(s: string): string {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -42,30 +36,18 @@ export async function testarIa(): Promise<ResultadoTesteIa> {
     : { ok: false, mensagem: rTexto.erro, ms: rTexto.ms };
   if (!texto.ok) return { texto, audio: null };
 
-  let base64: string;
+  let wav: Buffer;
   try {
-    base64 = readFileSync(caminhoRecurso("amostra-teste.wav")).toString("base64");
+    wav = readFileSync(caminhoRecurso("amostra-teste.wav"));
   } catch {
     return { texto, audio: { ok: false, mensagem: "Amostra de áudio não encontrada no app.", ms: 0, formato: null } };
   }
 
+  // Mesmo caminho do ditado (prompt de limpeza incluído).
   const falhas: string[] = [];
   let ms = 0;
   for (const formato of ORDEM_FORMATOS) {
-    const r = await chamarLovable({
-      chave,
-      modelo,
-      mensagens: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Transcreva exatamente o que é falado neste áudio, em português. Responda só com a transcrição." },
-            parteAudio(formato, base64),
-          ],
-        },
-      ],
-      timeoutMs: 30_000,
-    });
+    const r = await transcreverERefinar(wav, formato);
     ms += r.ms;
     if (r.ok && normalizar(r.texto).includes(PALAVRA_CHAVE_AMOSTRA)) {
       salvarPreferencias({ formatoAudio: formato });
