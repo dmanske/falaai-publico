@@ -1,7 +1,7 @@
 {
   "name": "falaai",
   "productName": "FalaAi",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Ditado por voz com IA, 100% local: segura a tecla, fala, solta, e o texto aparece onde o cursor está.",
   "author": "Daniel Manske",
   "private": true,
