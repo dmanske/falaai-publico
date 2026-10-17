@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { StatusChave } from "@shared/ipc";
+import { Botao, CampoTexto } from "@/components/ui";
 
 interface Props {
   status: StatusChave | null;
@@ -19,12 +20,12 @@ export function CampoChave({ status, erro, onSalvar, onApagar }: Props) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 py-3">
       <label className="block text-sm font-medium" htmlFor="chave-lovable">
         Chave da Lovable
       </label>
       <div className="flex gap-2">
-        <input
+        <CampoTexto
           id="chave-lovable"
           type="password"
           autoComplete="off"
@@ -33,28 +34,20 @@ export function CampoChave({ status, erro, onSalvar, onApagar }: Props) {
           value={valor}
           onChange={(e) => setValor(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && valor.trim() && void salvar()}
-          className="flex-1 rounded-md border border-neutral-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-violet-500 dark:border-neutral-700"
         />
-        <button
-          type="button"
-          disabled={!valor.trim() || salvando}
-          onClick={() => void salvar()}
-          className="rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
-        >
+        <Botao variante="primario" disabled={!valor.trim() || salvando} onClick={() => void salvar()}>
           Salvar
-        </button>
+        </Botao>
       </div>
-      <div className="flex items-center justify-between text-xs text-neutral-500">
-        <span>
-          {status?.configurada ? `✓ Chave salva, criptografada pelo sistema (…${status.final})` : "Nenhuma chave salva"}
-        </span>
+      <div className="flex items-center justify-between text-xs text-suave">
+        <span>{status?.configurada ? `Chave salva, criptografada pelo sistema (…${status.final})` : "Nenhuma chave salva"}</span>
         {status?.configurada && (
-          <button type="button" onClick={() => void onApagar()} className="text-red-600 hover:underline">
+          <button type="button" onClick={() => void onApagar()} className="text-perigo hover:underline">
             Apagar chave
           </button>
         )}
       </div>
-      {erro && <p className="text-xs text-red-600">{erro}</p>}
+      {erro && <p className="text-xs text-perigo">{erro}</p>}
     </div>
   );
 }

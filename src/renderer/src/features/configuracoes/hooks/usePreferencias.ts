@@ -7,6 +7,7 @@ export function usePreferencias() {
 
   useEffect(() => {
     void apiPreferencias.ler().then(setPreferencias);
+    return apiPreferencias.aoMudar(setPreferencias);
   }, []);
 
   const salvar = useCallback(async (parcial: Partial<Preferencias>) => {

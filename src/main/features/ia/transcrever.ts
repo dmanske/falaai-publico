@@ -14,7 +14,7 @@ export function parteAudio(formato: FormatoAudio, wavBase64: string): ParteConte
 }
 
 /** Tira aspas, cercas de código e a marca de "sem fala" que a IA às vezes devolve. */
-function limparResposta(texto: string): string {
+export function limparResposta(texto: string): string {
   let t = texto.trim();
   t = t.replace(/^```[a-z]*\n?/i, "").replace(/\n?```$/, "").trim();
   if (/^["“].*["”]$/s.test(t)) t = t.slice(1, -1).trim();

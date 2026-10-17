@@ -8,7 +8,7 @@ const REPOUSO = 6;
 const ALTURA_MAX = 24;
 
 /** Onda simétrica que cresce com o volume da voz; cada barra varia um pouco para parecer viva. */
-export function Onda({ nivel }: { nivel: number }) {
+export function Onda({ nivel, cor = "#ffffff" }: { nivel: number; cor?: string }) {
   const [alturas, setAlturas] = useState(() => ENVELOPE.map((peso) => Math.round(ALTURA_MIN + REPOUSO * peso)));
   const nivelRef = useRef(nivel);
   nivelRef.current = nivel;
@@ -33,8 +33,8 @@ export function Onda({ nivel }: { nivel: number }) {
       {alturas.map((a, i) => (
         <span
           key={i}
-          className="w-[3px] rounded-full bg-white transition-[height] duration-100 ease-out"
-          style={{ height: `${a}px` }}
+          className="w-[3px] rounded-full transition-[height] duration-100 ease-out"
+          style={{ height: `${a}px`, backgroundColor: cor }}
         />
       ))}
     </div>

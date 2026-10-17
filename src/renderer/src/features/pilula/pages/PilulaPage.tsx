@@ -1,6 +1,11 @@
+import type { ModoDitado } from "@shared/ipc";
 import { apiPilula } from "../api/ponte";
 import { Onda } from "../components/Onda";
 import { useComandosPilula } from "../hooks/useComandosPilula";
+
+/** Cor da onda por modo: o usuário vê quando Espaço/⇧ trocou o modo no meio da gravação. */
+const COR_MODO: Record<ModoDitado, string> = { ditado: "#ffffff", pergunte: "#8ea2ff", traducao: "#6fe0a6" };
+const NOME_MODO: Record<ModoDitado, string> = { ditado: "Ditado", pergunte: "Pergunte qualquer coisa", traducao: "Tradução" };
 
 function Pontos() {
   return (
@@ -61,9 +66,9 @@ export function PilulaPage() {
   }
 
   return (
-    <div className="flex h-screen w-screen items-center justify-between rounded-full bg-neutral-950 px-1.5">
+    <div className="flex h-screen w-screen items-center justify-between rounded-full bg-neutral-950 px-1.5" title={NOME_MODO[estado.modo]}>
       <BotaoCancelar />
-      {estado.estado === "gravando" ? <Onda nivel={nivel} /> : <Pontos />}
+      {estado.estado === "gravando" ? <Onda nivel={nivel} cor={COR_MODO[estado.modo]} /> : <Pontos />}
       <BotaoConfirmar ativo={estado.estado === "gravando"} />
     </div>
   );

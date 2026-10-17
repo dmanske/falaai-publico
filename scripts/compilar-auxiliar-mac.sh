@@ -4,7 +4,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-FONTE="nativo/macos/main.swift"
+FONTES=(nativo/macos/*.swift)
 SAIDA="resources/bin/falaai-auxiliar-mac"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -13,8 +13,8 @@ mkdir -p resources/bin
 
 compilar() { # $1 = arquitetura
   swiftc -O -swift-version 5 -target "$1-apple-macos12" \
-    -framework Cocoa -framework ApplicationServices -framework Carbon \
-    "$FONTE" -o "$TMP/aux-$1"
+    -framework Cocoa -framework ApplicationServices -framework Carbon -framework CoreAudio \
+    "${FONTES[@]}" -o "$TMP/aux-$1"
 }
 
 ARQS=()

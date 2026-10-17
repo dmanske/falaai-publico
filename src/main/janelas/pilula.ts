@@ -43,10 +43,12 @@ export function criarPilula(): void {
   janela.setAlwaysOnTop(true, "screen-saver");
   janela.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
-  // Microfone liberado só para a pílula.
-  const wcPilula = janela.webContents;
-  session.defaultSession.setPermissionRequestHandler((wc, permissao, cb) => cb(permissao === "media" && wc === wcPilula));
-  session.defaultSession.setPermissionCheckHandler((wc, permissao) => permissao === "media" && wc === wcPilula);
+  // Microfone liberado só para as páginas do próprio app (pílula grava; Configurações lista os
+  // microfones; onboarding testa). Nada de fora é carregado nas janelas.
+  const doApp = (url: string) =>
+    url.startsWith("file://") || (!!process.env.ELECTRON_RENDERER_URL && url.startsWith(process.env.ELECTRON_RENDERER_URL));
+  session.defaultSession.setPermissionRequestHandler((wc, permissao, cb) => cb(permissao === "media" && doApp(wc.getURL())));
+  session.defaultSession.setPermissionCheckHandler((_wc, permissao, origem) => permissao === "media" && doApp(origem));
 
   if (process.env.ELECTRON_RENDERER_URL) void janela.loadURL(`${process.env.ELECTRON_RENDERER_URL}/pilula.html`);
   else void janela.loadFile(join(__dirname, "../renderer/pilula.html"));

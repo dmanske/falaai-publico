@@ -1,6 +1,44 @@
-// ESQUELETO — preenchido pelo agente responsável.
-import { TituloPagina } from "@/components/ui";
+import { rotuloTecla } from "@shared/atalhos";
+import { Cartao, TituloPagina, TituloSecao, Vazio } from "@/components/ui";
+import { AppsMaisUsados } from "../components/AppsMaisUsados";
+import { Atividade } from "../components/Atividade";
+import { PainelAtalhos } from "../components/PainelAtalhos";
+import { Percepcoes } from "../components/Percepcoes";
+import { plataforma } from "../api/ponte";
+import { useAtalhos } from "../hooks/useAtalhos";
+import { useResumo } from "../hooks/useResumo";
 
 export function InicioPage() {
-  return <TituloPagina>Inicio</TituloPagina>;
+  const { resumo, erro } = useResumo();
+  const atalhos = useAtalhos();
+  const teclaDitado = atalhos ? atalhos.ditado.map((t) => rotuloTecla(t, plataforma)).join(" + ") : "o atalho";
+
+  return (
+    <div>
+      <TituloPagina>Fale, não digite</TituloPagina>
+      {/* Abaixo de 1100 px a coluna dos atalhos desce para baixo do conteúdo. */}
+      <div className="grid grid-cols-1 gap-8 min-[1100px]:grid-cols-[minmax(0,1fr)_280px]">
+        <section className="min-w-0 space-y-4">
+          <TituloSecao>Percepções</TituloSecao>
+          {erro && <p className="text-sm text-perigo">{erro}</p>}
+          {resumo && resumo.ditados === 0 ? (
+            <Cartao>
+              <Vazio titulo={`Segure ${teclaDitado} e fale para começar`} descricao="Seus números e sua sequência de dias aparecem aqui depois do primeiro ditado." />
+            </Cartao>
+          ) : (
+            resumo && (
+              <>
+                <Percepcoes resumo={resumo} />
+                <Atividade resumo={resumo} />
+              </>
+            )
+          )}
+        </section>
+        <aside className="min-w-0 space-y-4 min-[1100px]:pt-14">
+          <PainelAtalhos atalhos={atalhos} />
+          {resumo && <AppsMaisUsados apps={resumo.porApp} />}
+        </aside>
+      </div>
+    </div>
+  );
 }

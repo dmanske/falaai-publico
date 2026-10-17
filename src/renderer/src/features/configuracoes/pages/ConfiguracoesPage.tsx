@@ -1,86 +1,80 @@
-import { FRASE_AMOSTRA, NOME_APP } from "@shared/config";
-import { CampoChave } from "../components/CampoChave";
-import { Permissoes } from "../components/Permissoes";
-import { usePermissoes } from "../hooks/usePermissoes";
-import { ResultadoTeste } from "../components/ResultadoTeste";
-import { SeletorModelo } from "../components/SeletorModelo";
-import { useChaveLovable } from "../hooks/useChaveLovable";
+// Configurações dentro do hub: lista de seções à esquerda, cartões à direita. Salva na hora.
+import { useEffect, useState } from "react";
+import { TituloPagina } from "@/components/ui";
+import { SecaoAtalhos } from "../components/secoes/SecaoAtalhos";
+import { SecaoAudio } from "../components/secoes/SecaoAudio";
+import { SecaoDados } from "../components/secoes/SecaoDados";
+import { SecaoGeral } from "../components/secoes/SecaoGeral";
+import { SecaoIa } from "../components/secoes/SecaoIa";
+import { SecaoIdiomas } from "../components/secoes/SecaoIdiomas";
+import { SecaoPermissoes } from "../components/secoes/SecaoPermissoes";
+import { SecaoSobre } from "../components/secoes/SecaoSobre";
 import { usePreferencias } from "../hooks/usePreferencias";
-import { useTesteIa } from "../hooks/useTesteIa";
+import type { SecaoConfig } from "../types";
 
-export function ConfiguracoesPage() {
-  const chave = useChaveLovable();
-  const { preferencias, salvar: salvarPreferencias, recarregar } = usePreferencias();
-  const teste = useTesteIa();
-  const permissoes = usePermissoes();
+const SECOES: { id: SecaoConfig; rotulo: string }[] = [
+  { id: "geral", rotulo: "Geral" },
+  { id: "atalhos", rotulo: "Atalhos" },
+  { id: "idiomas", rotulo: "Idiomas" },
+  { id: "audio", rotulo: "Áudio" },
+  { id: "dados", rotulo: "Dados e privacidade" },
+  { id: "ia", rotulo: "IA" },
+  { id: "permissoes", rotulo: "Permissões" },
+  { id: "sobre", rotulo: "Sobre" },
+];
 
-  async function testar() {
-    await teste.testar();
-    await recarregar();
-  }
+/** "atualizacoes" (menu da bandeja) abre o Sobre já verificando; "sobre" só abre. */
+function resolverSecao(secao: string | null): SecaoConfig {
+  if (secao === "atualizacoes") return "sobre";
+  return SECOES.some((s) => s.id === secao) ? (secao as SecaoConfig) : "geral";
+}
+
+export function ConfiguracoesPage({ secaoInicial = null }: { secaoInicial?: string | null }) {
+  const { preferencias, salvar, recarregar } = usePreferencias();
+  const [secao, setSecao] = useState<SecaoConfig>(() => resolverSecao(secaoInicial));
+  const [verificar, setVerificar] = useState(secaoInicial === "atualizacoes");
+
+  useEffect(() => {
+    if (secaoInicial) {
+      setSecao(resolverSecao(secaoInicial));
+      setVerificar(secaoInicial === "atualizacoes");
+    }
+  }, [secaoInicial]);
+
+  const props = preferencias ? { preferencias, salvar } : null;
 
   return (
-    <main className="mx-auto max-w-xl space-y-8 p-8">
-      <header>
-        <h1 className="text-2xl font-semibold">{NOME_APP}</h1>
-        <p className="text-sm text-neutral-500">
-          Segure <kbd className="rounded border px-1 text-xs">Fn</kbd>, fale e solte. Toque rápido = mãos livres; Esc cancela;
-          Ctrl+Cmd+V cola a última de novo. Tudo fica neste computador.
-        </p>
-      </header>
-
-      {permissoes.status && <Permissoes status={permissoes.status} onPedir={(q) => void permissoes.pedir(q)} />}
-
-      <section className="space-y-6">
-        <CampoChave
-          status={chave.status}
-          erro={chave.erro}
-          onSalvar={async (v) => {
-            const ok = await chave.salvar(v);
-            if (ok) teste.limpar();
-            return ok;
-          }}
-          onApagar={async () => {
-            await chave.apagar();
-            teste.limpar();
-          }}
-        />
-
-        {preferencias && (
-          <SeletorModelo
-            modelo={preferencias.modelo}
-            onMudar={(modelo) => {
-              void salvarPreferencias({ modelo });
-              teste.limpar();
-            }}
-          />
-        )}
-      </section>
-
-      <section className="space-y-3">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            disabled={!chave.status?.configurada || teste.testando}
-            onClick={() => void testar()}
-            className="shrink-0 whitespace-nowrap rounded-md border border-violet-600 px-4 py-2 text-sm font-medium text-violet-700 disabled:opacity-40 dark:text-violet-300"
-          >
-            {teste.testando ? "Testando…" : "Testar chave"}
-          </button>
-          <span className="text-xs text-neutral-500">
-            Testa o texto e depois uma amostra de voz (“{FRASE_AMOSTRA}”).
-          </span>
+    <>
+      <TituloPagina>Configurações</TituloPagina>
+      <div className="flex flex-col gap-6 md:flex-row">
+        <nav className="flex shrink-0 flex-row flex-wrap gap-1 md:w-52 md:flex-col">
+          {SECOES.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => {
+                setSecao(s.id);
+                setVerificar(false);
+              }}
+              className={`rounded-xl px-3 py-2 text-left text-sm transition ${
+                secao === s.id ? "bg-painel font-medium text-texto ring-1 ring-borda" : "text-suave hover:bg-painel hover:text-texto"
+              }`}
+            >
+              {s.rotulo}
+            </button>
+          ))}
+        </nav>
+        <div className="min-w-0 flex-1">
+          {secao === "sobre" && <SecaoSobre key={String(verificar)} verificarAoAbrir={verificar} />}
+          {secao === "permissoes" && <SecaoPermissoes />}
+          {props && secao === "geral" && <SecaoGeral {...props} />}
+          {props && secao === "atalhos" && <SecaoAtalhos {...props} />}
+          {props && secao === "idiomas" && <SecaoIdiomas {...props} />}
+          {props && secao === "audio" && <SecaoAudio {...props} />}
+          {props && secao === "dados" && <SecaoDados {...props} />}
+          {props && secao === "ia" && <SecaoIa {...props} recarregar={recarregar} />}
         </div>
-        {teste.resultado && <ResultadoTeste resultado={teste.resultado} />}
-        {preferencias && (
-          <p className="text-xs text-neutral-500">
-            Áudio:{" "}
-            {preferencias.formatoAudio
-              ? `pronto para ditado (formato "${preferencias.formatoAudio}")`
-              : "ainda não confirmado — rode o teste"}
-          </p>
-        )}
-      </section>
-    </main>
+      </div>
+    </>
   );
 }
