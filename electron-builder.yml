@@ -1,0 +1,63 @@
+# Empacotamento do FalaAi (electron-builder).
+#   Mac:     npm run empacotar:mac   -> release/mac-arm64/FalaAi.app e release/*.dmg
+#   Windows: npm run empacotar:win   -> release/FalaAi-Setup-<versão>.exe (feito no GitHub Actions)
+# Os ícones saem de build/icon.png (gerado por: swift scripts/gerar-icone-app.swift).
+appId: com.manske.falaai
+productName: FalaAi
+copyright: Copyright © Daniel Manske
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**
+  - package.json
+
+# O código lê esses arquivos na RAIZ de Resources (src/main/lib/recursos.ts):
+#   Resources/amostra-teste.wav, Resources/iconeBandejaTemplate.png, Resources/bin/<auxiliar>
+# Cada sistema leva só o seu auxiliar nativo.
+mac:
+  category: public.app-category.productivity
+  icon: build/icon.png
+  target:
+    - target: dmg
+      arch: arm64
+    - target: dir
+      arch: arm64
+  # Assinatura "ad-hoc" ("-"): não exige certificado da Apple, mas o macOS trata cada build como
+  # um app novo (ver README: a permissão de Acessibilidade precisa ser dada de novo).
+  identity: "-"
+  hardenedRuntime: false
+  gatekeeperAssess: false
+  extendInfo:
+    NSMicrophoneUsageDescription: O FalaAi usa o microfone para ouvir o seu ditado.
+  extraResources:
+    - from: resources
+      to: .
+      filter:
+        - "**/*"
+        - "!bin/*.exe"
+
+dmg:
+  title: FalaAi
+  artifactName: FalaAi-${version}-${arch}.${ext}
+
+win:
+  icon: build/icon.png
+  target:
+    - target: nsis
+      arch: x64
+  artifactName: FalaAi-Setup-${version}.${ext}
+  extraResources:
+    - from: resources
+      to: .
+      filter:
+        - "**/*"
+        - "!bin/falaai-auxiliar-mac"
+
+nsis:
+  oneClick: true
+  perMachine: false
+  createStartMenuShortcut: true
+  createDesktopShortcut: false
+  deleteAppDataOnUninstall: false

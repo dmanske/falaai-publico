@@ -5,7 +5,7 @@ export function Logo() {
   return (
     <div className="flex items-center gap-2.5 px-3">
       <IconeMarca />
-      <span className="text-2xl font-bold tracking-tight">{NOME_APP}</span>
+      <span className="font-titulo text-[26px] font-semibold tracking-[-0.01em]">{NOME_APP}</span>
     </div>
   );
 }

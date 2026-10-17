@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { AUTOR } from "@shared/config";
+import { descreverBuild } from "@shared/build";
 import { NOME_APP } from "@shared/config";
 import { Botao, LinhaConfig } from "@/components/ui";
 import { useAtualizacao } from "../../hooks/useAtualizacao";
@@ -15,6 +17,12 @@ export function SecaoSobre({ verificarAoAbrir }: { verificarAoAbrir: boolean }) 
 
   return (
     <CartaoSecao titulo={`Sobre o ${NOME_APP}`}>
+      <LinhaConfig rotulo="Criado por">
+        <span className="text-sm text-suave">{AUTOR}</span>
+      </LinhaConfig>
+      <LinhaConfig rotulo="Última atualização" descricao="Muda a cada nova versão do app (data, hora e código do build).">
+        <span className="text-sm text-suave">{descreverBuild()}</span>
+      </LinhaConfig>
       <LinhaConfig rotulo="Versão">
         <span className="text-sm text-suave">{info?.versao ?? "…"}</span>
       </LinhaConfig>

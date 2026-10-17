@@ -6,9 +6,9 @@ import { gerarGrade } from "../lib/calendario";
 const LINHAS = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 /** Intensidade → cor (tons do azul de destaque; funciona no claro e no escuro). */
-function corDoNivel(nivel: number): string {
-  if (nivel === 0) return "var(--color-painel)";
-  return `color-mix(in srgb, var(--color-destaque) ${[0, 30, 55, 78, 100][nivel]}%, transparent)`;
+function corDoNivel(nivel: number): string | undefined {
+  // Nível 0 fica com o hachurado (.celula-vazia); os outros nos tons de azul da referência.
+  return [undefined, "var(--color-destaque-claro)", "var(--color-destaque-2)", "var(--color-destaque-3)", "var(--color-destaque)"][nivel];
 }
 
 const CELULA = "aspect-square w-full max-w-[18px] rounded-[4px]";
@@ -37,7 +37,7 @@ export function Calendario({ porDia }: { porDia: ResumoEstatisticas["porDia"] })
                 <div
                   key={cel.dia}
                   title={cel.futuro ? undefined : `${cel.dia.split("-").reverse().join("/")}: ${cel.palavras} palavras`}
-                  className={`${CELULA} ${cel.futuro ? "invisible" : ""}`}
+                  className={`${CELULA} ${cel.nivel === 0 ? "celula-vazia" : ""} ${cel.futuro ? "invisible" : ""}`}
                   style={{ background: corDoNivel(cel.nivel) }}
                 />
               ) : (
@@ -88,7 +88,7 @@ export function Calendario({ porDia }: { porDia: ResumoEstatisticas["porDia"] })
         <div className="flex items-center gap-2">
           Menos
           {[0, 1, 2, 3, 4].map((n) => (
-            <span key={n} className="h-4 w-4 rounded-[4px]" style={{ background: corDoNivel(n) }} />
+            <span key={n} className={`h-4 w-4 rounded-[4px] ${n === 0 ? "celula-vazia" : ""}`} style={{ background: corDoNivel(n) }} />
           ))}
           Mais
         </div>

@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { AUTOR } from "@shared/config";
+import { atualizacaoCurta, descreverBuild } from "@shared/build";
 import type { PaginaHub } from "@shared/ipc";
 import { plataforma } from "../api/ponte";
 import { IconeConfig, IconeDicionario, IconeHistorico, IconeInicio, IconeSobre } from "./Icones";
@@ -33,10 +35,41 @@ function BotaoIcone({ ativo, titulo, onClick, children }: { ativo: boolean; titu
   );
 }
 
+function Assinatura() {
+  const { quando, id } = atualizacaoCurta();
+  const iniciais = AUTOR.split(" ")
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("");
+  return (
+    <div style={semArrastar} className="mt-3 space-y-2">
+      <div className="flex items-center gap-2.5 rounded-2xl bg-cartao px-2.5 py-2 shadow-cartao">
+        <span
+          aria-hidden
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-destaque to-[#8b5cf6] font-titulo text-[12px] font-semibold tracking-wide text-white"
+        >
+          {iniciais}
+        </span>
+        <span className="min-w-0 leading-tight">
+          <span className="block truncate font-titulo text-[13px] font-medium">{AUTOR}</span>
+          <span className="block text-[11px] text-suave">Criador do FalaAi</span>
+        </span>
+      </div>
+      <div className="flex items-center justify-between px-1.5 text-[11px] text-suave" title={`Última atualização: ${descreverBuild()}`}>
+        <span className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-sucesso" />
+          Atualizado {quando}
+        </span>
+        <span className="font-mono text-[10px] text-apagado">#{id}</span>
+      </div>
+    </div>
+  );
+}
+
 export function MenuLateral({ pagina, secao, onIr }: Props) {
   const mac = plataforma === "darwin";
   return (
-    <nav className="m-3 mr-0 flex w-60 shrink-0 flex-col rounded-3xl bg-painel p-3">
+    <nav className="m-3 mr-0 flex w-[212px] shrink-0 flex-col rounded-3xl bg-painel p-3">
       {/* Faixa arrastável; no Mac reserva o espaço dos botões vermelho/amarelo/verde. */}
       <div style={arrastar} className={mac ? "h-12 shrink-0" : "h-4 shrink-0"} />
       <div style={arrastar} className="mb-5 py-1">
@@ -67,6 +100,8 @@ export function MenuLateral({ pagina, secao, onIr }: Props) {
           <IconeSobre />
         </BotaoIcone>
       </div>
+      {/* Assinatura do criador e marca do build (muda a cada atualização). */}
+      <Assinatura />
     </nav>
   );
 }

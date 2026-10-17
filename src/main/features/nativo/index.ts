@@ -9,6 +9,7 @@ import type { ComandoAuxiliar, EventoAuxiliar, RespostaAuxiliar } from "./types"
 
 const BINARIOS: Partial<Record<NodeJS.Platform, string>> = {
   darwin: "bin/falaai-auxiliar-mac",
+  win32: "bin/falaai-auxiliar-win.exe",
 };
 /** Tempo máximo de resposta a um comando (ms). */
 const TIMEOUT_COMANDO_MS = 5000;

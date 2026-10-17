@@ -37,7 +37,9 @@ function criar(): BrowserWindow {
     transparent: true,
     resizable: false,
     movable: false,
-    focusable: false,
+    // Aparece sem roubar o foco (showInactive), mas aceita foco ao ser clicado: assim Esc fecha e
+    // "Copiar" funciona (a área de transferência do navegador exige a janela em foco).
+    focusable: true,
     skipTaskbar: true,
     hasShadow: false,
     alwaysOnTop: true,

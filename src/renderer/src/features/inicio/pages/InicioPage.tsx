@@ -16,8 +16,8 @@ export function InicioPage() {
   return (
     <div>
       <TituloPagina>Fale, não digite</TituloPagina>
-      {/* Abaixo de 1100 px a coluna dos atalhos desce para baixo do conteúdo. */}
-      <div className="grid grid-cols-1 gap-8 min-[1100px]:grid-cols-[minmax(0,1fr)_280px]">
+      {/* Atalhos ao lado dos cartões já no tamanho em que o hub abre (1080 px); só descem em janela estreita. */}
+      <div className="grid grid-cols-1 gap-7 min-[960px]:grid-cols-[minmax(0,1fr)_252px]">
         <section className="min-w-0 space-y-4">
           <TituloSecao>Percepções</TituloSecao>
           {erro && <p className="text-sm text-perigo">{erro}</p>}
@@ -34,7 +34,7 @@ export function InicioPage() {
             )
           )}
         </section>
-        <aside className="min-w-0 space-y-4 min-[1100px]:pt-14">
+        <aside className="min-w-0 space-y-4 min-[960px]:pt-[52px]">
           <PainelAtalhos atalhos={atalhos} />
           {resumo && <AppsMaisUsados apps={resumo.porApp} />}
         </aside>

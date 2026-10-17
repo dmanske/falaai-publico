@@ -13,6 +13,20 @@ export function ajustarEspacoInicial(antesDoCursor: string, texto: string): stri
   return ` ${texto}`;
 }
 
+/**
+ * A IA às vezes começa o texto com vírgula/ponto e vírgula achando que está continuando uma frase
+ * (visto no uso real em 17/10/2026: ", fala também que…"). Se antes do cursor não há uma frase em
+ * aberto (campo vazio ou terminado em . ! ? ou quebra de linha), tira a pontuação do começo e põe
+ * maiúscula na primeira letra.
+ */
+export function limparInicio(antesDoCursor: string, texto: string): string {
+  if (!/^\s*[,;]/.test(texto)) return texto;
+  const anterior = antesDoCursor.trimEnd();
+  if (anterior && !/[.!?…]$/.test(anterior) && !/\n\s*$/.test(antesDoCursor)) return texto;
+  const semPontuacao = texto.replace(/^\s*[,;]\s*/, "");
+  return semPontuacao.charAt(0).toLocaleUpperCase("pt-BR") + semPontuacao.slice(1);
+}
+
 /** Conta palavras de um texto (para o histórico e as estatísticas). */
 export function contarPalavras(texto: string): number {
   return texto.trim() ? texto.trim().split(/\s+/).length : 0;

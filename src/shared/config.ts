@@ -3,6 +3,7 @@
 
 /** Nome exibido (escolhido pelo Daniel em 17/10/2026). Trocar junto com "productName" no package.json. */
 export const NOME_APP = "FalaAi";
+export const AUTOR = "Daniel Manske";
 
 /** Gateway de IA da Lovable (compatível com a API da OpenAI). Mesmo do almoxarifado. */
 export const ENDPOINT_LOVABLE = "https://ai.gateway.lovable.dev/v1/chat/completions";
@@ -45,6 +46,11 @@ export const TAXA_AMOSTRAGEM = 16_000;
 export const ERRO_PILULA_MS = 3500;
 /** Sons de início/fim do ditado (item 10 do PRD). Volume de 0 a 1. */
 export const VOLUME_SONS = 0.12;
+
+// ── Janela principal ────────────────────────────────────────────────────────
+
+/** Tamanho inicial e mínimo do hub — os mesmos do Typeless (1080×750, mín. 988×685). */
+export const HUB_TAMANHO = { largura: 1080, altura: 750, minLargura: 988, minAltura: 685 };
 
 // ── Estatísticas e dados ─────────────────────────────────────────────────────
 

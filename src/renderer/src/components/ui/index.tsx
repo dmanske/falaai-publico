@@ -5,9 +5,9 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react
 /** Título grande da página (ex.: "Fale, não digite"). */
 export function TituloPagina({ children, subtitulo }: { children: ReactNode; subtitulo?: ReactNode }) {
   return (
-    <header className="mb-8">
-      <h1 className="text-5xl font-bold tracking-tight">{children}</h1>
-      {subtitulo && <p className="mt-2 text-base text-suave">{subtitulo}</p>}
+    <header className="brilho-titulo mb-9">
+      <h1 className="cursor-default select-none font-titulo text-[54px] font-semibold leading-[1.05] tracking-[-0.02em]">{children}</h1>
+      {subtitulo && <p className="mt-3 text-[15px] text-suave">{subtitulo}</p>}
     </header>
   );
 }
@@ -16,7 +16,7 @@ export function TituloPagina({ children, subtitulo }: { children: ReactNode; sub
 export function TituloSecao({ children, acao }: { children: ReactNode; acao?: ReactNode }) {
   return (
     <div className="mb-4 flex items-center justify-between">
-      <h2 className="text-2xl font-semibold text-suave">{children}</h2>
+      <h2 className="font-titulo text-[26px] font-medium tracking-[-0.01em] text-suave">{children}</h2>
       {acao}
     </div>
   );
@@ -24,7 +24,7 @@ export function TituloSecao({ children, acao }: { children: ReactNode; acao?: Re
 
 /** Cartão branco arredondado. */
 export function Cartao({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-cartao bg-cartao p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] ring-1 ring-borda ${className}`}>{children}</div>;
+  return <div className={`rounded-cartao bg-cartao px-6 py-[18px] shadow-cartao ${className}`}>{children}</div>;
 }
 
 /** Número grande com unidade pequena e legenda (ex.: "20.6K palavras / Palavras ditadas"). */
@@ -32,20 +32,22 @@ export function Numero({ valor, unidade, legenda }: { valor: ReactNode; unidade?
   return (
     <div>
       <div className="flex items-baseline gap-1.5">
-        <span className="text-4xl font-bold tracking-tight">{valor}</span>
-        {unidade && <span className="text-base font-semibold">{unidade}</span>}
+        <span className="font-titulo text-[34px] font-semibold leading-none tracking-[-0.01em]">{valor}</span>
+        {unidade && <span className="font-titulo text-[15px] font-medium">{unidade}</span>}
       </div>
-      <div className="mt-1 text-base text-suave">{legenda}</div>
+      <div className="mt-1.5 text-[15px] leading-snug text-suave">{legenda}</div>
     </div>
   );
 }
 
-type VarianteBotao = "primario" | "secundario" | "fantasma" | "perigo";
+type VarianteBotao = "primario" | "destaque" | "secundario" | "fantasma" | "perigo";
 
 const ESTILO_BOTAO: Record<VarianteBotao, string> = {
-  primario: "bg-destaque text-white hover:opacity-90",
-  secundario: "bg-cartao text-texto ring-1 ring-borda hover:bg-painel",
-  fantasma: "text-texto hover:bg-painel",
+  /** Ação principal: quase preto (claro) / quase branco (escuro), como na referência. */
+  primario: "bg-acao text-acao-texto hover:opacity-85",
+  destaque: "bg-destaque text-white hover:opacity-90",
+  secundario: "bg-cartao text-texto ring-1 ring-borda hover:bg-hover",
+  fantasma: "text-texto hover:bg-hover",
   perigo: "bg-perigo text-white hover:opacity-90",
 };
 
@@ -58,7 +60,7 @@ export function Botao({
     <button
       type="button"
       {...props}
-      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${ESTILO_BOTAO[variante]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${ESTILO_BOTAO[variante]} ${className}`}
     />
   );
 }
@@ -67,7 +69,7 @@ export function CampoTexto({ className = "", ...props }: InputHTMLAttributes<HTM
   return (
     <input
       {...props}
-      className={`w-full rounded-xl bg-cartao px-3 py-2 text-sm outline-none ring-1 ring-borda focus:ring-2 focus:ring-destaque ${className}`}
+      className={`w-full rounded-xl bg-cartao px-3.5 py-2.5 text-sm outline-none ring-1 ring-borda transition placeholder:text-apagado hover:ring-[rgba(119,119,119,0.3)] focus:ring-2 focus:ring-destaque ${className}`}
     />
   );
 }
@@ -75,7 +77,7 @@ export function CampoTexto({ className = "", ...props }: InputHTMLAttributes<HTM
 /** Tecla desenhada (ex.: atalhos "Fn" "F12"). */
 export function Tecla({ children }: { children: ReactNode }) {
   return (
-    <kbd className="inline-flex min-w-9 items-center justify-center rounded-lg bg-cartao px-2.5 py-1 font-sans text-base font-semibold shadow-[0_1px_0_rgba(0,0,0,0.08)] ring-1 ring-borda">
+    <kbd className="inline-flex h-9 min-w-9 items-center justify-center rounded-[10px] bg-cartao px-2.5 font-titulo text-[17px] font-medium text-texto shadow-tecla">
       {children}
     </kbd>
   );

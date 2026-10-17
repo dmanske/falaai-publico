@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { ajustarEspacoInicial, contarPalavras } from "./espacamento.ts";
+import { ajustarEspacoInicial, contarPalavras, limparInicio } from "./espacamento.ts";
 
 describe("ajustarEspacoInicial", () => {
   it("põe espaço quando o cursor está grudado numa palavra ou pontuação", () => {
@@ -24,5 +24,19 @@ describe("contarPalavras", () => {
     assert.equal(contarPalavras("Roda o npm install"), 4);
     assert.equal(contarPalavras("  linha 1\nlinha 2  "), 4);
     assert.equal(contarPalavras(""), 0);
+  });
+});
+
+describe("limparInicio", () => {
+  it("tira a vírgula do começo quando não há frase em aberto (caso real)", () => {
+    assert.equal(limparInicio("", ", fala também que foi criado por Daniel Manske, beleza?"), "Fala também que foi criado por Daniel Manske, beleza?");
+    assert.equal(limparInicio("Fiz o deploy.", ", e agora?"), "E agora?");
+    assert.equal(limparInicio("linha\n", "; ok"), "Ok");
+  });
+  it("mantém quando está mesmo continuando uma frase", () => {
+    assert.equal(limparInicio("Bom dia", ", pessoal"), ", pessoal");
+  });
+  it("não mexe em texto que não começa com vírgula", () => {
+    assert.equal(limparInicio("", "Oi"), "Oi");
   });
 });

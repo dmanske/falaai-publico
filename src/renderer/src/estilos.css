@@ -1,41 +1,84 @@
 @import "tailwindcss";
+/* Prompt (SIL Open Font License) nos títulos e números grandes; o resto usa a fonte do sistema. */
+@import "@fontsource/prompt/latin-500.css";
+@import "@fontsource/prompt/latin-600.css";
+@import "@fontsource/prompt/latin-700.css";
+@import "@fontsource/prompt/latin-ext-500.css";
+@import "@fontsource/prompt/latin-ext-600.css";
+@import "@fontsource/prompt/latin-ext-700.css";
 
 /* Modo escuro por classe (o hub põe "dark" no <html> conforme a preferência de tema). */
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Tokens visuais do FalaAi (referência: docs/design/DESIGN_VISUAL.md).
- * Use as classes geradas: bg-fundo, bg-painel, bg-cartao, text-texto, text-suave,
- * border-borda, bg-destaque, text-destaque…
+ * Tokens visuais do FalaAi (docs/design/DESIGN_VISUAL.md). Valores medidos na referência:
+ * cinzas quentes, texto quase preto com transparência, acento azul e sombras em camadas bem leves.
+ * Classes geradas: bg-fundo, bg-painel, bg-cartao, text-texto, text-suave, text-medio, ring-borda,
+ * bg-destaque, font-titulo, shadow-cartao, shadow-tecla…
  */
 @theme {
+  --font-titulo: "Prompt", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+
   --color-fundo: #ffffff;
-  --color-painel: #f4f4f6;
+  --color-painel: #f2f1f0;
+  --color-painel-forte: #e9e8e6;
   --color-cartao: #ffffff;
-  --color-borda: #e7e7ec;
-  --color-texto: #16161a;
-  --color-suave: #6b6b76;
-  --color-destaque: #3b5bfd;
-  --color-destaque-claro: #e9edff;
-  --color-perigo: #e5484d;
-  --color-sucesso: #2f9e6a;
+  --color-borda: rgba(119, 119, 119, 0.15);
+  --color-borda-fina: rgba(119, 119, 119, 0.07);
+  --color-texto: #111111;
+  --color-medio: rgba(17, 17, 17, 0.75);
+  --color-suave: rgba(17, 17, 17, 0.55);
+  --color-apagado: rgba(17, 17, 17, 0.35);
+  --color-acao: #1d1a1a;
+  --color-acao-texto: #f2f1f0;
+  --color-destaque: #1f5df2;
+  --color-destaque-claro: #eff0ff;
+  --color-destaque-2: #c9d3ff;
+  --color-destaque-3: #a2b6ff;
+  --color-perigo: #ff525c;
+  --color-sucesso: #00957c;
+  --color-hover: rgba(119, 119, 119, 0.07);
+  --color-selecionado: rgba(119, 119, 119, 0.15);
+
   --radius-cartao: 1.25rem;
+
+  --shadow-cartao: 0 1.25px 1.25px 0 rgba(17, 17, 17, 0.03), 0 2.5px 5px -1.25px rgba(17, 17, 17, 0.05),
+    0 0 0 1px rgba(119, 119, 119, 0.07);
+  --shadow-cartao-alto: 0 3px 8px -2px rgba(17, 17, 17, 0.06), 0 14px 14px 0 rgba(17, 17, 17, 0.03),
+    0 0 0 1px rgba(119, 119, 119, 0.07);
+  --shadow-tecla: 0 4px 4px 0 rgba(0, 0, 0, 0.04), 0 0 1px 0 rgba(0, 0, 0, 0.6);
 }
 
 .dark {
-  --color-fundo: #121214;
-  --color-painel: #1b1b1f;
-  --color-cartao: #1f1f24;
-  --color-borda: #2c2c33;
-  --color-texto: #f2f2f5;
-  --color-suave: #9d9da8;
-  --color-destaque: #6d86ff;
-  --color-destaque-claro: #232a4d;
+  --color-fundo: #242121;
+  --color-painel: #1b1919;
+  --color-painel-forte: #111111;
+  --color-cartao: #3c3b3b;
+  --color-borda: rgba(242, 241, 240, 0.1);
+  --color-borda-fina: rgba(119, 119, 119, 0.15);
+  --color-texto: #f2f1f0;
+  --color-medio: rgba(242, 241, 240, 0.75);
+  --color-suave: rgba(242, 241, 240, 0.55);
+  --color-apagado: rgba(242, 241, 240, 0.35);
+  --color-acao: #f2f1f0;
+  --color-acao-texto: #111111;
+  --color-destaque: #4f7bff;
+  --color-destaque-claro: #00164e;
+  --color-destaque-2: #00287d;
+  --color-destaque-3: #003bae;
+  --color-perigo: #ff525c;
+  --color-sucesso: #00957c;
+  --color-hover: rgba(119, 119, 119, 0.3);
+  --color-selecionado: rgba(119, 119, 119, 0.2);
+  --shadow-cartao: 0 1.25px 1.25px 0 rgba(17, 17, 17, 0.2), 0 0 0 1px rgba(242, 241, 240, 0.06);
+  --shadow-cartao-alto: 0 6px 16px -4px rgba(17, 17, 17, 0.35), 0 0 0 1px rgba(242, 241, 240, 0.06);
+  --shadow-tecla: 0 4px 4px 0 rgba(0, 0, 0, 0.25), 0 0 1px 0 rgba(242, 241, 240, 0.6);
 }
 
 :root {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
 }
 
 body {
@@ -52,8 +95,40 @@ body.pilula {
 
 /* Fundo pontilhado discreto da área principal do hub (como na referência). */
 .fundo-pontilhado {
-  background-image: radial-gradient(circle, color-mix(in srgb, var(--color-suave) 22%, transparent) 1px, transparent 1px);
-  background-size: 14px 14px;
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--color-suave) 28%, transparent) 1px, transparent 1.2px);
+  background-size: 16px 16px;
+}
+
+/* Célula vazia do calendário: hachurada em diagonal, como na referência. */
+.celula-vazia {
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--color-suave) 16%, transparent) 0 1.5px,
+    transparent 1.5px 4px
+  );
+}
+
+/* Brilho suave atrás do título das páginas (toque próprio do FalaAi). */
+.brilho-titulo {
+  position: relative;
+  isolation: isolate;
+}
+.brilho-titulo::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -40px;
+  top: -60px;
+  width: 520px;
+  height: 220px;
+  background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--color-destaque) 14%, transparent),
+      transparent
+    ),
+    radial-gradient(closest-side at 70% 60%, color-mix(in srgb, #b46bff 10%, transparent), transparent);
+  filter: blur(18px);
+  pointer-events: none;
 }
 
 @keyframes pulo {

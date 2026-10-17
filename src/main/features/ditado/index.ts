@@ -26,7 +26,7 @@ import { auxiliar } from "../nativo";
 import type { ContextoApp, EventoAuxiliar } from "../nativo/types";
 import { garantirMicrofone } from "../permissoes";
 import { lerPreferencias } from "../preferencias";
-import { ajustarEspacoInicial } from "./lib/espacamento";
+import { ajustarEspacoInicial, limparInicio } from "./lib/espacamento";
 
 /** Tempo máximo para a pílula devolver o áudio depois do "parar" (ms). */
 const TIMEOUT_AUDIO_MS = 8000;
@@ -225,17 +225,19 @@ async function parar(): Promise<void> {
   }
 
   if (!r.texto) return terminarComErro("Não entendi nenhuma fala.");
+  const antes = ctx?.campo?.antes ?? "";
+  const texto = meuModo === "pergunte" ? r.texto : limparInicio(antes, r.texto);
   // Substituindo uma seleção, o texto entra no lugar dela: não mexe no espaço.
-  const final = meuModo === "pergunte" ? r.texto : ajustarEspacoInicial(ctx?.campo?.antes ?? "", r.texto);
-  ultimaTranscricao = r.texto;
-  registrarDitado({ ...base, texto: r.texto, status: "ok", erro: null });
+  const final = meuModo === "pergunte" ? texto : ajustarEspacoInicial(antes, texto);
+  ultimaTranscricao = texto;
+  registrarDitado({ ...base, texto, status: "ok", erro: null });
 
   const colou = MODO_TESTE
     ? ((ultimaColagemTeste = final), { ok: true, erro: undefined })
     : await auxiliar.enviar({ cmd: "colar", texto: final });
   if (!colou.ok) {
     // Não deu para colar sozinho: deixa na área de transferência para o usuário colar.
-    clipboard.writeText(r.texto);
+    clipboard.writeText(texto);
     return terminarComErro(`${colou.erro ?? "Não consegui colar."} O texto foi copiado: cole com Cmd+V.`);
   }
   estado = "ocioso";

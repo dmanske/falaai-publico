@@ -14,9 +14,11 @@
     "amostra-teste": "bash scripts/gerar-amostra-teste.sh",
     "icones": "swift scripts/gerar-icone-bandeja.swift resources",
     "test": "node --test \"src/**/*.test.ts\"",
-    "nativo:mac": "bash scripts/compilar-auxiliar-mac.sh"
+    "nativo:mac": "bash scripts/compilar-auxiliar-mac.sh",
+    "nativo:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/compilar-auxiliar-win.ps1",
+    "empacotar:mac": "npm run build && npm run nativo:mac && electron-builder --mac --publish never",
+    "empacotar:win": "npm run build && npm run nativo:win && electron-builder --win --x64 --publish never"
   },
-  "dependencies": {},
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.0.0",
@@ -24,11 +26,15 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "electron": "^44.5.0",
+    "electron-builder": "^26.15.3",
     "electron-vite": "^6.0.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.9.3",
     "vite": "^8.3.4"
+  },
+  "dependencies": {
+    "@fontsource/prompt": "^5.3.0"
   }
 }
