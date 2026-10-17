@@ -1,38 +1,23 @@
-// Ponte segura entre a tela e o processo principal. A tela só enxerga o que está aqui.
-import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
-import { CANAIS, type Ponte } from "@shared/ipc";
-
-/** Registra um ouvinte e devolve a função que o remove. */
-function ouvir<T>(canal: string, cb: (dado: T) => void): () => void {
-  const ouvinte = (_e: IpcRendererEvent, dado: T) => cb(dado);
-  ipcRenderer.on(canal, ouvinte);
-  return () => ipcRenderer.removeListener(canal, ouvinte);
-}
+// Ponte segura entre as telas e o processo principal. As telas só enxergam window.ponte.
+// Cada módulo monta sua parte em preload/modulos/; o contrato está em src/shared/ipc/.
+import { contextBridge } from "electron";
+import type { Ponte } from "@shared/ipc";
+import { ponteChaves, ponteIa, pontePermissoes, pontePreferencias, ponteSistema } from "./modulos/basicos";
+import { ponteDicionario, ponteEstatisticas, ponteHistorico } from "./modulos/dados";
+import { ponteJanelas, pontePilula } from "./modulos/janelas";
 
 const ponte: Ponte = {
   plataforma: process.platform,
-  chaves: {
-    status: (nome) => ipcRenderer.invoke(CANAIS.CHAVES_STATUS, nome),
-    salvar: (nome, valor) => ipcRenderer.invoke(CANAIS.CHAVES_SALVAR, nome, valor),
-    apagar: (nome) => ipcRenderer.invoke(CANAIS.CHAVES_APAGAR, nome),
-  },
-  preferencias: {
-    ler: () => ipcRenderer.invoke(CANAIS.PREFERENCIAS_LER),
-    salvar: (parcial) => ipcRenderer.invoke(CANAIS.PREFERENCIAS_SALVAR, parcial),
-  },
-  ia: {
-    testar: () => ipcRenderer.invoke(CANAIS.IA_TESTAR),
-  },
-  permissoes: {
-    ler: () => ipcRenderer.invoke(CANAIS.PERMISSOES_LER),
-    pedir: (qual) => ipcRenderer.invoke(CANAIS.PERMISSOES_PEDIR, qual),
-  },
-  pilula: {
-    aoComando: (cb) => ouvir(CANAIS.PILULA_COMANDO, cb),
-    aoEstado: (cb) => ouvir(CANAIS.PILULA_ESTADO, cb),
-    enviarAudio: (a) => ipcRenderer.send(CANAIS.PILULA_AUDIO, a),
-    acao: (acao) => ipcRenderer.send(CANAIS.PILULA_ACAO, acao),
-  },
+  chaves: ponteChaves,
+  preferencias: pontePreferencias,
+  ia: ponteIa,
+  permissoes: pontePermissoes,
+  pilula: pontePilula,
+  historico: ponteHistorico,
+  estatisticas: ponteEstatisticas,
+  dicionario: ponteDicionario,
+  janelas: ponteJanelas,
+  sistema: ponteSistema,
 };
 
 contextBridge.exposeInMainWorld("ponte", ponte);

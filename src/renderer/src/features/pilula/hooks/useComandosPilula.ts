@@ -18,7 +18,7 @@ export function useComandosPilula() {
         if (c.acao === "iniciar") {
           if (c.sons) tocar("inicio");
           // Falha ao abrir o microfone é devolvida pelo "parar".
-          iniciar(c.sessao).catch(() => {});
+          iniciar(c.sessao, c.microfoneId).catch(() => {});
         } else if (c.acao === "parar") {
           if (c.sons) tocar("fim");
           void parar(c.sessao).then((a) => apiPilula.enviarAudio(a));

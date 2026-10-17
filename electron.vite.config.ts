@@ -25,6 +25,8 @@ export default defineConfig({
         input: {
           index: resolve("src/renderer/index.html"),
           pilula: resolve("src/renderer/pilula.html"),
+          onboarding: resolve("src/renderer/onboarding.html"),
+          cartao: resolve("src/renderer/cartao.html"),
         },
       },
     },

@@ -25,11 +25,19 @@ export function useGravador() {
   const preparando = useRef<Promise<void> | null>(null);
   const [nivel, setNivel] = useState(0);
 
-  const iniciar = useCallback((sessao: number) => {
+  const iniciar = useCallback((sessao: number, microfoneId: string | null) => {
     preparando.current = (async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-      });
+      const basico = { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: microfoneId ? { ...basico, deviceId: { exact: microfoneId } } : basico,
+        });
+      } catch (e) {
+        // Microfone escolhido sumiu (desconectado): cai no padrão do sistema.
+        if (!microfoneId) throw e;
+        stream = await navigator.mediaDevices.getUserMedia({ audio: basico });
+      }
       const ctx = new AudioContext();
       const analisador = ctx.createAnalyser();
       analisador.fftSize = 512;

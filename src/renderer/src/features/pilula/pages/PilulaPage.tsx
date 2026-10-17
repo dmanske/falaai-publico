@@ -51,9 +51,10 @@ export function PilulaPage() {
   const { estado, nivel } = useComandosPilula();
   if (estado.estado === "oculta") return null;
 
-  if (estado.estado === "erro") {
+  if (estado.estado === "erro" || estado.estado === "aviso") {
+    const cor = estado.estado === "erro" ? "text-red-200" : "text-white/90";
     return (
-      <div className="flex h-screen w-screen items-center rounded-full bg-neutral-950 px-4 text-xs leading-tight text-red-200">
+      <div className={`flex h-screen w-screen items-center rounded-full bg-neutral-950 px-4 text-xs leading-tight ${cor}`}>
         <span className="line-clamp-2">{estado.mensagem}</span>
       </div>
     );

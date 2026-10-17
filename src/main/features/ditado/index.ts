@@ -9,7 +9,7 @@ import {
   JANELA_FN_COMBINADO_MS,
   TOQUE_RAPIDO_MS,
 } from "@shared/config";
-import { CANAIS, type AudioPilula } from "@shared/ipc";
+import { CANAIS_PILULA, type AudioPilula } from "@shared/ipc";
 import { comandarPilula, idWebContentsPilula, mostrarEstadoPilula } from "../../janelas/pilula";
 import { transcreverERefinar } from "../ia/transcrever";
 import { auxiliar } from "../nativo";
@@ -57,14 +57,14 @@ async function iniciar(): Promise<void> {
   maosLivres = false;
   const minhaSessao = ++sessao;
   if (timerErro) clearTimeout(timerErro);
-  mostrarEstadoPilula({ estado: "gravando", maosLivres: false });
+  mostrarEstadoPilula({ estado: "gravando", modo: "ditado", maosLivres: false });
 
   if (!(await garantirMicrofone())) {
     mostrarErro("Sem permissão de microfone. Veja as Configurações.");
     return;
   }
   if (sessao !== minhaSessao || estado !== "gravando") return; // cancelado enquanto pedia permissão
-  comandarPilula({ acao: "iniciar", sessao: minhaSessao, sons: sons() });
+  comandarPilula({ acao: "iniciar", sessao: minhaSessao, sons: sons(), microfoneId: lerPreferencias().microfoneId });
   timerMaximo = setTimeout(() => void parar(), GRAVACAO_MAXIMA_S * 1000);
 }
 
@@ -100,7 +100,7 @@ async function parar(): Promise<void> {
   estado = "processando";
   limparTimers();
   const minhaSessao = sessao;
-  mostrarEstadoPilula({ estado: "processando" });
+  mostrarEstadoPilula({ estado: "processando", modo: "ditado" });
   const promessa = esperarAudio(minhaSessao);
   comandarPilula({ acao: "parar", sessao: minhaSessao, sons: sons() });
   const audio = await promessa;
@@ -139,7 +139,7 @@ function aoEvento(ev: EventoAuxiliar): void {
       } else if (estado === "gravando" && !maosLivres) {
         if (agora - fnDesceuEm < TOQUE_RAPIDO_MS) {
           maosLivres = true;
-          mostrarEstadoPilula({ estado: "gravando", maosLivres: true });
+          mostrarEstadoPilula({ estado: "gravando", modo: "ditado", maosLivres: true });
         } else {
           void parar();
         }
@@ -160,12 +160,12 @@ function aoEvento(ev: EventoAuxiliar): void {
 
 export function iniciarDitado(): void {
   auxiliar.on("evento", aoEvento);
-  ipcMain.on(CANAIS.PILULA_AUDIO, (e, a: AudioPilula) => {
+  ipcMain.on(CANAIS_PILULA.AUDIO, (e, a: AudioPilula) => {
     if (e.sender.id !== idWebContentsPilula()) return;
     esperandoAudio.get(a.sessao)?.(a);
     esperandoAudio.delete(a.sessao);
   });
-  ipcMain.on(CANAIS.PILULA_ACAO, (e, acao: "confirmar" | "cancelar") => {
+  ipcMain.on(CANAIS_PILULA.ACAO, (e, acao: "confirmar" | "cancelar") => {
     if (e.sender.id !== idWebContentsPilula()) return;
     if (acao === "confirmar") void parar();
     else cancelar();

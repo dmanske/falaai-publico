@@ -4,7 +4,7 @@
 // pílula para não bloquear cliques em volta.
 import { BrowserWindow, screen, session } from "electron";
 import { join } from "node:path";
-import { CANAIS, type ComandoPilula, type EstadoPilula } from "@shared/ipc";
+import { CANAIS_PILULA, type ComandoPilula, type EstadoPilula } from "@shared/ipc";
 
 /** Tamanho da janela por estado (px). A pílula ocupa a janela inteira. */
 const TAMANHO = { normal: { largura: 168, altura: 44 }, erro: { largura: 340, altura: 44 } };
@@ -74,15 +74,15 @@ function posicionar(tamanho: { largura: number; altura: number }): void {
 
 export function mostrarEstadoPilula(estado: EstadoPilula): void {
   if (!janela) return;
-  janela.webContents.send(CANAIS.PILULA_ESTADO, estado);
+  janela.webContents.send(CANAIS_PILULA.ESTADO, estado);
   if (estado.estado === "oculta") {
     janela.hide();
     return;
   }
-  posicionar(estado.estado === "erro" ? TAMANHO.erro : TAMANHO.normal);
+  posicionar(estado.estado === "erro" || estado.estado === "aviso" ? TAMANHO.erro : TAMANHO.normal);
   if (!janela.isVisible()) janela.showInactive();
 }
 
 export function comandarPilula(comando: ComandoPilula): void {
-  janela?.webContents.send(CANAIS.PILULA_COMANDO, comando);
+  janela?.webContents.send(CANAIS_PILULA.COMANDO, comando);
 }

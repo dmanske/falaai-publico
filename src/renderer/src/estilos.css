@@ -1,13 +1,46 @@
 @import "tailwindcss";
 
+/* Modo escuro por classe (o hub põe "dark" no <html> conforme a preferência de tema). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Tokens visuais do FalaAi (referência: docs/design/DESIGN_VISUAL.md).
+ * Use as classes geradas: bg-fundo, bg-painel, bg-cartao, text-texto, text-suave,
+ * border-borda, bg-destaque, text-destaque…
+ */
+@theme {
+  --color-fundo: #ffffff;
+  --color-painel: #f4f4f6;
+  --color-cartao: #ffffff;
+  --color-borda: #e7e7ec;
+  --color-texto: #16161a;
+  --color-suave: #6b6b76;
+  --color-destaque: #3b5bfd;
+  --color-destaque-claro: #e9edff;
+  --color-perigo: #e5484d;
+  --color-sucesso: #2f9e6a;
+  --radius-cartao: 1.25rem;
+}
+
+.dark {
+  --color-fundo: #121214;
+  --color-painel: #1b1b1f;
+  --color-cartao: #1f1f24;
+  --color-borda: #2c2c33;
+  --color-texto: #f2f2f5;
+  --color-suave: #9d9da8;
+  --color-destaque: #6d86ff;
+  --color-destaque-claro: #232a4d;
+}
+
 :root {
-  color-scheme: light dark;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
   margin: 0;
-  @apply bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100;
+  @apply bg-fundo text-texto;
 }
 
 /* A janela da pílula é transparente: só a pílula aparece. */
@@ -15,6 +48,12 @@ body.pilula {
   background: transparent !important;
   overflow: hidden;
   user-select: none;
+}
+
+/* Fundo pontilhado discreto da área principal do hub (como na referência). */
+.fundo-pontilhado {
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--color-suave) 22%, transparent) 1px, transparent 1px);
+  background-size: 14px 14px;
 }
 
 @keyframes pulo {

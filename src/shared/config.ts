@@ -46,6 +46,24 @@ export const ERRO_PILULA_MS = 3500;
 /** Sons de início/fim do ditado (item 10 do PRD). Volume de 0 a 1. */
 export const VOLUME_SONS = 0.12;
 
+// ── Estatísticas e dados ─────────────────────────────────────────────────────
+
+/** Velocidade média de digitação usada no "tempo economizado" (palavras por minuto). */
+export const VELOCIDADE_DIGITACAO_PPM = 40;
+
+// ── Contexto e aprendizado ──────────────────────────────────────────────────
+
+/** Quantos caracteres antes/depois do cursor vão de contexto para a IA. */
+export const CONTEXTO_ANTES_CHARS = 800;
+export const CONTEXTO_DEPOIS_CHARS = 300;
+/** Por quanto tempo, depois de colar, o dicionário observa correções no campo (ms). */
+export const OBSERVAR_CORRECOES_MS = 20_000;
+
+// ── Atualizações ────────────────────────────────────────────────────────────
+
+/** Repositório do GitHub onde ficam as versões publicadas (Releases). */
+export const REPO_ATUALIZACOES = "dmanske/newtypeless-oficial";
+
 /** Frase falada na amostra resources/amostra-teste.wav (gerada por scripts/gerar-amostra-teste.sh). */
 export const FRASE_AMOSTRA = "Teste de ditado, um, dois, três.";
 /** Palavra que precisa aparecer na transcrição para o teste de áudio passar. */
