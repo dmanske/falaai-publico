@@ -24,11 +24,13 @@ files:
 mac:
   category: public.app-category.productivity
   icon: build/icon.png
+  # Um pacote para cada tipo de Mac: arm64 (chip Apple, M1 em diante) e x64 (Intel). O auxiliar
+  # nativo já é universal (scripts/compilar-auxiliar-mac.sh), então serve para os dois.
   target:
     - target: dmg
-      arch: arm64
+      arch: [arm64, x64]
     - target: dir
-      arch: arm64
+      arch: [arm64, x64]
   # Assinatura "ad-hoc" ("-") primeiro; o afterSign troca pela do certificado local quando ele existe.
   identity: "-"
   hardenedRuntime: false
