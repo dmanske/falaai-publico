@@ -7,8 +7,8 @@ com chave falsa (respondem "Chave recusada"). Pesquisa em
 ## O que faz
 
 Tela Configurações > IA (e o passo "Chave" do onboarding):
-- **Provedor:** grade com Lovable, Gemini, OpenRouter, OpenAI, Anthropic (Claude), Groq, Mistral e
-  DeepSeek. Cada cartão diz se o modelo "ouve áudio" ou "precisa de transcrição".
+- **Provedor:** grade com Lovable, Google Gemini, OpenRouter, OpenAI, Claude (id interno `anthropic`), Groq,
+  Mistral e DeepSeek. O logo de cada empresa aparece no cartão (`LogoEmpresa`). Cada cartão diz se o modelo "ouve áudio" ou "precisa de transcrição".
 - **Chave por provedor:** cada um guarda a sua (cifrada com safeStorage, só os 4 últimos
   caracteres na tela), com o link "Onde pegar a chave".
 - **Modelo:** lista do catálogo ou id digitado. O modelo escolhido fica guardado por provedor

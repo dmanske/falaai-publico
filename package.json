@@ -12,7 +12,7 @@
     "start": "env -u ELECTRON_RUN_AS_NODE electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "amostra-teste": "bash scripts/gerar-amostra-teste.sh",
-    "icones": "swift scripts/gerar-icone-bandeja.swift resources",
+    "icones": "swift scripts/gerar-icone-app.swift build resources",
     "test": "node --test \"src/**/*.test.ts\"",
     "nativo:mac": "bash scripts/compilar-auxiliar-mac.sh",
     "nativo:win": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/compilar-auxiliar-win.ps1",

@@ -1,192 +1,273 @@
-# FalaAi — Design System
+# Design system do FalaAi
 
-Versão 1.0 · 17 de outubro de 2026
+Descreve o que **está implementado** (versão 1.0.0, 17/10/2026). Os valores foram tirados do código; quando
+um valor mudar lá, mude aqui. A fonte de verdade é sempre o arquivo citado em cada seção.
 
-## Direção
+Não confundir com a proposta anterior (Nunito Sans e outra paleta), que não foi adotada e está em
+[../_arquivo/DESIGN_SYSTEM_PROPOSTA_2026-10-17.md](../_arquivo/DESIGN_SYSTEM_PROPOSTA_2026-10-17.md).
 
-Uma interface clara, tranquila e rápida para transformar fala em texto. Base branca, tipografia preta, superfícies discretas e azul reservado a ações e estados ativos. Este documento é uma proposta de padronização baseada na captura do aplicativo e na marca criada nesta conversa; cores e medidas não foram extraídas do código existente.
+## 1. Marca
 
-## Marca
+- **Nome:** FalaAi (essa capitalização). **Frase:** "Fale, não digite."
+- **Símbolo:** um F abstrato formado por duas curvas.
+- **Arquivos-fonte** (originais do Daniel) em `build/marca/`:
 
-- Nome: **FalaAi**. Manter essa capitalização.
-- Frase oficial: **Fale, não digite.**
-- Símbolo: F abstrato formado por duas curvas, conforme a proposta escolhida como base nesta conversa.
-- Assinatura principal: símbolo + FalaAi na horizontal.
-- Assinatura institucional: símbolo acima da frase oficial.
-- Ícone do aplicativo: símbolo preto sobre base branca com cantos arredondados; sem texto.
-- A captura atual usa outro símbolo na barra lateral. Substituí-lo pelo F para unificar a identidade.
+| Arquivo | O que é |
+|---|---|
+| `icone.png` (1254×1254) | Ícone do macOS com o F |
+| `logo.png` (2172×724) | F + nome "FalaAi" |
+| `logo-slogan.png` | Logo com a frase "Fale, não digite." |
+| `papel-de-parede.png`, `papel-de-parede-slogan.png` | Fundos da marca (1672×941) |
 
-### Regras de aplicação
+- **Cópias usadas pelas telas** em `src/renderer/src/assets/marca/`: `logo.png` (menu lateral) e
+  `boas-vindas.jpg` (1º passo do onboarding, sempre claro).
+- **Logo no app:** `features/hub/components/Logo.tsx`, altura de 28 px (`h-7`). No modo escuro é invertido
+  (`dark:invert`); com o tema do clube fica branco (`brightness(0) invert(1)`).
+- **Ícone do app:** `scripts/gerar-icone-app.swift` reenquadra `icone.png` na grade do macOS (quadrado de
+  **824 px dentro de 1024**) e gera `build/icon.png` (1024, usado no Mac e no Windows) e
+  `resources/icone-app.png` (512, Dock em desenvolvimento e janelas).
+- **Ícone da barra de menus:** o mesmo script recorta só o F do `logo.png` e gera
+  `resources/iconeBandejaTemplate.png` e `@2x`, em preto com transparência. O sufixo `Template` faz o macOS
+  pintar o ícone conforme o tema.
+- **Regras de uso:** preto sobre fundo claro, branco sobre fundo escuro; não esticar nem girar o símbolo.
+  Tamanhos mínimos e margem de proteção **não foram definidos** (a proposta que os trazia foi arquivada).
 
-Usar preto sobre fundos claros e branco sobre fundos escuros. Preservar proporções e a abertura entre as duas curvas. Reservar ao redor do conjunto uma margem mínima equivalente a 25% da largura do símbolo. Não esticar, rotacionar, contornar nem adicionar efeitos ao símbolo plano. O relevo discreto fica restrito ao ícone do sistema operacional.
+## 2. Tipografia
 
-Tamanhos mínimos propostos: símbolo isolado 20 px; assinatura horizontal 120 px; assinatura com frase 240 px. Em 16 px, usar uma versão óptica simplificada, a validar no app. Abaixo do tamanho mínimo da assinatura, usar apenas o símbolo.
+- **Fredoka** (SIL Open Font License, pacote `@fontsource/fredoka`, pesos 500, 600 e 700, subconjuntos latin e
+  latin-ext) em títulos, números grandes, teclas de atalho, nomes de cartões e siglas. Classe `font-titulo`
+  (`--font-titulo`), com fallback para a fonte do sistema.
+- **Fonte do sistema** no resto: `-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui`
+  (SF Pro no Mac, Segoe UI no Windows), com suavização `antialiased`.
+- **Tamanhos usados** (`components/ui/index.tsx` e telas):
 
-Os PNGs gerados são referências visuais. Para a marca definitiva, redesenhar o símbolo em SVG e compor os textos com a fonte real; a geração por IA não garante curvas ou letras idênticas entre imagens.
+| Uso | Tamanho / peso | Onde |
+|---|---|---|
+| Título da página | 54 px, semibold, entrelinha 1,05, Fredoka | `TituloPagina` |
+| Título de seção | 26 px, medium, cinza (`text-suave`), Fredoka | `TituloSecao` |
+| Número grande | 34 px, semibold, Fredoka | `Numero` |
+| Unidade do número | 15 px, medium, Fredoka | `Numero` |
+| Legenda / subtítulo | 15 px, `text-suave` | `Numero`, `TituloPagina` |
+| Título de cartão de Configurações | 18 px (`text-lg`), semibold | `CartaoSecao` |
+| Item do menu lateral | 16 px (`text-base`) | `MenuLateral` |
+| Corpo, botões, campos, rótulos | 14 px (`text-sm`) | `Botao`, `CampoTexto`, `LinhaConfig` |
+| Descrição de uma linha | 12 px (`text-xs`), `text-suave` | `Interruptor`, `LinhaConfig` |
+| Tecla de atalho | 17 px, medium, Fredoka | `Tecla` |
+| Rodapé do menu | 11 a 13 px | `Assinatura` |
+| Sigla do idioma na pílula | 11 px, semibold, Fredoka | `.pil-sigla` |
 
-## Tipografia
+O menor texto do app é 11 px (selos e rodapé); nada essencial usa menos de 12 px.
 
-**Fonte proposta: Nunito Sans**, com fallback `-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`.
+## 3. Cores
 
-A imagem gerada não usou uma fonte identificável. Nunito Sans é a escolha de implementação proposta, aproximando as formas suaves da referência, sem promessa de correspondência exata.
+Tokens em `src/renderer/src/estilos.css`, no bloco `@theme` (claro) e `.dark` (escuro). O Tailwind gera as
+classes `bg-fundo`, `text-suave`, `ring-borda`, `bg-destaque` etc. O hub põe a classe `dark` no `<html>` conforme
+a preferência `tema` (`sistema`, `claro` ou `escuro`).
 
-| Uso | Tamanho / entrelinha | Peso |
-| --- | --- | --- |
-| Título principal | 40 / 48 px | 800 |
-| Título de seção | 24 / 32 px | 700 |
-| Título de card | 18 / 26 px | 700 |
-| Corpo e navegação | 16 / 24 px | 400 ou 600 |
-| Rótulo de campo e botão | 14 / 20 px | 600 |
-| Legenda | 12 / 18 px | 400 |
-| Número de indicador | 40 / 44 px | 800 |
+| Token | Claro | Escuro | Uso |
+|---|---|---|---|
+| `fundo` | #FFFFFF | #242121 | Janela |
+| `painel` | #F2F1F0 | #1B1919 | Menu lateral, painéis |
+| `painel-forte` | #E9E8E6 | #111111 | Painel em destaque |
+| `cartao` | #FFFFFF | #3C3B3B | Cartões, campos, teclas |
+| `texto` | #111111 | #F2F1F0 | Texto principal |
+| `medio` | #111 a 75% | #F2F1F0 a 75% | Texto secundário |
+| `suave` | #111 a 55% | #F2F1F0 a 55% | Legendas |
+| `apagado` | #111 a 35% | #F2F1F0 a 35% | Placeholder |
+| `borda` | rgba(119,119,119,.15) | rgba(242,241,240,.10) | Contornos, filetes |
+| `borda-fina` | rgba(119,119,119,.07) | rgba(119,119,119,.15) | Contorno do cartão |
+| `acao` / `acao-texto` | #1D1A1A / #F2F1F0 | #F2F1F0 / #111111 | Botão principal |
+| `destaque` | #1F5DF2 | #4F7BFF | Acento, interruptor ligado, foco |
+| `destaque-claro` | #EFF0FF | #00164E | Fundo de item selecionado |
+| `destaque-2` | #C9D3FF | #00287D | Acento médio |
+| `destaque-3` | #A2B6FF | #003BAE | Acento forte (calendário, gráficos) |
+| `perigo` | #FF525C | #FF525C | Excluir, erro |
+| `sucesso` | #00957C | #00957C | Ok, "ouve áudio" |
+| `hover` | rgba(119,119,119,.07) | rgba(119,119,119,.30) | Passar o mouse |
+| `selecionado` | rgba(119,119,119,.15) | rgba(119,119,119,.20) | Item selecionado |
 
-Aplicar números tabulares nos indicadores. Unidades como min e PPM devem ter tamanho menor e rótulo explicativo. Não usar texto menor que 12 px em informações necessárias. Na marca, usar peso 800 e ajustar o espaçamento das letras visualmente.
+Cores fixas fora dos tokens: modos da pílula (secção 7) e o gradiente do avatar do criador
+(`destaque` até #8B5CF6).
 
-## Cores
+Os tokens `destaque*` são substituídos quando o tema do clube está ligado (secção 8).
 
-| Token | Valor | Uso |
-| --- | --- | --- |
-| `background` | `#FFFFFF` | Fundo principal |
-| `surface` | `#F5F5F7` | Barra lateral e áreas secundárias |
-| `surface-hover` | `#EBEBEF` | Hover em controles neutros |
-| `text` | `#111114` | Títulos, corpo e símbolo |
-| `text-muted` | `#60606B` | Descrições e rótulos secundários |
-| `border` | `#E3E3E8` | Separação decorativa entre superfícies |
-| `control-border` | `#858590` | Contorno necessário para identificar campos |
-| `primary` | `#2457E8` | Ação principal e seleção |
-| `primary-hover` | `#1945C4` | Hover da ação principal |
-| `primary-soft` | `#EEF2FF` | Fundo de item selecionado |
-| `success` | `#137A52` | Conclusão e disponibilidade |
-| `warning` | `#895600` | Atenção |
-| `danger` | `#BA2838` | Erros e ações destrutivas |
-| `focus` | `#2457E8` | Contorno de foco |
+## 4. Sombras, raios e espaçamentos
 
-Usar texto branco em botões azuis. Validar contraste nas combinações finais: mínimo 4,5:1 para texto normal, 3:1 para texto grande e elementos essenciais de interface. Bordas decorativas claras não devem ser o único sinal de um controle. Estados sempre combinam texto ou ícone com a cor.
+- **Sombras** (`--shadow-*`):
+  - `shadow-cartao`: duas camadas leves (1,25 px e 2,5 px) mais um contorno de 1 px a 7%; no escuro, uma
+    camada a 20% e contorno claro a 6%.
+  - `shadow-cartao-alto`: para elementos sobrepostos (`0 3px 8px -2px` e `0 14px 14px`).
+  - `shadow-tecla`: `0 4px 4px rgba(0,0,0,.04), 0 0 1px rgba(0,0,0,.6)`, o relevo das teclas de atalho.
+- **Raios:**
 
-## Espaçamento e forma
+| Raio | Valor | Onde |
+|---|---|---|
+| Cartão | 1,25 rem (20 px), `rounded-cartao` | `Cartao` |
+| Menu lateral | `rounded-3xl` (24 px) | `MenuLateral` |
+| Campos, cartões de provedor, itens do menu | `rounded-xl` (12 px) | `CampoTexto`, `GradeProvedores` |
+| Tecla | 10 px | `Tecla` |
+| Botão, interruptor, pílula | totalmente redondo | `Botao`, `Interruptor` |
 
-- Escala de espaçamento: **4, 8, 12, 16, 24, 32, 48, 64 px**.
-- Raio: 8 px em teclas; 12 px em campos e botões; 20 px em cards; formato cápsula em status.
-- Área de conteúdo: 32 px de margem no desktop; 16 px em janelas compactas.
-- Barra lateral: 240 px como ponto de partida, ajustável conforme a janela.
-- Cards: padding de 24 px e intervalo de 16 px.
-- Altura de botão e campo: 44 px; área clicável mínima recomendada de 44 × 44 px.
-- Sombra de card: `0 2px 8px rgb(17 17 20 / 4%)`; evitar empilhar sombras.
+- **Espaçamentos recorrentes:** cartão com `px-6 py-[18px]`; botão `px-4 py-2` com `gap-2`; campo
+  `px-3.5 py-2.5`; linha de configuração `py-3` e `gap-6`; menu lateral com 212 px de largura, `p-3` e margem de
+  `m-3`; título da página com `mb-9`; título de seção com `mb-4`.
+- **Janela principal:** 1080×750, mínimo 988×685 (`HUB_TAMANHO` em `src/shared/config.ts`). No Mac a barra de
+  título é escondida (`hiddenInset`) e o menu reserva 48 px no topo para os botões da janela.
 
-O pontilhado visto na captura pode aparecer de forma muito discreta em áreas vazias. Não aplicar sob textos, tabelas, campos ou gráficos que exijam precisão de leitura.
+## 5. Fundo
 
-## Componentes
+- **Pontilhado:** classe `.fundo-pontilhado`, pontos de 1 px a cada 16 px, na área principal do hub.
+- **Ondas:** imagens `assets/ondas/topo.jpg` e `baixo.jpg`, atrás do conteúdo, sem pegar cliques e rolando junto.
+  O menu lateral não tem ondas. A preferência `fundo` (Configurações > Geral > Fundo) escolhe:
 
-| Componente | Aparência | Comportamento |
-| --- | --- | --- |
-| Botão primário | Fundo azul, texto branco, raio 12 px | Uma ação principal por contexto; rótulo por verbo |
-| Botão secundário | Fundo branco, contorno visível, texto escuro | Ação alternativa |
-| Botão discreto | Sem preenchimento, texto escuro | Ações de baixa ênfase |
-| Item de navegação | Ícone de 20 px e rótulo | Selecionado com fundo azul suave e texto azul; expor estado ativo |
-| Card de indicador | Número, unidade e descrição | Mesma definição e período para comparações |
-| Campo | Rótulo persistente acima, contorno visível | Erro abaixo do campo; placeholder não substitui rótulo |
-| Tecla de atalho | Fundo branco, contorno cinza, raio 8 px | Preferir símbolos reais: Fn, ⇧, ⌘, Espaço |
-| Status de voz | Indicador e rótulo explícito | Pronto, Ouvindo…, Processando…, Concluído ou Erro |
-| Notificação | Mensagem curta, ícone e ação opcional | Persistir erros até resolução ou dispensa |
+| Valor | O que mostra |
+|---|---|
+| `topo` (padrão) | Faixa de ondas atrás do título (300 px, esmaecendo para baixo) |
+| `completo` | Ondas em cima (340 px) e no pé da janela, sobre fundo levemente azulado (#FBFCFE) |
+| `nenhum` | Só o pontilhado |
 
-Todo controle interativo deve prever padrão, hover, pressionado, foco e desabilitado. Ações assíncronas também precisam de estado de carregamento; impedir submissão repetida sem remover a indicação do que está acontecendo.
+  No modo escuro as ondas ficam a 12% de opacidade e o fundo claro do `completo` some. Com o tema do clube
+  ligado, a faixa do clube ocupa o lugar das ondas (secção 8).
+- **Calendário de dias ativos:** células vazias hachuradas em diagonal (`.celula-vazia`).
 
-### Fluxo de ditado
+## 6. Componentes e padrões de tela
 
-1. **Pronto para ouvir** — ação “Iniciar ditado”.
-2. **Ouvindo…** — mostrar atividade e ação “Parar ditado”.
-3. **Processando…** — explicar o andamento sem prometer prazo.
-4. **Texto inserido** — confirmação breve após sucesso real.
-5. **Não foi possível concluir** — motivo conhecido e ação “Tentar novamente”.
+Componentes comuns em `src/renderer/src/components/ui/index.tsx`. Componente genérico novo entra nesse arquivo;
+o que só um módulo usa fica no módulo.
 
-Não apagar transcrições já produzidas quando ocorrer um erro. Se faltar permissão de microfone, explicar como concedê-la. A indicação de gravação deve permanecer visível enquanto houver captura.
+| Componente | Função |
+|---|---|
+| `TituloPagina` | Título grande da página, com subtítulo opcional |
+| `TituloSecao` | Título de seção, com ação à direita |
+| `Cartao` | Cartão branco arredondado com `shadow-cartao` |
+| `Numero` | Número grande com unidade e legenda |
+| `Botao` | Variantes `primario` (escuro/claro), `destaque` (azul), `secundario` (cartão com contorno), `fantasma` e `perigo`. Sempre arredondado; desativado a 40% |
+| `CampoTexto` | Campo com contorno; foco com anel de 2 px na cor `destaque` |
+| `Tecla` | Tecla desenhada (36 px de altura, mínimo 36 de largura) |
+| `Interruptor` | Liga/desliga (40×24 px), com `role="switch"` e `aria-checked` |
+| `LinhaConfig` | Rótulo e descrição à esquerda, controle à direita |
+| `Vazio` | Estado vazio com título, texto e ação |
 
-## Indicadores e gráficos
+Padrões de tela:
 
-Sempre informar o período e definir a métrica. Distinguir palavras transcritas de palavras efetivamente inseridas. Identificar tempo economizado como **estimativa** e documentar a fórmula e a velocidade de digitação assumida. Não apresentar zero quando o dado estiver indisponível.
+- **Menu lateral** (`features/hub/components/MenuLateral.tsx`): logo, três itens (Início, Histórico, Dicionário)
+  e, no rodapé, três botões de ícone (Configurações, Sobre e o **botão de tema** que alterna claro/escuro na hora
+  e salva a preferência), o cartão com o nome do criador e a marca "Atualizado ..." (data da última build).
+  O código aleatório da build só aparece na dica ao passar o mouse e em Configurações > Sobre.
+- **Páginas:** `TituloPagina` no topo, depois cartões em coluna. Início tem números, calendário de atividade,
+  apps mais usados e o painel de atalhos.
+- **Configurações:** lista de seções à esquerda (Geral, Pílula, Atalhos, Envio automático, Idiomas, Áudio, Dados e
+  privacidade, IA, Permissões, Sobre) e um `CartaoSecao` à direita, com filetes entre as linhas
+  (`divide-borda`). Tudo salva na hora, sem botão de salvar.
+- **Provedores de IA:** grade de cartões pequenos (logo de 22 px, nome em Fredoka e selo "ouve áudio" em verde ou
+  "precisa de transcrição" em cinza); o selecionado ganha fundo `destaque-claro` e anel de 2 px.
+- **Onboarding:** 6 passos com barra de progresso no topo; o 1º passo é sempre claro.
 
-Usar azul na série principal e cinza nas comparações. Em mapas de atividade, acompanhar intensidades com legenda e valor acessível. Rankings devem indicar unidade e período, e manter escalas comparáveis. Atividade vazia deve ter um estado explicativo, como “Seu histórico aparecerá após o primeiro ditado”.
+## 7. Pílula
 
-## Ícones e movimento
+Janela flutuante, transparente, que não rouba o foco (ver [../modulos/ditado.md](../modulos/ditado.md)). Código:
+`src/main/janelas/pilula.ts` (tamanho e posição), `features/pilula/` (visual) e `features/pilula/estilos.css`.
 
-Ícones de interface: traço consistente de 1,75 a 2 px em grade de 24 px, cantos arredondados e sem misturar famílias. Ícones sem rótulo visível precisam de nome acessível e dica de ferramenta quando útil.
+**Tamanhos** (`TAMANHO` em `pilula.ts`), 20 px acima do Dock (`MARGEM_INFERIOR`):
 
-Transições curtas de 120 a 180 ms; entrada de painel até 220 ms. Evitar movimento decorativo contínuo. Respeitar preferência de movimento reduzido e oferecer indicação estática de captura.
+| Estado | Largura × altura |
+|---|---|
+| Gravando / processando | 144 × 38 |
+| Tradução (cabe bandeira e sigla) | 188 × 38 |
+| Erro ou aviso | 300 × 38 |
+| Com escudo de clube | +26 px nos dois primeiros (170 e 214) |
 
-## Texto e acessibilidade
+Peças: botões ✕ e ✓ de 28 px (ícone de 14 px), onda de até 20 px de altura com barras de 3 px e vão de 3 px,
+escudo de 20×25 px, sigla do idioma com bandeira de 16×12 px. Os contornos são `inset` e não há sombra para
+fora, porque a janela tem o tamanho exato da pílula.
 
-Tom direto, humano e em português brasileiro. Preferir “Iniciar ditado”, “Texto copiado” e “Permita o acesso ao microfone”. Evitar jargão técnico nas mensagens.
+**Estados:** gravando (onda acompanha o volume), processando (três pontos pulando), erro e aviso (sempre pílula
+preta `#0A0A0A` com texto de 12 px, em qualquer estilo) e oculta.
 
-Usar títulos semânticos, rótulos associados aos campos, foco visível de 2 px com afastamento de 2 px e ordem de teclado previsível. Não interceptar atalhos do sistema sem necessidade. Anunciar mudanças importantes de status a leitores de tela sem narrar cada atualização da onda de áudio.
+**Cor por modo** (estilo Original, `COR_MODO` em `PilulaVisual.tsx`): ditado branco `#FFFFFF`, pergunte azul
+`#8EA2FF`, tradução verde `#6FE0A6`. Nos outros estilos a onda tem as cores do estilo e o modo aparece como um
+pontinho de 5 px no alto, no centro (azul no pergunte, verde na tradução; no ditado não há pontinho).
 
-## Tokens CSS iniciais
+**Os 7 estilos gerais** (`src/shared/temas/estilosPilula.ts`; CSS na classe `pil-<id>`):
 
-```css
-:root {
-  --font-sans: "Nunito Sans", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
-  --color-background: #ffffff;
-  --color-surface: #f5f5f7;
-  --color-surface-hover: #ebebef;
-  --color-text: #111114;
-  --color-text-muted: #60606b;
-  --color-border: #e3e3e8;
-  --color-control-border: #858590;
-  --color-primary: #2457e8;
-  --color-primary-hover: #1945c4;
-  --color-primary-soft: #eef2ff;
-  --color-success: #137a52;
-  --color-warning: #895600;
-  --color-danger: #ba2838;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-12: 48px;
-  --space-16: 64px;
-  --radius-sm: 8px;
-  --radius-control: 12px;
-  --radius-card: 20px;
-  --shadow-card: 0 2px 8px rgb(17 17 20 / 4%);
-  --duration-fast: 120ms;
-  --duration-normal: 180ms;
-}
+| Estilo | Visual |
+|---|---|
+| Original | Preta `#0A0A0A`, onda branca |
+| Vidro | Branca translúcida (62%) com desfoque, ícones e onda `#111` |
+| Azul FalaAi | Degradê `#2F6BFF` até `#1F5DF2` |
+| Aurora | Degradê `#4338CA`, `#7C3AED`, `#0EA5E9` que se move devagar (6 s) |
+| Neon | `#05060A` com barras ciano `#22D3EE` e rosa `#F0ABFC` brilhando |
+| Pôr do sol | Degradê `#F97316` até `#EC4899` |
+| Equalizador | Preta, cada uma das 11 barras de uma cor (do vermelho ao roxo) |
 
-body {
-  font-family: var(--font-sans);
-  color: var(--color-text);
-  background: var(--color-background);
-}
+**Clubes de futebol** (`src/shared/temas/clubes.ts`): os 20 clubes da Série A 2026, cada um com cores, padrão
+da camisa (`liso`, `listras-verticais`, `listras-horizontais`, `faixa-diagonal`, `faixa-horizontal`,
+`meio-a-meio`) e escudo. Três variantes (`VARIANTES_CLUBE`):
 
-:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
+| Variante | Visual |
+|---|---|
+| Camisa | O padrão da camisa com as duas primeiras cores, mais um véu preto que escurece as laterais |
+| Escura | Fundo `#0B0B0B`, contorno de 1,5 px, ✓ e barras na cor de identidade do clube |
+| Faixa | Cor principal com faixa horizontal da segunda cor no meio (34% a 66%) |
 
-.metric-value { font-variant-numeric: tabular-nums; }
+**Regras de contraste** (`src/shared/temas/coresClube.ts`, com testes em `coresClube.test.ts`). Todas usam a
+luminância relativa do WCAG 2:
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
-}
-```
+- A onda e os ícones são brancos, então o fundo precisa ter contraste mínimo de **3:1** com o branco
+  (`CONTRASTE_GRAFICO`). Para texto no botão de destaque do app, o mínimo é **4,5:1** (`CONTRASTE_TEXTO`).
+- **Cor de identidade** (`corDeIdentidade`): primeira cor do clube com saturação HSL de pelo menos 0,25
+  (verde do Palmeiras, azul do Cruzeiro). Clube só preto e branco não tem; a variante escura usa branco.
+- **`ajustarContraste`**: clareia (sobre fundo escuro) ou escurece (sobre fundo claro) a cor, **mantendo o
+  tom**, em passos de 5% até atingir o contraste. Evita que o azul do Cruzeiro vire branco na variante escura.
+- **Camisa escura/colorida:** o véu preto do centro sobe de 0,15 até o necessário (máximo 0,60) para a onda
+  branca aparecer; as bordas ficam 0,40 mais escuras (máximo 0,75).
+- **Camisa clara** (luminância da primeira cor acima de 0,6, como Santos, Corinthians e São Paulo): a pílula
+  fica clara, com onda e botões na cor mais escura do clube (ou `#0B0B0B`), em vez de escurecer o branco.
+- **Faixa:** se a segunda cor é clara demais, ela é escurecida mantendo o tom (amarelo vira dourado); se for
+  branca, vira um tom médio do próprio clube.
+- Ícone sobre botão colorido: branco ou quase-preto, o que tiver mais contraste (`textoSobre`).
 
-Carregar os arquivos de fonte no projeto e testar pesos 400, 600, 700 e 800. Estes tokens são para o tema claro; o modo escuro exige uma paleta própria e validação de contraste, sem inversão automática.
+## 8. Tema do clube no app
 
-## Critérios para implementação
+Com um clube escolhido na pílula e o interruptor "Usar as cores do clube no app" ligado (padrão ligado),
+`useCoresDoTema` (`features/hub/hooks/`) põe a classe `tema-clube` no `<html>` e injeta um
+`<style id="cores-do-clube">`. Só o hub é afetado; onboarding e cartão de resposta ficam no azul.
 
-- Marca consistente no app, instalador e materiais.
-- Fonte real carregada e sem cortes em textos em português.
-- Navegação por teclado e leitura de status verificadas.
-- Contraste validado nos componentes implementados.
-- Cards testados com janela estreita, texto ampliado e números longos.
-- Estados vazios, falhas de rede e permissão negada tratados.
-- Indicadores acompanhados de período e definição.
-- Atalhos exibidos conforme a configuração real do usuário.
+- **Destaque:** os 4 tokens `destaque*` passam para a cor do clube: a primeira cor que sustenta texto branco a
+  4,5:1, escurecida se preciso; no escuro é clareada até 3:1 contra o fundo `#242121`.
+- **Menu lateral:** o padrão da camisa em versão escura (preto + a cor de identidade escurecida até 7:1 com o
+  branco; clube preto e branco usa `#3A3A3A`), texto branco, logo branco e item ativo na cor do clube. O cartão do
+  criador continua claro (ou escuro no tema escuro).
+- **Faixa no topo de cada página:** as listras do clube (260 px, opacidade 0,16; 0,22 no escuro), no lugar das
+  ondas, e o **escudo** (76×92 px) no canto superior direito.
+- Desligar o interruptor ou voltar a um estilo geral remove tudo e devolve o azul.
 
-Esta versão define a base de implementação; não representa alteração já aplicada ao aplicativo.
+Detalhes e como adicionar um clube: [../modulos/pilula-estilos.md](../modulos/pilula-estilos.md).
+
+## 9. Logos de terceiros, bandeiras e escudos
+
+Em `src/renderer/src/assets/`; origem e licença de cada arquivo em `assets/LICENCAS.md`.
+
+- **Logos dos provedores e serviços** (`logos/`): SVGs do `@lobehub/icons-static-svg` 1.95.1 (MIT) e o do
+  Deepgram do Simple Icons (CC0). São marcas registradas dos donos, usadas só para identificar o provedor.
+  Logos de uma cor só invertem no modo escuro.
+- **Bandeiras** (`bandeiras/`): `flag-icons` 7.6.0 (MIT), proporção 4×3, nos idiomas e na sigla da pílula.
+- **Escudos** (`escudos/`): **marcas registradas dos clubes, mantidas aqui apenas para uso pessoal.** Não
+  distribua nem venda o app com eles. Dois (Bragantino e Vasco) têm licença de uso justo apenas na Wikipedia; o
+  do Corinthians é CC BY-SA 4.0 (exige atribuição). Quem for publicar uma versão com os escudos deve rever isso
+  antes.
+
+## 10. Acessibilidade
+
+- **Contraste:** o texto principal é `#111` sobre branco ou `#F2F1F0` sobre `#242121`. O texto `suave` (55%) e
+  `apagado` (35%) é mais fraco: `apagado` só aparece em placeholders. Os contrastes desses dois tons **não foram
+  medidos**. Nas cores do clube o mínimo é 3:1 para elementos gráficos e 4,5:1 para texto de botão, garantidos
+  por código e testes.
+- **Movimento:** a pílula respeita `prefers-reduced-motion` (aurora parada, pontos sem pulo, barras sem
+  transição; a onda continua seguindo o volume, sem o tremor aleatório). O resto do app tem poucas animações
+  (transições curtas de cor) e **não tem tratamento próprio** para essa preferência.
+- **Foco:** campos de texto e seletores mostram anel de 2 px na cor `destaque` ao receber foco. Os botões não
+  têm estilo de foco próprio (usam o do navegador). O interruptor usa `role="switch"` com `aria-checked`, os
+  botões de ícone têm `aria-label` e a grade de provedores usa `role="radiogroup"`.
+- **Não verificado:** leitor de tela, navegação completa só pelo teclado e o modo de alto contraste do Windows
+  não foram testados.

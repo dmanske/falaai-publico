@@ -5,13 +5,19 @@ Ainda não conferidos: mãos livres, Esc, Ctrl+Cmd+V e o clique nos botões da p
 
 ## Como usa
 
-| Ação | Mac |
-|---|---|
-| Ditar | Segurar **Fn**, falar, soltar |
-| Mãos livres | Toque rápido em Fn (menos de 0,3 s); o próximo toque para |
-| Cancelar | Esc |
-| Colar a última de novo | Ctrl+Cmd+V |
-| Fn usada como modificador (Fn+Delete, Fn+F5…) | Cancela sozinho, sem som de erro |
+| Ação | Mac (padrão) | Windows (padrão) |
+|---|---|---|
+| Ditar | Segurar **Fn**, falar, soltar | Segurar **Alt direito** |
+| Pergunte qualquer coisa | Fn + Espaço | Alt direito + Espaço |
+| Traduzir | Fn + Shift esquerdo | Alt direito + Shift direito |
+| Mãos livres | Toque rápido na tecla do ditado (menos de 0,3 s); o próximo toque para | igual |
+| Cancelar | Esc | Esc |
+| Colar a última de novo | Ctrl+Cmd+V | Ctrl esquerdo + Shift direito + V |
+| Fn usada como modificador (Fn+Delete, Fn+F5…) | Cancela sozinho, sem som de erro | não se aplica |
+
+Os atalhos são livres: em Configurações > Atalhos dá para gravar outra combinação ou um **toque duplo**
+(tocar uma tecla duas vezes rápido). Valores padrão e regras de validação em `src/shared/atalhos.ts`. O
+Windows ainda não foi testado num PC Windows.
 
 Pré-requisitos: microfone e Acessibilidade liberados, e em Ajustes > Teclado a opção "Pressionar
 tecla 🌐 para" em **Não fazer nada**. A tela de Configurações mostra os três e abre os Ajustes certos.
@@ -25,8 +31,12 @@ tecla 🌐 para" em **Não fazer nada**. A tela de Configurações mostra os tr�
    mostra a pílula e manda a pílula gravar.
 3. A pílula (`src/renderer/src/features/pilula/`) grava com MediaRecorder, mostra a onda e, ao parar,
    converte para **WAV 16 kHz mono** (`lib/wav.ts`) e devolve ao processo principal.
-4. `features/ia/transcrever.ts` manda o áudio para a Lovable com `PROMPT_DITADO`
-   (`features/ia/prompts.ts`): transcreve e limpa numa chamada só.
+4. `features/ia/transcrever.ts` entrega o áudio ao motor de IA (`features/ia/motor.ts`) com `PROMPT_DITADO`
+   (`features/ia/prompts.ts`). Com um modelo que ouve áudio (Lovable, Gemini, OpenRouter, Mistral), transcreve e
+   limpa numa chamada só; nos demais, um serviço de transcrição faz a primeira etapa (ver
+   [configuracoes-ia.md](configuracoes-ia.md)). O bloco "Ritmo da fala" vai junto
+   ([formatacao-ditado.md](formatacao-ditado.md)). Se a fala terminar com "manda"/"enviar", o Enter é apertado
+   depois de colar ([envio-automatico.md](envio-automatico.md)).
 5. O auxiliar cola o texto: guarda a área de transferência, grava o texto como transitório,
    simula Cmd+V e restaura depois de 450 ms. Duas colagens seguidas preservam o original do usuário.
 6. Se não conseguir colar, o texto fica na área de transferência e a pílula avisa para colar com Cmd+V.
@@ -36,13 +46,22 @@ A pílula é um painel que **não ativa o app** (`type: "panel"`, `focusable: fa
 
 Visual (referência `docs/design/referencias/typeless-pilula.png`): pílula preta com **✕** à esquerda
 (cancelar; também cancela durante o "processando"), **onda simétrica** mais alta no meio e **✓** à direita
-(terminar e colar). A janela tem o tamanho exato da pílula (168×44; 340×44 para mensagens de erro).
+(terminar e colar). A janela tem o tamanho exato da pílula: 144×38 (188×38 na tradução, 300×38 em erro ou aviso; mais 26 px
+com o escudo de um clube), a 20 px acima do Dock. Estilos, clubes e cores:
+[pilula-estilos.md](pilula-estilos.md) e [../design/DESIGN_SYSTEM.md](../design/DESIGN_SYSTEM.md).
 
 ## Valores ajustáveis
 
 `src/shared/config.ts`: `TOQUE_RAPIDO_MS` (300), `GRAVACAO_MINIMA_MS` (400), `GRAVACAO_MAXIMA_S` (360),
 `JANELA_FN_COMBINADO_MS` (800), `TAXA_AMOSTRAGEM` (16000), `ERRO_PILULA_MS` (3500), `VOLUME_SONS` (0,12).
-Sons ligados por padrão (`preferencias.sons`). A chave para desligar entra na tela na F3.
+Sons ligados por padrão (`preferencias.sons`).
+
+## Iniciar só na barra de menus
+
+Depois do onboarding, o FalaAi **não abre a janela sozinho**: fica só com o ícone na barra de menus (Mac) ou na
+bandeja (Windows), e o ditado já funciona. A preferência é `abrirJanelaAoIniciar` (padrão desligada), em
+Configurações > Geral > "Abrir a janela ao iniciar". Fechar a janela também não encerra o app; para sair, use
+"Sair do FalaAi" no menu do ícone (`src/main/index.ts`, `src/main/bandeja.ts`).
 
 ## Compilar o auxiliar
 

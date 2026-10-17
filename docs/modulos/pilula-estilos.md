@@ -2,8 +2,8 @@
 
 Em Configurações > Pílula o usuário escolhe o visual da pílula: um dos 7 **estilos gerais** (aba Estilos)
 ou um **clube** com 3 variantes (aba Futebol). Se escolher um clube e deixar "Usar as cores do clube no
-app" ligado, o destaque do app (hub) também ganha a cor dele. Protótipo aprovado: `opcoes-marca/pilulas.html`
-(17/10/2026).
+app" ligado, o destaque do app (hub) também ganha a cor dele. Protótipo aprovado em 17/10/2026 (arquivo
+`opcoes-marca/pilulas.html`, que não está neste repositório).
 
 ## Onde ficam os dados
 
@@ -29,7 +29,7 @@ app" ligado, o destaque do app (hub) também ganha a cor dele. Protótipo aprova
 - **Variantes do clube.**
   - *camisa*: o padrão (`liso`, `listras-verticais`, `listras-horizontais`, `faixa-diagonal`,
     `faixa-horizontal`, `meio-a-meio`) com as duas primeiras cores, e um véu preto mais forte nas laterais
-    (centro 0,15 e bordas 0,55 no Flamengo) para a onda branca aparecer. ✓ branco com ícone na cor principal.
+    (no Flamengo: centro 0,15 e bordas 0,55) para a onda branca aparecer. ✓ branco com ícone na cor principal.
   - *escura*: fundo `#0b0b0b`, contorno e ✓ na cor principal, barras alternando principal e branco.
   - *faixa*: cor principal com faixa horizontal da segunda cor no meio; ✓ na segunda cor.
 - **Regra de contraste** (luminância relativa do WCAG): a onda e os ícones são brancos, então a cor
@@ -59,7 +59,7 @@ app" ligado, o destaque do app (hub) também ganha a cor dele. Protótipo aprova
    `null` se não houver). Nada mais: lista, busca, variantes, largura da janela e tema saem dos dados.
 3. Rode `npm test` e `npm run typecheck`.
 
-Pendente: os outros 19 clubes da Série A (levantar cores, padrão da camisa e escudo de cada um).
+Os 20 clubes da Série A 2026 já estão cadastrados (cores, padrão da camisa e escudo). As cores e os padrões vêm da camisa 1 (dados em `clubes.ts`; o contraste tem testes unitários); **a pílula de cada clube ainda não foi vista durante um ditado real**.
 
 ## Tema do app com as cores do clube (17/10/2026)
 
