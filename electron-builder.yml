@@ -9,6 +9,11 @@ directories:
   output: release
   buildResources: build
 
+# Mac: depois da assinatura ad-hoc, assina de novo com o certificado local "FalaAi Local", para o macOS
+# manter as permissões entre versões (scripts/assinar-mac.cjs; criar o certificado uma vez com
+# scripts/criar-assinatura-mac.sh).
+afterSign: scripts/assinar-mac.cjs
+
 files:
   - out/**
   - package.json
@@ -24,8 +29,7 @@ mac:
       arch: arm64
     - target: dir
       arch: arm64
-  # Assinatura "ad-hoc" ("-"): não exige certificado da Apple, mas o macOS trata cada build como
-  # um app novo (ver README: a permissão de Acessibilidade precisa ser dada de novo).
+  # Assinatura "ad-hoc" ("-") primeiro; o afterSign troca pela do certificado local quando ele existe.
   identity: "-"
   hardenedRuntime: false
   gatekeeperAssess: false

@@ -12,5 +12,6 @@
 | [modulos/envio-automatico.md](modulos/envio-automatico.md) | Enter automático depois do ditado |
 | [integracoes/PROVEDORES_IA.md](integracoes/PROVEDORES_IA.md) | Pesquisa dos provedores de IA e de transcrição |
 | [modulos/ditado.md](modulos/ditado.md) | Ditado: Fn, pílula, gravação, IA e colar |
+| [operacao/ASSINATURA_MAC.md](operacao/ASSINATURA_MAC.md) | Certificado local para o Mac não esquecer as permissões a cada versão |
 | [correcoes/CORRECAO_CHAVE_LOVABLE_COLADA_2026-10-17.md](correcoes/CORRECAO_CHAVE_LOVABLE_COLADA_2026-10-17.md) | Chave colada com a linha do .env junto |
 | [correcoes/CORRECAO_IDIOMAS_MISTURADOS_2026-10-17.md](correcoes/CORRECAO_IDIOMAS_MISTURADOS_2026-10-17.md) | Inglês no meio do português; pedido ditado não é executado |
