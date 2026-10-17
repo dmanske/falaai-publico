@@ -6,6 +6,7 @@
 | [produto/PRD.md](produto/PRD.md) | O que o app faz e o que está aprovado |
 | [design/DESIGN_FALAAI.md](design/DESIGN_FALAAI.md) | Engenharia reversa do Typeless, decisões técnicas e fases |
 | [design/DESIGN_VISUAL.md](design/DESIGN_VISUAL.md) | Fontes, cores, sombras e componentes (medidos no Typeless) |
+| [design/DESIGN_SYSTEM.md](design/DESIGN_SYSTEM.md) | Design system da marca FalaAi (proposta do Daniel, v1.0) |
 | [design/PROTOCOLO_AUXILIAR.md](design/PROTOCOLO_AUXILIAR.md) | Protocolo v3 dos auxiliares nativos (Mac e Windows) |
 | [modulos/configuracoes-ia.md](modulos/configuracoes-ia.md) | Provedores de IA, chaves, modelos, transcrição e teste |
 | [modulos/envio-automatico.md](modulos/envio-automatico.md) | Enter automático depois do ditado |

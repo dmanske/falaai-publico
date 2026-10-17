@@ -44,10 +44,11 @@ instalado** (CSS/tema do pacote), não estimados pelo print.
 
 ## Ícone do app
 
-Gerado por `scripts/gerar-icone-app.swift`: quadrado arredondado branco com balão de fala preto
-brilhante e 5 barras de onda (a do meio em azul `#1F5DF2`). Saídas: `build/icon.png` (1024, para o
-instalador), `resources/icone-app.png` (512, Dock em dev e janela) e os ícones de bandeja *template*.
-No menu lateral o mesmo símbolo é o SVG `IconeMarca` (`features/hub/components/Icones.tsx`).
+Marca do Daniel (17/10/2026): F abstrato de duas curvas. Arquivos-fonte em `build/marca/` (ícone, logo,
+logo com a frase "Fale, não digite." e papéis de parede). `scripts/gerar-icone-app.swift` reenquadra o
+ícone na grade do macOS (quadrado de 824 em 1024) e recorta o F do logo para a barra de menus. Saídas:
+`build/icon.png` (1024, instalador Mac e Windows), `resources/icone-app.png` (512, Dock em dev e janela)
+e `resources/iconeBandejaTemplate.png` / `@2x`. Regras da marca: [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md).
 
 ## Componentes comuns (src/renderer/src/components/ui/index.tsx)
 
