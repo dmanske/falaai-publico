@@ -1,6 +1,7 @@
 // Componentes visuais comuns a todas as telas (estilo da referência: docs/design/DESIGN_VISUAL.md).
 // Componente genérico novo entra aqui; componente de um módulo só fica no módulo.
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
+import { useNumeroAnimado } from "@/hooks/useNumeroAnimado";
 
 /** Título grande da página (ex.: "Fale, não digite"). */
 export function TituloPagina({ children, subtitulo }: { children: ReactNode; subtitulo?: ReactNode }) {
@@ -38,6 +39,11 @@ export function Numero({ valor, unidade, legenda }: { valor: ReactNode; unidade?
       <div className="mt-1.5 text-[15px] leading-snug text-suave">{legenda}</div>
     </div>
   );
+}
+
+/** Texto de um número que sobe contando até `alvo` (e anima nas mudanças). `formatar` é a mesma função de sempre. */
+export function NumeroAnimado({ alvo, formatar = String }: { alvo: number; formatar?: (n: number) => string }) {
+  return <>{formatar(useNumeroAnimado(alvo))}</>;
 }
 
 type VarianteBotao = "primario" | "destaque" | "secundario" | "fantasma" | "perigo";

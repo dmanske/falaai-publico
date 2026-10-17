@@ -1,8 +1,10 @@
 // Igual ao Numero comum, mas para durações: "10 hr 54 min".
+import { useNumeroAnimado } from "@/hooks/useNumeroAnimado";
 import { separarHorasMinutos } from "../lib/formatar";
 
 export function NumeroTempo({ minutos, legenda }: { minutos: number; legenda: string }) {
-  const { h, min } = separarHorasMinutos(minutos);
+  // Anima os minutos totais e separa em h/min a cada passo (mesma conta do valor final).
+  const { h, min } = separarHorasMinutos(useNumeroAnimado(minutos));
   return (
     <div>
       <div className="flex items-baseline gap-1.5">

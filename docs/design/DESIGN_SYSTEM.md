@@ -141,6 +141,7 @@ o que só um módulo usa fica no módulo.
 | `TituloSecao` | Título de seção, com ação à direita |
 | `Cartao` | Cartão branco arredondado com `shadow-cartao` |
 | `Numero` | Número grande com unidade e legenda |
+| `NumeroAnimado` | Texto de um número que sobe contando de 0 e anima nas mudanças (`useNumeroAnimado`, easeOutCubic 250 ms como o Typeless; respeita `prefers-reduced-motion`) |
 | `Botao` | Variantes `primario` (escuro/claro), `destaque` (azul), `secundario` (cartão com contorno), `fantasma` e `perigo`. Sempre arredondado; desativado a 40% |
 | `CampoTexto` | Campo com contorno; foco com anel de 2 px na cor `destaque` |
 | `Tecla` | Tecla desenhada (36 px de altura, mínimo 36 de largura) |
