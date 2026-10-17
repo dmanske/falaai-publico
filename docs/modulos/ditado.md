@@ -1,7 +1,7 @@
 # Módulo: Ditado (F1)
 
-**Estado:** construído em 17/10/2026. O fluxo com tecla física e microfone real ainda **aguarda o
-teste do Daniel** (ver "Verificado").
+**Estado:** funcionando (17/10/2026). O Daniel ditou "Alô, testando." segurando Fn e o texto foi colado.
+Ainda não conferidos: mãos livres, Esc, Ctrl+Cmd+V e o clique nos botões da pílula.
 
 ## Como usa
 
@@ -31,8 +31,12 @@ tecla 🌐 para" em **Não fazer nada**. A tela de Configurações mostra os tr�
    simula Cmd+V e restaura depois de 450 ms. Duas colagens seguidas preservam o original do usuário.
 6. Se não conseguir colar, o texto fica na área de transferência e a pílula avisa para colar com Cmd+V.
 
-A pílula é um painel que **não ativa o app** (`type: "panel"`, `focusable: false`, `showInactive`),
-para o texto cair no app onde o usuário estava. O microfone só é liberado para ela.
+A pílula é um painel que **não ativa o app** (`type: "panel"`, `focusable: false`, `showInactive`,
+`acceptFirstMouse`), para o texto cair no app onde o usuário estava. O microfone só é liberado para ela.
+
+Visual (referência `docs/design/referencias/typeless-pilula.png`): pílula preta com **✕** à esquerda
+(cancelar; também cancela durante o "processando"), **onda simétrica** mais alta no meio e **✓** à direita
+(terminar e colar). A janela tem o tamanho exato da pílula (168×44; 340×44 para mensagens de erro).
 
 ## Valores ajustáveis
 
@@ -54,7 +58,9 @@ Sons ligados por padrão (`preferencias.sons`). A chave para desligar entra na t
   (44 + 1,32 s × 32.000 bytes/s).
 - Pílula nos estados gravando (mãos livres), processando e erro: conferida por print.
 - Transcrição com o prompt de limpeza: a amostra voltou como "Teste de ditado. 1, 2, 3." em 2,4 s.
-- **Não verificado ainda:** Fn físico, microfone real, colar num app de verdade e Esc/Ctrl+Cmd+V físicos.
+- **Teste do Daniel:** o primeiro ditado deu "Não entendi nenhuma fala". Causa: o tom sintético do meu
+  teste continuava no lugar do microfone. Depois de recarregar a pílula: "Alô, testando." colado certo.
+- **Não verificado ainda:** mãos livres, Esc, Ctrl+Cmd+V e o clique nos botões ✕/✓ (o foco tem que continuar no app).
 
 ## Incidente no desenvolvimento (17/10/2026)
 

@@ -69,10 +69,16 @@ async function iniciar(): Promise<void> {
 }
 
 function cancelar(): void {
-  if (estado !== "gravando") return;
+  if (estado === "gravando") {
+    comandarPilula({ acao: "cancelar", sessao, sons: sons() });
+  } else if (estado === "processando") {
+    // A resposta da IA ainda vai chegar, mas com outra sessão ela é ignorada (ver parar()).
+    sessao++;
+  } else {
+    return;
+  }
   estado = "ocioso";
   limparTimers();
-  comandarPilula({ acao: "cancelar", sessao, sons: sons() });
   ocultar();
 }
 
@@ -98,6 +104,7 @@ async function parar(): Promise<void> {
   const promessa = esperarAudio(minhaSessao);
   comandarPilula({ acao: "parar", sessao: minhaSessao, sons: sons() });
   const audio = await promessa;
+  if (sessao !== minhaSessao) return; // cancelado enquanto a pílula convertia
 
   if (!audio.ok) return mostrarErro(audio.erro);
   if (audio.duracaoMs < GRAVACAO_MINIMA_MS) {
@@ -157,5 +164,10 @@ export function iniciarDitado(): void {
     if (e.sender.id !== idWebContentsPilula()) return;
     esperandoAudio.get(a.sessao)?.(a);
     esperandoAudio.delete(a.sessao);
+  });
+  ipcMain.on(CANAIS.PILULA_ACAO, (e, acao: "confirmar" | "cancelar") => {
+    if (e.sender.id !== idWebContentsPilula()) return;
+    if (acao === "confirmar") void parar();
+    else cancelar();
   });
 }

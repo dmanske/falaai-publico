@@ -16,6 +16,8 @@ export const CANAIS = {
   PILULA_ESTADO: "pilula:estado",
   /** pílula → main: gravação terminada (WAV) ou falha. */
   PILULA_AUDIO: "pilula:audio",
+  /** pílula → main: clique no ✓ (terminar e colar) ou no ✕ (cancelar). */
+  PILULA_ACAO: "pilula:acao",
 } as const;
 
 export type NomeChave = "lovable";
@@ -109,5 +111,6 @@ export interface Ponte {
     aoComando(cb: (c: ComandoPilula) => void): () => void;
     aoEstado(cb: (e: EstadoPilula) => void): () => void;
     enviarAudio(a: AudioPilula): void;
+    acao(acao: "confirmar" | "cancelar"): void;
   };
 }

@@ -31,6 +31,7 @@ const ponte: Ponte = {
     aoComando: (cb) => ouvir(CANAIS.PILULA_COMANDO, cb),
     aoEstado: (cb) => ouvir(CANAIS.PILULA_ESTADO, cb),
     enviarAudio: (a) => ipcRenderer.send(CANAIS.PILULA_AUDIO, a),
+    acao: (acao) => ipcRenderer.send(CANAIS.PILULA_ACAO, acao),
   },
 };
 

@@ -18,9 +18,9 @@ login/conta, sincronização na nuvem, plano/assinatura, banners/pesquisas/convi
 | — | Chave da Lovable na tela, criptografada, com botão de teste (texto + áudio) | F0 | ✅ pronto |
 | — | Escolha do modelo de IA (lista + id digitado) | F0 | ✅ pronto |
 | — | Permissões na tela (microfone, Acessibilidade, aviso da tecla 🌐) | F1 | ✅ pronto |
-| 1 | Ditado: segura a tecla, fala, solta, texto colado no cursor | F1 | construído — falta teste com Fn real |
-| 2 | Refinar com IA (tira vícios de fala, pontua, organiza) | F1 | construído — falta teste com Fn real |
-| 3 | Pílula flutuante com onda de áudio e "processando…" | F1 | construído — falta teste com Fn real |
+| 1 | Ditado: segura a tecla, fala, solta, texto colado no cursor | F1 | ✅ pronto (testado pelo Daniel) |
+| 2 | Refinar com IA (tira vícios de fala, pontua, organiza) | F1 | ✅ pronto (testado pelo Daniel) |
+| 3 | Pílula flutuante (✕, onda simétrica, ✓) no estilo do Typeless | F1 | refeita — falta conferir clique sem perder o foco |
 | 4 | Modo mãos livres (toca para começar, toca para parar) | F1 | construído — falta teste com Fn real |
 | 5 | Cancelar no meio (Esc) | F1 | construído — falta teste com Fn real |
 | 6 | Colar de novo a última transcrição | F1 | construído — falta teste com Fn real |
