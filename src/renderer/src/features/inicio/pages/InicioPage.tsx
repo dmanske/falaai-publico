@@ -1,5 +1,5 @@
 import { rotuloTecla } from "@shared/atalhos";
-import { Cartao, TituloPagina, TituloSecao, Vazio } from "@/components/ui";
+import { Cartao, TituloPagina, Vazio } from "@/components/ui";
 import { AppsMaisUsados } from "../components/AppsMaisUsados";
 import { Atividade } from "../components/Atividade";
 import { PainelAtalhos } from "../components/PainelAtalhos";
@@ -19,7 +19,6 @@ export function InicioPage() {
       {/* Atalhos ao lado dos cartões já no tamanho em que o hub abre (1080 px); só descem em janela estreita. */}
       <div className="grid grid-cols-1 gap-7 min-[960px]:grid-cols-[minmax(0,1fr)_252px]">
         <section className="min-w-0 space-y-4">
-          <TituloSecao>Percepções</TituloSecao>
           {erro && <p className="text-sm text-perigo">{erro}</p>}
           {resumo && resumo.ditados === 0 ? (
             <Cartao>
@@ -34,7 +33,7 @@ export function InicioPage() {
             )
           )}
         </section>
-        <aside className="min-w-0 space-y-4 min-[960px]:pt-[52px]">
+        <aside className="min-w-0 space-y-4">
           <PainelAtalhos atalhos={atalhos} />
           {resumo && <AppsMaisUsados apps={resumo.porApp} />}
         </aside>

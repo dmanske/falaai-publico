@@ -22,7 +22,8 @@ export function HubApp() {
         {/* Faixa do topo arrastável (mover a janela). */}
         <div style={arrastar} className="absolute inset-x-0 top-0 z-10 h-8" />
         <div className={`fundo-pontilhado ${fundo === "completo" ? "fundo-ondas-completo" : "fundo-ondas-topo"} h-full overflow-y-auto`}>
-          <div className="mx-auto min-h-full max-w-5xl px-10 pb-12 pt-12">
+          {/* z-[1]: o conteúdo fica sempre acima das ondas (inclusive a faixa presa no pé). */}
+          <div className="relative z-[1] mx-auto min-h-full max-w-5xl px-10 pb-12 pt-12">
             {destino.pagina === "inicio" && <InicioPage />}
             {destino.pagina === "historico" && <HistoricoPage />}
             {destino.pagina === "dicionario" && <DicionarioPage />}

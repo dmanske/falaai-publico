@@ -12,7 +12,7 @@ export function TituloPagina({ children, subtitulo }: { children: ReactNode; sub
   );
 }
 
-/** Título de seção dentro da página (ex.: "Percepções"). */
+/** Título de seção dentro da página (ex.: "Idiomas da tradução"). */
 export function TituloSecao({ children, acao }: { children: ReactNode; acao?: ReactNode }) {
   return (
     <div className="mb-4 flex items-center justify-between">
