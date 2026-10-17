@@ -1,18 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import {
-  BRANCO,
-  contraste,
-  corComContraste,
-  corDestaqueDoClube,
-  cssDestaqueDoClube,
-  escurecimentoNecessario,
-  fundoDoPadrao,
-  luminancia,
-  misturar,
-  paletaDestaque,
-  textoSobre,
-  variaveisDoClube, cssTemaDoClube, fundoGrandeDoPadrao } from "./coresClube.ts";
+import { BRANCO, contraste, corComContraste, corDestaqueDoClube, cssDestaqueDoClube, escurecimentoNecessario, fundoDoPadrao, luminancia, misturar, paletaDestaque, textoSobre, variaveisDoClube, cssTemaDoClube, fundoGrandeDoPadrao, corDeIdentidade, saturacao } from "./coresClube.ts";
 import { CLUBES, larguraExtraEscudo, clubeDoEstilo } from "./clubes.ts";
 
 const flamengo = CLUBES.find((c) => c.id === "flamengo")!;
@@ -92,12 +80,16 @@ describe("variaveisDoClube", () => {
   });
   it("clube de preto e branco: na escura a principal vira o branco", () => {
     const v = variaveisDoClube(alvinegro, "escura");
-    assert.equal(v["--pil-barra-a"], "#FFFFFF");
+    assert.equal(v["--pil-barra-a"].toLowerCase(), "#ffffff");
     assert.equal(v["--pil-confirmar-fg"], "#0b0b0b");
   });
-  it("clube de amarelo: na camisa o ✓ usa a cor que contrasta, na faixa a principal é a segunda", () => {
-    assert.equal(variaveisDoClube(amarelo, "camisa")["--pil-confirmar-fg"], "#00205B");
-    assert.match(variaveisDoClube(amarelo, "faixa")["--pil-fundo"], /^linear-gradient\(180deg,#00205B 0 34%,#FFD400/);
+  it("clube de amarelo: camisa clara com onda e ✓ na cor escura do clube; na faixa a principal é a segunda", () => {
+    const camisa = variaveisDoClube(amarelo, "camisa");
+    assert.equal(camisa["--pil-barra-a"], "#00205B");
+    assert.equal(camisa["--pil-confirmar-bg"], "#00205B");
+    const faixa = /^linear-gradient\(180deg,#00205B 0 34%,(#[0-9a-f]{6}) 34%/i.exec(variaveisDoClube(amarelo, "faixa")["--pil-fundo"])?.[1] ?? "";
+    // Faixa amarela escurecida até a onda branca aparecer, sem perder o tom (dourado, não oliva).
+    assert.ok(saturacao(faixa) > 0.5 && contraste(faixa, "#ffffff") >= 3, `faixa ${faixa}`);
   });
   it("clube de uma cor só funciona nas três variantes", () => {
     for (const v of ["camisa", "escura", "faixa"] as const) {
@@ -153,5 +145,28 @@ describe("tema do app com as cores do clube", () => {
   });
   it("todos os clubes geram o tema sem erro", () => {
     for (const c of CLUBES) assert.match(cssTemaDoClube(c), /--clube-menu:/);
+  });
+});
+
+describe("cor de identidade do clube", () => {
+  it("acha a cor colorida e ignora preto e branco", () => {
+    assert.equal(corDeIdentidade(["#FFFFFF", "#006437"]), "#006437");
+    assert.equal(corDeIdentidade(["#000000", "#FFFFFF"]), null);
+  });
+  it("escura do Cruzeiro continua azul (antes virava branco)", () => {
+    const p = variaveisDoClube({ cores: ["#003DA5", "#FFFFFF"], padrao: "liso" }, "escura")["--pil-barra-a"];
+    assert.ok(saturacao(p) > 0.25, `esperava azul, veio ${p}`);
+    assert.ok(contraste(p, "#0b0b0b") >= 3);
+  });
+  it("menu do Palmeiras é verde escuro, não cinza", () => {
+    const css = cssTemaDoClube({ cores: ["#006437", "#FFFFFF"], padrao: "liso" });
+    const tom = /--clube-menu:linear-gradient\(180deg,(#[0-9a-f]{6}),/i.exec(css)?.[1] ?? "";
+    assert.ok(saturacao(tom) > 0.25, `esperava verde, veio ${tom}`);
+    assert.ok(contraste(tom, "#ffffff") >= 7);
+  });
+  it("camisa branca (Santos) fica clara com onda escura", () => {
+    const v = variaveisDoClube({ cores: ["#FFFFFF", "#000000"], padrao: "liso" }, "camisa");
+    assert.equal(v["--pil-fundo"], "#FFFFFF");
+    assert.equal(v["--pil-barra-a"].toLowerCase(), "#000000");
   });
 });

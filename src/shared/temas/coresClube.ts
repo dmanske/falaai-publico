@@ -66,6 +66,40 @@ export function corComContraste(cores: readonly string[], referencia: string, mi
   return lista.find((c) => contraste(c, referencia) >= minimo) ?? lista.reduce((m, c) => (contraste(c, referencia) > contraste(m, referencia) ? c : m));
 }
 
+/** Saturação (0 a 1) no modelo HSL: preto, branco e cinzas ficam perto de 0. */
+export function saturacao(hex: string): number {
+  const [r, g, b] = hexParaRgb(hex).map((v) => v / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return 0;
+  return (max - min) / (1 - Math.abs(2 * l - 1));
+}
+
+/** Abaixo disso a cor conta como neutra (preto, branco, cinza). */
+const SATURACAO_MINIMA = 0.25;
+
+/**
+ * Cor que identifica o clube: a primeira da lista que não é neutra (verde do Palmeiras, azul do
+ * Cruzeiro, grená do Fluminense). null quando o clube é só preto e branco (Atlético-MG, Santos…).
+ */
+export function corDeIdentidade(cores: readonly string[]): string | null {
+  return cores.find((c) => saturacao(c) >= SATURACAO_MINIMA) ?? null;
+}
+
+/**
+ * Clareia (sobre fundo escuro) ou escurece (sobre fundo claro) a cor, mantendo o tom, até o contraste
+ * mínimo com a referência. Antes trocava-se de cor (o azul do Cruzeiro virava branco).
+ */
+export function ajustarContraste(cor: string, referencia: string, minimo: number): string {
+  const alvo = luminancia(referencia) < 0.5 ? BRANCO : "#000000";
+  let resultado = cor;
+  for (let peso = 0.05; contraste(resultado, referencia) < minimo && peso <= 1; peso += 0.05) {
+    resultado = misturar(cor, alvo, peso);
+  }
+  return resultado;
+}
+
 /** Primeira cor que não seja `principal`; sem ela, a principal escurecida (a faixa precisa ser visível). */
 function outraCor(cores: readonly string[], principal: string): string {
   return cores.find((c) => c.toLowerCase() !== principal.toLowerCase()) ?? misturar(principal, "#000000", 0.55);
@@ -112,8 +146,10 @@ export function variaveisDoClube(clube: Pick<Clube, "cores" | "padrao">, variant
   const cores = clube.cores.length ? clube.cores : [QUASE_PRETO];
 
   if (variante === "escura") {
-    // Fundo preto: a cor principal é a primeira que aparece sobre ele (preto no clube vira a segunda cor).
-    const p = corComContraste(cores, QUASE_PRETO, CONTRASTE_GRAFICO);
+    // Fundo preto: a cor de identidade do clube, clareada até aparecer sobre ele (o azul do Cruzeiro
+    // continua azul). Clube preto e branco usa branco.
+    const identidade = corDeIdentidade(cores);
+    const p = identidade ? ajustarContraste(identidade, QUASE_PRETO, CONTRASTE_GRAFICO) : BRANCO;
     return {
       "--pil-fundo": QUASE_PRETO,
       "--pil-sombra": `inset 0 0 0 1.5px ${p}`,
@@ -134,7 +170,11 @@ export function variaveisDoClube(clube: Pick<Clube, "cores" | "padrao">, variant
   const p = corComContraste(cores, BRANCO, CONTRASTE_GRAFICO);
 
   if (variante === "faixa") {
-    const f = outraCor(cores, p);
+    // Faixa clara somiria a onda branca: colorida (amarelo) só escurece mantendo o tom (vira dourado);
+    // branca vira um tom médio do próprio clube.
+    const outra = outraCor(cores, p);
+    const clara = contraste(outra, BRANCO) < CONTRASTE_GRAFICO;
+    const f = !clara ? outra : saturacao(outra) >= SATURACAO_MINIMA ? ajustarContraste(outra, BRANCO, CONTRASTE_GRAFICO) : ajustarContraste(misturar(outra, p, 0.5), BRANCO, CONTRASTE_GRAFICO);
     const alfa = escurecimentoNecessario([p, f], 0);
     return {
       "--pil-fundo": fundoDoPadrao("faixa-horizontal", p, f),
@@ -142,9 +182,11 @@ export function variaveisDoClube(clube: Pick<Clube, "cores" | "padrao">, variant
       "--pil-overlay": alfa > 0 ? rgba("#000000", alfa) : "none",
       "--pil-cancelar-bg": "rgba(0,0,0,.35)",
       "--pil-cancelar-fg": BRANCO,
-      "--pil-confirmar-bg": f,
-      "--pil-confirmar-fg": textoSobre(f),
-      "--pil-confirmar-sombra": "0 0 0 1.5px rgba(255,255,255,.7)",
+      // ✓ na segunda cor quando ela é escura (Flamengo: preto); senão branco com o check na cor do clube
+      // (antes usava a faixa clareada e o botão parecia desativado).
+      "--pil-confirmar-bg": clara ? BRANCO : outra,
+      "--pil-confirmar-fg": clara ? p : textoSobre(outra),
+      "--pil-confirmar-sombra": clara ? "none" : "0 0 0 1.5px rgba(255,255,255,.7)",
       "--pil-barra-a": BRANCO,
       "--pil-barra-b": BRANCO,
       "--pil-ponto": BRANCO,
@@ -157,6 +199,28 @@ export function variaveisDoClube(clube: Pick<Clube, "cores" | "padrao">, variant
   // para a onda branca aparecer; 0,15 é o piso do protótipo aprovado).
   const a = cores[0];
   const b = clube.padrao === "liso" ? a : (cores[1] ?? a);
+  if (luminancia(a) > 0.6) {
+    // Camisa branca/clara (Santos, Corinthians, Bragantino, São Paulo): fica clara, com onda e botões
+    // escuros, em vez de escurecer o branco até virar cinza.
+    // Peças na cor mais escura do próprio clube (azul-marinho do Mirassol, preto do Santos/São Paulo).
+    const maisEscura = cores.reduce((m, c) => (luminancia(c) < luminancia(m) ? c : m));
+    const escuro = luminancia(maisEscura) < 0.2 ? maisEscura : QUASE_PRETO;
+    return {
+      "--pil-fundo": fundoDoPadrao(clube.padrao, a, b),
+      "--pil-sombra": "inset 0 0 0 1px rgba(0,0,0,.12)",
+      "--pil-overlay": "linear-gradient(90deg,rgba(0,0,0,.08),rgba(0,0,0,0) 30%,rgba(0,0,0,0) 70%,rgba(0,0,0,.08))",
+      "--pil-cancelar-bg": "rgba(0,0,0,.08)",
+      "--pil-cancelar-fg": escuro,
+      "--pil-confirmar-bg": escuro,
+      "--pil-confirmar-fg": BRANCO,
+      "--pil-confirmar-sombra": "none",
+      "--pil-barra-a": escuro,
+      "--pil-barra-b": escuro,
+      "--pil-ponto": escuro,
+      "--pil-sigla-bg": "rgba(0,0,0,.08)",
+      "--pil-sigla-fg": escuro,
+    };
+  }
   const centro = escurecimentoNecessario(clube.padrao === "liso" ? [a] : [a, b], 0.15);
   const borda = R(Math.min(0.75, centro + 0.4));
   return {
@@ -248,9 +312,11 @@ export function fundoGrandeDoPadrao(padrao: PadraoCamisa, a: string, b: string):
  */
 export function cssTemaDoClube(clube: Pick<Clube, "cores" | "padrao">): string {
   const cores = clube.cores.length ? clube.cores : [QUASE_PRETO];
-  // Menu: preto + a cor do clube escurecida (a que aparece sobre preto; preto no clube vira a segunda).
-  const principal = corComContraste(cores, QUASE_PRETO, CONTRASTE_GRAFICO);
-  const menu = fundoGrandeDoPadrao(clube.padrao, QUASE_PRETO, misturar(principal, "#000000", 0.55));
+  // Menu: preto + a cor de identidade escura o bastante para o texto branco (7:1); clube preto e branco
+  // usa cinza escuro. Antes o verde/azul escuros "não apareciam sobre preto" e o menu ficava cinza.
+  const identidade = corDeIdentidade(cores);
+  const tom = identidade ? ajustarContraste(identidade, BRANCO, 7) : "#3a3a3a";
+  const menu = fundoGrandeDoPadrao(clube.padrao, QUASE_PRETO, tom);
   const faixa = fundoGrandeDoPadrao(clube.padrao, cores[0], cores[1] ?? cores[0]);
   const destaque = corDestaqueDoClube(cores);
   return `${cssDestaqueDoClube(cores)}:root{--clube-menu:${menu};--clube-faixa:${faixa};--clube-ativo-texto:${textoSobre(destaque)};}`;
