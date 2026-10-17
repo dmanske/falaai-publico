@@ -226,3 +226,32 @@ export function cssDestaqueDoClube(cores: readonly string[]): string {
   const { claro, escuro } = paletaDestaque(corDestaqueDoClube(cores));
   return `:root{${declaracoes(claro)}}:root.dark{${declaracoes(escuro)}}`;
 }
+
+/** Padrão da camisa em tamanho grande (menu lateral e faixa do topo do app); liso vira um degradê suave. */
+export function fundoGrandeDoPadrao(padrao: PadraoCamisa, a: string, b: string): string {
+  switch (padrao) {
+    case "listras-horizontais":
+      return `repeating-linear-gradient(180deg,${a} 0 26px,${b} 26px 52px)`;
+    case "listras-verticais":
+      return `repeating-linear-gradient(90deg,${a} 0 22px,${b} 22px 44px)`;
+    case "liso":
+      return `linear-gradient(180deg,${b},${a})`;
+    default:
+      return fundoDoPadrao(padrao, a, b);
+  }
+}
+
+/**
+ * Tema do app com as cores do clube (Configurações > Pílula > Futebol + "Usar as cores do clube no app"):
+ * tokens de destaque + variáveis lidas em estilos.css (`.tema-clube`): o menu lateral com o padrão da
+ * camisa em versão escura (texto branco legível), a faixa do topo e a cor do texto no item ativo.
+ */
+export function cssTemaDoClube(clube: Pick<Clube, "cores" | "padrao">): string {
+  const cores = clube.cores.length ? clube.cores : [QUASE_PRETO];
+  // Menu: preto + a cor do clube escurecida (a que aparece sobre preto; preto no clube vira a segunda).
+  const principal = corComContraste(cores, QUASE_PRETO, CONTRASTE_GRAFICO);
+  const menu = fundoGrandeDoPadrao(clube.padrao, QUASE_PRETO, misturar(principal, "#000000", 0.55));
+  const faixa = fundoGrandeDoPadrao(clube.padrao, cores[0], cores[1] ?? cores[0]);
+  const destaque = corDestaqueDoClube(cores);
+  return `${cssDestaqueDoClube(cores)}:root{--clube-menu:${menu};--clube-faixa:${faixa};--clube-ativo-texto:${textoSobre(destaque)};}`;
+}

@@ -55,7 +55,7 @@ function Assinatura() {
     .join("");
   return (
     <div style={semArrastar} className="mt-3 space-y-2">
-      <div className="flex items-center gap-2.5 rounded-2xl bg-cartao px-2.5 py-2 shadow-cartao">
+      <div className="cartao-assinatura flex items-center gap-2.5 rounded-2xl bg-cartao px-2.5 py-2 shadow-cartao">
         <span
           aria-hidden
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-destaque to-[#8b5cf6] font-titulo text-[12px] font-semibold tracking-wide text-white"
@@ -81,7 +81,7 @@ function Assinatura() {
 export function MenuLateral({ pagina, secao, onIr }: Props) {
   const mac = plataforma === "darwin";
   return (
-    <nav className="m-3 mr-0 flex w-[212px] shrink-0 flex-col rounded-3xl bg-painel p-3">
+    <nav className="menu-lateral m-3 mr-0 flex w-[212px] shrink-0 flex-col rounded-3xl bg-painel p-3">
       {/* Faixa arrastável; no Mac reserva o espaço dos botões vermelho/amarelo/verde. */}
       <div style={arrastar} className={mac ? "h-12 shrink-0" : "h-4 shrink-0"} />
       <div style={arrastar} className="mb-5 py-1">
@@ -94,7 +94,7 @@ export function MenuLateral({ pagina, secao, onIr }: Props) {
               type="button"
               onClick={() => onIr(i.pagina)}
               className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-base transition ${
-                pagina === i.pagina ? "bg-borda font-medium text-texto" : "text-suave hover:bg-borda/60 hover:text-texto"
+                pagina === i.pagina ? "item-ativo bg-borda font-medium text-texto" : "text-suave hover:bg-borda/60 hover:text-texto"
               }`}
             >
               {i.icone}

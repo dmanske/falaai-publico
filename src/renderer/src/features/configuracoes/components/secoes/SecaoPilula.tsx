@@ -43,7 +43,7 @@ export function SecaoPilula({ preferencias, salvar }: PropsSecaoPreferencias) {
           rotulo={clube ? `Usar as cores do ${clube.nome} no app` : "Usar as cores do clube no app"}
           descricao={
             clube
-              ? "Botões, seleção e gráficos ficam nas cores do clube. Desligado, só a pílula muda."
+              ? "Menu lateral, faixa no topo, escudo, botões e gráficos ficam nas cores do clube. Desligado, só a pílula muda."
               : "Escolha um clube abaixo para usar. Desligado, só a pílula muda; o app continua no padrão."
           }
           ligado={coresDoClubeNoApp && !!clube}

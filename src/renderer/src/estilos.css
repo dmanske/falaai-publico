@@ -181,3 +181,68 @@ body.pilula {
   0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
   40% { transform: translateY(-3px); opacity: 1; }
 }
+
+/*
+ * Tema do clube: classe "tema-clube" no <html> + variáveis --clube-* (useCoresDoTema). Menu lateral com o
+ * padrão da camisa em versão escura, faixa com as listras no topo de cada página e o escudo no canto.
+ */
+.tema-clube .menu-lateral {
+  background: var(--clube-menu);
+  --color-texto: #ffffff;
+  --color-medio: rgba(255, 255, 255, 0.82);
+  --color-suave: rgba(255, 255, 255, 0.66);
+  --color-apagado: rgba(255, 255, 255, 0.42);
+  --color-borda: rgba(255, 255, 255, 0.16);
+  color: var(--color-texto);
+}
+.tema-clube .menu-lateral .logo-marca {
+  filter: brightness(0) invert(1);
+}
+.tema-clube .menu-lateral .item-ativo {
+  background: var(--color-destaque);
+  color: var(--clube-ativo-texto);
+}
+/* O cartão com o nome continua claro (ou escuro no tema escuro), com o texto normal. */
+.tema-clube .menu-lateral .cartao-assinatura {
+  --color-texto: #111111;
+  --color-suave: rgba(17, 17, 17, 0.55);
+  color: var(--color-texto);
+}
+.tema-clube.dark .menu-lateral .cartao-assinatura {
+  --color-texto: #f2f1f0;
+  --color-suave: rgba(242, 241, 240, 0.55);
+}
+.tema-clube .fundo-pontilhado {
+  position: relative;
+  isolation: isolate;
+}
+/* Vence as ondas (mais específico): a faixa do clube ocupa o lugar delas. */
+.tema-clube .fundo-pontilhado::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 260px;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--clube-faixa);
+  opacity: 0.16;
+  -webkit-mask-image: linear-gradient(#000 25%, transparent);
+  mask-image: linear-gradient(#000 25%, transparent);
+}
+.dark.tema-clube .fundo-pontilhado::before {
+  opacity: 0.22;
+}
+.tema-clube .fundo-pontilhado::after {
+  content: "";
+  position: absolute;
+  top: 34px;
+  right: 44px;
+  width: 76px;
+  height: 92px;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--clube-escudo) center / contain no-repeat;
+}
+.tema-clube .ondas-pe {
+  display: none;
+}

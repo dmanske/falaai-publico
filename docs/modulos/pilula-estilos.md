@@ -60,3 +60,14 @@ app" ligado, o destaque do app (hub) também ganha a cor dele. Protótipo aprova
 3. Rode `npm test` e `npm run typecheck`.
 
 Pendente: os outros 19 clubes da Série A (levantar cores, padrão da camisa e escudo de cada um).
+
+## Tema do app com as cores do clube (17/10/2026)
+
+Com um clube escolhido e "Usar as cores do <clube> no app" ligado (topo da aba Futebol), `useCoresDoTema`
+põe a classe `tema-clube` no `<html>` e as variáveis `--clube-*` (`cssTemaDoClube` em
+`src/shared/temas/coresClube.ts`). As regras ficam em `estilos.css`:
+- menu lateral com o padrão da camisa em versão escura (preto + cor do clube escurecida), logo branco e
+  item ativo na cor do clube; o cartão com o nome continua claro;
+- faixa com as listras do clube no topo de cada página (no lugar das ondas) e o escudo no canto;
+- tokens de destaque (botões, seleção, gráficos) na cor do clube.
+Desligar a chave ou voltar a um estilo geral remove tudo.

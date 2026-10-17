@@ -12,8 +12,7 @@ import {
   misturar,
   paletaDestaque,
   textoSobre,
-  variaveisDoClube,
-} from "./coresClube.ts";
+  variaveisDoClube, cssTemaDoClube, fundoGrandeDoPadrao } from "./coresClube.ts";
 import { CLUBES, larguraExtraEscudo, clubeDoEstilo } from "./clubes.ts";
 
 const flamengo = CLUBES.find((c) => c.id === "flamengo")!;
@@ -138,5 +137,21 @@ describe("largura da janela", () => {
     assert.equal(larguraExtraEscudo({ tipo: "estilo", id: "neon" }), 0);
     assert.equal(larguraExtraEscudo({ tipo: "clube", id: "inexistente", variante: "camisa" }), 0);
     assert.equal(clubeDoEstilo({ tipo: "estilo", id: "azul" }), undefined);
+  });
+});
+
+describe("tema do app com as cores do clube", () => {
+  it("menu do Flamengo: listras largas de preto e vermelho escurecido", () => {
+    const css = cssTemaDoClube(flamengo);
+    assert.match(css, /--clube-menu:repeating-linear-gradient\(180deg,#0b0b0b 0 26px,#[0-9a-f]{6} 26px 52px\)/i);
+    assert.match(css, /--clube-faixa:repeating-linear-gradient\(180deg,#E30613 0 26px,#0B0B0B 26px 52px\)/);
+    assert.match(css, /--clube-ativo-texto:#ffffff/i);
+    assert.match(css, /--color-destaque:#E30613/i);
+  });
+  it("clube de camisa lisa vira degradê", () => {
+    assert.equal(fundoGrandeDoPadrao("liso", "#006437", "#FFFFFF"), "linear-gradient(180deg,#FFFFFF,#006437)");
+  });
+  it("todos os clubes geram o tema sem erro", () => {
+    for (const c of CLUBES) assert.match(cssTemaDoClube(c), /--clube-menu:/);
   });
 });

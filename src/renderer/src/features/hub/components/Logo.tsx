@@ -5,7 +5,7 @@ import logo from "@/assets/marca/logo.png";
 export function Logo() {
   return (
     <div className="flex items-center px-3">
-      <img src={logo} alt={NOME_APP} className="h-7 w-auto dark:invert" />
+      <img src={logo} alt={NOME_APP} className="logo-marca h-7 w-auto dark:invert" />
     </div>
   );
 }
