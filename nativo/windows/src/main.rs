@@ -1,4 +1,4 @@
-// FalaAi — auxiliar nativo do Windows (protocolo v2: docs/design/PROTOCOLO_AUXILIAR.md).
+// FalaAi — auxiliar nativo do Windows (protocolo v3: docs/design/PROTOCOLO_AUXILIAR.md).
 //
 // O app Electron inicia este programa como processo filho e conversa por JSON, uma mensagem
 // por linha (stdin = comandos; stdout = respostas e eventos; logs só no stderr).

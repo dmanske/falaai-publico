@@ -1,6 +1,6 @@
 // Hook global de teclado (WH_KEYBOARD_LL) e injeção de teclas (SendInput).
 
-use super::{emitir_saidas, Estado, ESTADO};
+use super::{agora_ms, emitir_saidas, reprogramar_prazo, Estado, ESTADO};
 use crate::teclas::{ctrl_falso_altgr, MODIFICADORES};
 use crate::teclas::{VK_LWIN, VK_RCONTROL, VK_RMENU, VK_RWIN};
 use windows::Win32::Foundation::{LPARAM, LRESULT, WPARAM};
@@ -17,6 +17,9 @@ pub const MARCA: usize = 0x4641_4C41; // "FALA"
 /// Tecla "neutra" (não atribuída): digitada entre o Alt/Win descer e subir, cancela a barra de menu
 /// / o menu Iniciar.
 const VK_NEUTRA: u16 = 0xE8;
+
+/// VK_BACK.
+const VK_BACKSPACE: u32 = 0x08;
 
 pub struct Gancho(HHOOK);
 
@@ -53,10 +56,12 @@ unsafe extern "system" fn proc_hook(code: i32, wparam: WPARAM, lparam: LPARAM) -
                 let resp = ESTADO
                     .try_with(|e| {
                         e.try_borrow_mut().ok().map(|mut e| {
+                            // O relógio é lido aqui e injetado: a máquina não tem relógio próprio.
+                            let agora = agora_ms();
                             if desce {
-                                e.maquina.tecla_desce(kb.vkCode)
+                                e.maquina.tecla_desce(kb.vkCode, agora)
                             } else {
-                                e.maquina.tecla_sobe(kb.vkCode)
+                                e.maquina.tecla_sobe(kb.vkCode, agora)
                             }
                         })
                     })
@@ -64,8 +69,12 @@ unsafe extern "system" fn proc_hook(code: i32, wparam: WPARAM, lparam: LPARAM) -
                     .flatten();
                 if let Some(r) = resp {
                     emitir_saidas(r.saidas);
+                    reprogramar_prazo(); // captura: pode ter começado/terminado uma espera
                     if r.neutralizar {
                         injetar_tecla_neutra();
+                    }
+                    if r.apagar_anterior {
+                        injetar_backspace();
                     }
                     if r.engolir {
                         return LRESULT(1);
@@ -119,6 +128,12 @@ pub fn enviar_teclas(teclas: &[(u32, bool)]) {
 /// em foco (ou o menu Iniciar, no caso do Win).
 pub fn injetar_tecla_neutra() {
     enviar_teclas(&[(VK_NEUTRA as u32, false), (VK_NEUTRA as u32, true)]);
+}
+
+/// Toque duplo de tecla que digita: apaga o caractere que o 1º toque escreveu. Marcado em
+/// `dwExtraInfo` como todo evento nosso, então o hook o ignora (não conta como "outra tecla").
+pub fn injetar_backspace() {
+    enviar_teclas(&[(VK_BACKSPACE, false), (VK_BACKSPACE, true)]);
 }
 
 /// Modificadores que estão fisicamente pressionados agora.

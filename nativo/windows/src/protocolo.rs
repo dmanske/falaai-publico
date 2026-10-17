@@ -1,10 +1,13 @@
-// Protocolo v2 (docs/design/PROTOCOLO_AUXILIAR.md): interpretação dos comandos e montagem das
+// Protocolo v3 (docs/design/PROTOCOLO_AUXILIAR.md): interpretação dos comandos e montagem das
 // respostas. Lógica PURA (JSON <-> tipos), sem API do sistema.
 
-use crate::maquina::Atalho;
+use crate::maquina::{Atalho, FaseDuplo};
 use crate::teclas::*;
 use serde_json::{json, Value};
 use std::collections::HashSet;
+
+/// Marcador do toque duplo (primeiro item da lista de teclas).
+pub const DUPLO: &str = "Duplo";
 
 #[derive(Debug)]
 pub enum Comando {
@@ -19,6 +22,8 @@ pub enum Comando {
     LerCampo,
     MutarSaida,
     DesmutarSaida,
+    CapturarAtalho,
+    CancelarCaptura,
     Sair,
 }
 
@@ -35,6 +40,16 @@ fn interpretar_um(item: &Value) -> Result<Atalho, String> {
         .and_then(Value::as_array)
         .filter(|t| !t.is_empty())
         .ok_or_else(|| format!("Atalho '{id}' sem teclas."))?;
+
+    // Toque duplo (v3): ["Duplo", X] com UMA tecla X; "Duplo" só vale como primeiro item.
+    let duplo = teclas[0].as_str() == Some(DUPLO);
+    if teclas.iter().skip(1).any(|t| t.as_str() == Some(DUPLO)) {
+        return Err(format!("Atalho '{id}': 'Duplo' só pode ser o primeiro item."));
+    }
+    if duplo && teclas.len() != 2 {
+        return Err(format!("Atalho '{id}': o toque duplo vale para uma tecla só (['Duplo', tecla])."));
+    }
+    let teclas = if duplo { &teclas[1..] } else { &teclas[..] };
 
     let mut mods: Vec<(Familia, Lado)> = Vec::new();
     let mut tecla: Option<u32> = None;
@@ -58,13 +73,14 @@ fn interpretar_um(item: &Value) -> Result<Atalho, String> {
             return Err(format!("Atalho '{id}': tecla desconhecida ({nome})."));
         }
     }
-    // Tecla comum sozinha (ex.: só "A" ou só "Space") engoliria a digitação normal.
+    // Tecla comum sozinha (ex.: só "A" ou só "Space") engoliria a digitação normal — a não ser no
+    // toque duplo, que só dispara no segundo toque.
     if let Some(vk) = tecla {
-        if mods.is_empty() && !eh_tecla_f(vk) {
+        if !duplo && mods.is_empty() && !eh_tecla_f(vk) {
             return Err(format!("Atalho '{id}': a tecla {nome_tecla} precisa de ao menos um modificador."));
         }
     }
-    Ok(Atalho { id, mods, tecla, ativo: false })
+    Ok(Atalho { id, mods, tecla, ativo: false, duplo, fase: FaseDuplo::Nenhum })
 }
 
 /// Converte o campo `atalhos` do comando `configurar_atalhos`. O erro vem em português.
@@ -106,6 +122,8 @@ pub fn interpretar(linha: &str) -> Result<(Value, Comando), (Value, String)> {
         "ler_campo" => Comando::LerCampo,
         "mutar_saida" => Comando::MutarSaida,
         "desmutar_saida" => Comando::DesmutarSaida,
+        "capturar_atalho" => Comando::CapturarAtalho,
+        "cancelar_captura" => Comando::CancelarCaptura,
         "sair" => Comando::Sair,
         outro => return Err((id, format!("Comando desconhecido: {outro}"))),
     };
@@ -128,7 +146,7 @@ pub fn resposta_erro(id: &Value, erro: &str) -> Value {
 }
 
 pub fn evento_pronto() -> Value {
-    json!({ "evento": "pronto", "versao": 2 })
+    json!({ "evento": "pronto", "versao": 3 })
 }
 
 pub fn evento_atalho(id: &str, desce: bool) -> Value {
@@ -219,6 +237,44 @@ mod testes {
     }
 
     #[test]
+    fn interpreta_captura() {
+        assert!(matches!(interpretar(r#"{"id":1,"cmd":"capturar_atalho"}"#).unwrap().1, Comando::CapturarAtalho));
+        assert!(matches!(interpretar(r#"{"id":1,"cmd":"cancelar_captura"}"#).unwrap().1, Comando::CancelarCaptura));
+    }
+
+    #[test]
+    fn toque_duplo_valido() {
+        let l = interpretar_atalhos(&json!([
+            {"id": "a", "teclas": ["Duplo", "OptionRight"]},
+            {"id": "b", "teclas": ["Duplo", "A"]},
+            {"id": "c", "teclas": ["Duplo", "Shift"]},
+            {"id": "d", "teclas": ["Duplo", "F5"]},
+            {"id": "e", "teclas": ["Duplo", "Space"]},
+        ]))
+        .unwrap();
+        assert!(l.iter().all(|x| x.duplo));
+        assert_eq!(l[0].mods, vec![(Familia::Alt, Lado::Dir)]);
+        assert_eq!(l[0].tecla, None);
+        assert_eq!(l[1].tecla, Some(0x41));
+        assert!(l[1].mods.is_empty(), "letra sozinha vale no toque duplo");
+        assert_eq!(l[2].mods, vec![(Familia::Shift, Lado::Qualquer)]);
+        assert_eq!(l[4].tecla, Some(0x20));
+    }
+
+    #[test]
+    fn toque_duplo_invalido() {
+        let e = |v: Value| interpretar_atalhos(&json!([{"id": "x", "teclas": v}])).unwrap_err();
+        assert!(e(json!(["Duplo"])).contains("uma tecla só"));
+        assert!(e(json!(["Duplo", "A", "B"])).contains("uma tecla só"));
+        assert!(e(json!(["Duplo", "Ctrl", "A"])).contains("uma tecla só"));
+        assert!(e(json!(["A", "Duplo"])).contains("primeiro item"));
+        assert!(e(json!(["Ctrl", "Duplo", "A"])).contains("primeiro item"));
+        assert!(e(json!(["Duplo", "Duplo"])).contains("primeiro item"));
+        assert!(e(json!(["Duplo", "Fn"])).contains("Fn"));
+        assert!(e(json!(["Duplo", "Banana"])).contains("desconhecida"));
+    }
+
+    #[test]
     fn tecla_f_sozinha_e_permitida() {
         assert!(interpretar_atalhos(&json!([{"id": "a", "teclas": ["F13"]}])).is_ok());
     }
@@ -228,7 +284,7 @@ mod testes {
         let r = resposta_ok(&json!(5), json!({"acessibilidade": true}));
         assert_eq!(r, json!({"id": 5, "ok": true, "acessibilidade": true}));
         assert_eq!(resposta_erro(&json!(5), "x"), json!({"id": 5, "ok": false, "erro": "x"}));
-        assert_eq!(evento_pronto(), json!({"evento": "pronto", "versao": 2}));
+        assert_eq!(evento_pronto(), json!({"evento": "pronto", "versao": 3}));
         assert_eq!(
             evento_atalho("ditado", false),
             json!({"evento": "atalho", "id": "ditado", "estado": "sobe"})

@@ -2,7 +2,7 @@
 name = "falaai-auxiliar-win"
 version = "0.1.0"
 edition = "2021"
-description = "Auxiliar nativo do FalaAi para Windows (protocolo v2): teclado global, colar, contexto, som."
+description = "Auxiliar nativo do FalaAi para Windows (protocolo v3): teclado global, colar, contexto, som."
 publish = false
 
 [[bin]]

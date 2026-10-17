@@ -17,15 +17,21 @@ use serde_json::{json, Value};
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::io::BufRead;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc::channel;
-use std::sync::Mutex;
-use std::time::Duration;
+use std::sync::{Mutex, OnceLock};
+use std::time::{Duration, Instant};
 use windows::core::w;
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::System::Com::{CoInitializeEx, COINIT_MULTITHREADED};
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::System::Threading::GetCurrentThreadId;
 use windows::Win32::UI::WindowsAndMessaging::*;
+
+/// Identificador do temporizador da captura de atalho (WM_TIMER na janela invisível).
+const ID_TEMPORIZADOR_CAPTURA: usize = 0xFA1B;
+/// "Nenhum prazo programado" em `PRAZO_PROGRAMADO`.
+const SEM_PRAZO: u64 = u64::MAX;
 
 /// Mensagem própria: "há linhas novas do stdin na fila".
 const WM_COMANDOS: u32 = WM_APP + 1;
@@ -52,6 +58,68 @@ pub(crate) struct Estado {
     pub janela: HWND,
 }
 
+/// `id` do comando `capturar_atalho` em andamento (a resposta sai quando a captura termina). Fica fora
+/// do `ESTADO` para poder ser lido enquanto o `ESTADO` está emprestado.
+static CAPTURA_ID: Mutex<Option<Value>> = Mutex::new(None);
+
+/// Último prazo (em `agora_ms`) programado no temporizador: evita chamar o sistema à toa.
+static PRAZO_PROGRAMADO: AtomicU64 = AtomicU64::new(SEM_PRAZO);
+
+static INICIO: OnceLock<Instant> = OnceLock::new();
+
+/// Relógio monotônico em milissegundos, injetado na máquina de atalhos (a lógica pura não tem relógio).
+pub(crate) fn agora_ms() -> u64 {
+    INICIO.get_or_init(Instant::now).elapsed().as_millis() as u64
+}
+
+/// Programa (ou cancela) o temporizador da captura conforme o prazo que a máquina pede.
+///
+/// Como funciona: a máquina diz quando precisa ser "acordada" (`proximo_prazo`: fim dos 10 s sem
+/// tecla, ou fim dos 400 ms de espera pelo 2º toque). Usamos `SetTimer` na janela invisível — o WM_TIMER
+/// chega no loop de mensagens da thread principal, a mesma do hook, então não há corrida com o teclado.
+/// Chamar depois de qualquer coisa que possa mudar a captura (comando, tecla, WM_TIMER).
+pub(crate) fn reprogramar_prazo() {
+    let pedido = ESTADO
+        .try_with(|e| e.try_borrow().ok().map(|e| (e.maquina.proximo_prazo(), e.janela)))
+        .ok()
+        .flatten();
+    let Some((prazo, janela)) = pedido else { return };
+    let novo = prazo.unwrap_or(SEM_PRAZO);
+    if PRAZO_PROGRAMADO.swap(novo, Ordering::Relaxed) == novo {
+        return;
+    }
+    unsafe {
+        match prazo {
+            Some(p) => {
+                let espera = p.saturating_sub(agora_ms()).clamp(1, u32::MAX as u64) as u32;
+                // Com janela válida o id é respeitado (com janela nula o Windows inventaria outro id).
+                SetTimer(Some(janela), ID_TEMPORIZADOR_CAPTURA, espera, None);
+            }
+            None => {
+                let _ = KillTimer(Some(janela), ID_TEMPORIZADOR_CAPTURA);
+            }
+        }
+    }
+}
+
+/// O WM_TIMER da captura disparou: avisa a máquina que o tempo passou.
+fn tempo_captura() {
+    // SetTimer repete sozinho: desliga e deixa `reprogramar_prazo` armar de novo se ainda precisar.
+    if let Ok(janela) = ESTADO.try_with(|e| e.try_borrow().map(|e| e.janela).unwrap_or_default()) {
+        unsafe {
+            let _ = KillTimer(Some(janela), ID_TEMPORIZADOR_CAPTURA);
+        }
+    }
+    PRAZO_PROGRAMADO.store(SEM_PRAZO, Ordering::Relaxed);
+    let saidas = ESTADO
+        .try_with(|e| e.try_borrow_mut().ok().map(|mut e| e.maquina.tempo(agora_ms())))
+        .ok()
+        .flatten()
+        .unwrap_or_default();
+    emitir_saidas(saidas);
+    reprogramar_prazo();
+}
+
 thread_local! {
     pub(crate) static ESTADO: RefCell<Estado> = RefCell::new(Estado {
         maquina: Maquina::novo(),
@@ -69,6 +137,16 @@ pub(crate) fn emitir_saidas(saidas: Vec<Saida>) {
             Saida::Atalho { id, desce } => emitir(&evento_atalho(&id, desce)),
             Saida::Combinado => emitir(&json!({ "evento": "combinado" })),
             Saida::Esc => emitir(&json!({ "evento": "esc" })),
+            // Fim da captura: responde ao `capturar_atalho` pendente, com o mesmo `id`.
+            Saida::Captura(resultado) => {
+                let id = CAPTURA_ID.lock().ok().and_then(|mut i| i.take());
+                if let Some(id) = id {
+                    match resultado {
+                        Ok(teclas) => emitir(&resposta_ok(&id, json!({ "teclas": teclas }))),
+                        Err(erro) => emitir(&resposta_erro(&id, &erro)),
+                    }
+                }
+            }
         }
     }
 }
@@ -179,6 +257,8 @@ pub fn executar() {
             processar_fila();
         } else if msg.message == WM_TIMER && msg.wParam.0 == area::ID_TEMPORIZADOR {
             area::tempo_esgotado();
+        } else if msg.message == WM_TIMER && msg.wParam.0 == ID_TEMPORIZADOR_CAPTURA {
+            tempo_captura();
         } else {
             unsafe {
                 let _ = TranslateMessage(&msg);
@@ -228,12 +308,16 @@ fn tratar_linha(linha: &str) {
             }
         }
         Comando::PararTeclado => {
-            ESTADO.with(|e| {
+            let saidas = ESTADO.with(|e| {
                 let mut e = e.borrow_mut();
-                let saidas = e.maquina.soltar_ativos();
-                emitir_saidas(saidas);
+                // Uma captura em andamento termina com erro (o teclado vai parar de ser lido).
+                let mut saidas = e.maquina.soltar_ativos();
+                saidas.extend(e.maquina.cancelar_captura());
                 teclado::desinstalar(&mut e);
+                saidas
             });
+            emitir_saidas(saidas);
+            reprogramar_prazo();
             responder_ok(&id, json!({}));
         }
         Comando::ConfigurarAtalhos(lista) => {
@@ -287,6 +371,32 @@ fn tratar_linha(linha: &str) {
         }
         Comando::DesmutarSaida => {
             ESTADO.with(|e| audio::desfazer(&mut e.borrow_mut().som));
+            responder_ok(&id, json!({}));
+        }
+        Comando::CapturarAtalho => {
+            let r = ESTADO.with(|e| {
+                let mut e = e.borrow_mut();
+                if e.hook.is_none() {
+                    return Err("O teclado não está ativo.".to_string());
+                }
+                e.maquina.iniciar_captura(agora_ms()).map_err(|m| m.to_string())
+            });
+            match r {
+                Ok(saidas) => {
+                    // Guarda o id ANTES de emitir: a resposta sai quando a captura terminar.
+                    if let Ok(mut i) = CAPTURA_ID.lock() {
+                        *i = Some(id);
+                    }
+                    emitir_saidas(saidas);
+                    reprogramar_prazo();
+                }
+                Err(e) => responder_erro(&id, &e),
+            }
+        }
+        Comando::CancelarCaptura => {
+            let saidas = ESTADO.with(|e| e.borrow_mut().maquina.cancelar_captura());
+            emitir_saidas(saidas); // a resposta da captura (ok:false) sai antes da deste comando
+            reprogramar_prazo();
             responder_ok(&id, json!({}));
         }
         Comando::Sair => {

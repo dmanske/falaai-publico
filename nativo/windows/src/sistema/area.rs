@@ -187,7 +187,7 @@ pub fn colar(e: &mut Estado, texto: &str) -> Result<(), String> {
 
     // Depois de ~450 ms restaura (o tempo de o app colar). O temporizador reinicia a cada colagem.
     unsafe {
-        SetTimer(None, ID_TEMPORIZADOR, ESPERA_RESTAURAR_MS, None);
+        SetTimer(Some(e.janela), ID_TEMPORIZADOR, ESPERA_RESTAURAR_MS, None);
     }
     Ok(())
 }
@@ -220,7 +220,7 @@ fn restaurar_itens(itens: &[Item]) {
 pub fn restaurar_pendente(e: &mut Estado) {
     let Some(p) = e.area.pendente.take() else { return };
     unsafe {
-        let _ = KillTimer(None, ID_TEMPORIZADOR);
+        let _ = KillTimer(Some(e.janela), ID_TEMPORIZADOR);
     }
     if unsafe { GetClipboardSequenceNumber() } != p.contagem {
         return; // o usuário (ou outro programa) copiou algo novo: não mexe

@@ -118,6 +118,56 @@ pub fn eh_tecla_f(vk: u32) -> bool {
     (0x70..=0x83).contains(&vk)
 }
 
+/// A tecla digita um caractere (letras, números, Espaço, Tab)? É o caso em que o primeiro toque de um
+/// toque duplo chega a escrever algo e precisa ser apagado. Nunca F1–F20, Enter, Esc nem modificadores.
+pub fn digita_caractere(vk: u32) -> bool {
+    matches!(vk, 0x41..=0x5A | 0x30..=0x39 | 0x20 | 0x09)
+}
+
+/// Nome do modificador de lado (VK) como o app o espera na captura de atalho. Os nomes são os do
+/// Mac (`OptionRight`, `CmdLeft`), que o app traduz para `Alt*`/`Win*` no Windows.
+pub fn nome_do_modificador(vk: u32) -> Option<&'static str> {
+    Some(match vk {
+        VK_LCONTROL => "CtrlLeft",
+        VK_RCONTROL => "CtrlRight",
+        VK_LMENU => "OptionLeft",
+        VK_RMENU => "OptionRight",
+        VK_LWIN => "CmdLeft",
+        VK_RWIN => "CmdRight",
+        VK_LSHIFT => "ShiftLeft",
+        VK_RSHIFT => "ShiftRight",
+        _ => return None,
+    })
+}
+
+/// Posição na ordem de saída da captura: Ctrl, Option(Alt), Cmd(Win), Shift (o Fn não existe aqui).
+pub fn ordem_do_modificador(vk: u32) -> u32 {
+    match familia_do_codigo(vk) {
+        Some(Familia::Ctrl) => 0,
+        Some(Familia::Alt) => 1,
+        Some(Familia::Win) => 2,
+        Some(Familia::Shift) => 3,
+        None => 4,
+    }
+}
+
+/// Nome de qualquer tecla que o protocolo conhece (modificador ou comum). None = tecla sem nome
+/// no protocolo (setas, Backspace…): a captura a ignora.
+pub fn nome_da_tecla(vk: u32) -> Option<String> {
+    if let Some(n) = nome_do_modificador(vk) {
+        return Some(n.to_string());
+    }
+    match vk {
+        0x41..=0x5A | 0x30..=0x39 => Some((vk as u8 as char).to_string()),
+        0x70..=0x83 => Some(format!("F{}", vk - 0x70 + 1)),
+        0x0D => Some("Enter".into()),
+        0x09 => Some("Tab".into()),
+        0x20 => Some("Space".into()),
+        VK_ESCAPE => Some("Esc".into()),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod testes {
     use super::*;
@@ -156,6 +206,17 @@ mod testes {
         assert_eq!(tecla_por_nome("F01"), None);
         assert_eq!(tecla_por_nome("v"), None);
         assert_eq!(tecla_por_nome("AB"), None);
+    }
+
+    #[test]
+    fn nomes_de_volta() {
+        for nome in ["V", "7", "Space", "Tab", "Enter", "Esc", "F1", "F20"] {
+            assert_eq!(nome_da_tecla(tecla_por_nome(nome).unwrap()).as_deref(), Some(nome));
+        }
+        assert_eq!(nome_da_tecla(VK_RMENU).as_deref(), Some("OptionRight"));
+        assert_eq!(nome_da_tecla(0x25), None); // seta
+        assert!(digita_caractere(0x41) && digita_caractere(0x20) && digita_caractere(0x09));
+        assert!(!digita_caractere(0x70) && !digita_caractere(0x0D) && !digita_caractere(VK_RMENU));
     }
 
     #[test]
