@@ -1,0 +1,35 @@
+// Configuração central do app. Valores ajustáveis ficam AQUI, não espalhados pelo código.
+// Usado pelo processo principal e pela tela (sem imports de Node ou de DOM).
+
+/** Nome exibido (escolhido pelo Daniel em 17/10/2026). Trocar junto com "productName" no package.json. */
+export const NOME_APP = "FalaAi";
+
+/** Gateway de IA da Lovable (compatível com a API da OpenAI). Mesmo do almoxarifado. */
+export const ENDPOINT_LOVABLE = "https://ai.gateway.lovable.dev/v1/chat/completions";
+
+export interface ModeloIa {
+  id: string;
+  nome: string;
+  nota: string;
+  recomendado?: boolean;
+}
+
+/**
+ * Modelos oferecidos na tela. Precisam aceitar áudio para o caminho "A"
+ * (o mesmo modelo transcreve e refina). A tela também aceita um id digitado à mão.
+ */
+export const MODELOS_IA: ModeloIa[] = [
+  { id: "google/gemini-3-flash-preview", nome: "Gemini 3 Flash", nota: "o mais rápido e barato no teste do almoxarifado", recomendado: true },
+  { id: "google/gemini-3.8-flash", nome: "Gemini 3.8 Flash", nota: "rápido, um pouco mais lento que o 3 Flash" },
+  { id: "google/gemini-3.1-pro-preview", nome: "Gemini 3.1 Pro", nota: "mais caro e mais lento; para textos difíceis" },
+];
+
+export const MODELO_PADRAO = MODELOS_IA[0].id;
+
+/** Tempo máximo de uma chamada à IA (ms). O Typeless usa 40 s no /ai/voice_flow. */
+export const TIMEOUT_IA_MS = 40_000;
+
+/** Frase falada na amostra resources/amostra-teste.wav (gerada por scripts/gerar-amostra-teste.sh). */
+export const FRASE_AMOSTRA = "Teste de ditado, um, dois, três.";
+/** Palavra que precisa aparecer na transcrição para o teste de áudio passar. */
+export const PALAVRA_CHAVE_AMOSTRA = "ditado";

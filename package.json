@@ -1,0 +1,33 @@
+{
+  "name": "falaai",
+  "productName": "FalaAi",
+  "version": "0.1.0",
+  "description": "Ditado por voz com IA, 100% local: segura a tecla, fala, solta, e o texto aparece onde o cursor está.",
+  "author": "Daniel Manske",
+  "private": true,
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "env -u ELECTRON_RUN_AS_NODE electron-vite dev",
+    "build": "electron-vite build",
+    "start": "env -u ELECTRON_RUN_AS_NODE electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "amostra-teste": "bash scripts/gerar-amostra-teste.sh",
+    "icones": "swift scripts/gerar-icone-bandeja.swift resources",
+    "test": "node --test \"src/**/*.test.ts\""
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^44.5.0",
+    "electron-vite": "^6.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.4"
+  }
+}

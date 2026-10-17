@@ -1,0 +1,9 @@
+# Documentação do FalaAi — índice
+
+| Documento | Para quê |
+|---|---|
+| [ARQUITETURA.md](ARQUITETURA.md) | Padrões de código, pastas e regras |
+| [produto/PRD.md](produto/PRD.md) | O que o app faz e o que está aprovado |
+| [design/DESIGN_FALAAI.md](design/DESIGN_FALAAI.md) | Engenharia reversa do Typeless, decisões técnicas e fases |
+| [modulos/configuracoes-ia.md](modulos/configuracoes-ia.md) | Chave da Lovable, modelo e teste |
+| [correcoes/CORRECAO_CHAVE_LOVABLE_COLADA_2026-10-17.md](correcoes/CORRECAO_CHAVE_LOVABLE_COLADA_2026-10-17.md) | Chave colada com a linha do .env junto |
