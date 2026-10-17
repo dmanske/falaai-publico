@@ -2,7 +2,7 @@
 import { PROVEDORES, type IdProvedor } from "../../../../shared/provedores.ts";
 
 /** Identificação opcional no OpenRouter (aparece no ranking dele; não é necessária para funcionar). */
-export const REFERER_OPENROUTER = "https://github.com/dmanske/newtypeless-oficial";
+export const REFERER_OPENROUTER = "https://github.com/dmanske/falaai";
 export const TITULO_OPENROUTER = "FalaAi";
 
 export function urlChat(provedor: IdProvedor): string {

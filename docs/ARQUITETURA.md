@@ -82,5 +82,5 @@ Análise pontual fica no chat. Documento velho vai para `docs/_arquivo/`, nunca 
 
 ## 6. Git
 
-- Repositório privado `dmanske/newtypeless-oficial`. `main` é a versão estável.
+- Repositório privado `dmanske/falaai-oficial` (renomeado de `newtypeless-oficial` em 17/10/2026) e cópia pública `dmanske/falaai` (mesmo código; é nela que o app procura atualizações). `main` é a versão estável.
 - Mensagens de commit em português.

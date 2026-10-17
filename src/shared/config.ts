@@ -76,7 +76,7 @@ export const OBSERVAR_CORRECOES_MS = 20_000;
 // ── Atualizações ────────────────────────────────────────────────────────────
 
 /** Repositório do GitHub onde ficam as versões publicadas (Releases). */
-export const REPO_ATUALIZACOES = "dmanske/newtypeless-oficial";
+export const REPO_ATUALIZACOES = "dmanske/falaai";
 
 /** Frase falada na amostra resources/amostra-teste.wav (gerada por scripts/gerar-amostra-teste.sh). */
 export const FRASE_AMOSTRA = "Teste de ditado, um, dois, três.";
