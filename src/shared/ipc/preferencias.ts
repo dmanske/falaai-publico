@@ -13,6 +13,9 @@ export type FormatoAudio = "input_audio" | "file";
 
 export type Tema = "sistema" | "claro" | "escuro";
 
+/** Fundo do hub: "topo" = ondas atrás do título; "completo" = ondas em cima e embaixo. */
+export type FundoHub = "topo" | "completo";
+
 export interface Preferencias {
   // IA (catálogo em src/shared/provedores.ts)
   /** Quem limpa o texto (e, se ouve áudio, também transcreve). */
@@ -67,6 +70,7 @@ export interface Preferencias {
   /** Mac: ícone no Dock. Windows: ícone na barra de tarefas. */
   mostrarNoDock: boolean;
   tema: Tema;
+  fundo: FundoHub;
   onboardingConcluido: boolean;
 }
 

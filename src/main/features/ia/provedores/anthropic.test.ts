@@ -9,7 +9,7 @@ const erroApi = (status: number, mensagem: string) =>
 
 describe("explicarErroAnthropic", () => {
   it("401 e 403 = chave recusada", () => {
-    assert.equal(explicarErroAnthropic(erroApi(401, "invalid x-api-key")), "Chave recusada pela Anthropic (Claude). (401: invalid x-api-key)");
+    assert.equal(explicarErroAnthropic(erroApi(401, "invalid x-api-key")), "Chave recusada pela Anthropic. (401: invalid x-api-key)");
     assert.match(explicarErroAnthropic(erroApi(403, "forbidden")), /^Chave recusada pela Anthropic/);
   });
   it("404 modelo, 429 limite, 529 sobrecarga, 400 sem créditos", () => {

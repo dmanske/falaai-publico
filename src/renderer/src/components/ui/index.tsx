@@ -5,8 +5,8 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react
 /** Título grande da página (ex.: "Fale, não digite"). */
 export function TituloPagina({ children, subtitulo }: { children: ReactNode; subtitulo?: ReactNode }) {
   return (
-    <header className="brilho-titulo mb-9">
-      <h1 className="cursor-default select-none font-titulo text-[54px] font-semibold leading-[1.05] tracking-[-0.02em]">{children}</h1>
+    <header className="mb-9">
+      <h1 className="cursor-default select-none font-titulo text-[54px] font-semibold leading-[1.05]">{children}</h1>
       {subtitulo && <p className="mt-3 text-[15px] text-suave">{subtitulo}</p>}
     </header>
   );
@@ -16,7 +16,7 @@ export function TituloPagina({ children, subtitulo }: { children: ReactNode; sub
 export function TituloSecao({ children, acao }: { children: ReactNode; acao?: ReactNode }) {
   return (
     <div className="mb-4 flex items-center justify-between">
-      <h2 className="font-titulo text-[26px] font-medium tracking-[-0.01em] text-suave">{children}</h2>
+      <h2 className="font-titulo text-[26px] font-medium text-suave">{children}</h2>
       {acao}
     </div>
   );
@@ -32,7 +32,7 @@ export function Numero({ valor, unidade, legenda }: { valor: ReactNode; unidade?
   return (
     <div>
       <div className="flex items-baseline gap-1.5">
-        <span className="font-titulo text-[34px] font-semibold leading-none tracking-[-0.01em]">{valor}</span>
+        <span className="font-titulo text-[34px] font-semibold leading-none">{valor}</span>
         {unidade && <span className="font-titulo text-[15px] font-medium">{unidade}</span>}
       </div>
       <div className="mt-1.5 text-[15px] leading-snug text-suave">{legenda}</div>

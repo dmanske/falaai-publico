@@ -1,11 +1,11 @@
 import { NOME_APP } from "@shared/config";
-import { IconeMarca } from "./Icones";
+import logo from "@/assets/marca/logo.png";
 
+/** Logo do FalaAi (já traz o nome); no modo escuro fica invertido (preto vira branco). */
 export function Logo() {
   return (
-    <div className="flex items-center gap-2.5 px-3">
-      <IconeMarca />
-      <span className="font-titulo text-[26px] font-semibold tracking-[-0.01em]">{NOME_APP}</span>
+    <div className="flex items-center px-3">
+      <img src={logo} alt={NOME_APP} className="h-7 w-auto dark:invert" />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { BlocoTranscricao } from "../BlocoTranscricao";
 import { CampoChave } from "../CampoChave";
 import { CartaoSecao } from "../CartaoSecao";
 import { GradeProvedores } from "../GradeProvedores";
+import { LogoEmpresa } from "../LogoEmpresa";
 import { ResultadoTeste } from "../ResultadoTeste";
 import { SeletorModelo } from "../SeletorModelo";
 import { SeletorModeloOpenRouter } from "../SeletorModeloOpenRouter";
@@ -53,6 +54,7 @@ export function SecaoIa({ preferencias, salvar, recarregar }: Props) {
         <CampoChave
           key={provedor}
           nome={info.nome}
+          logo={<LogoEmpresa id={info.id} tamanho={16} />}
           status={chave.status}
           erro={chave.erro}
           link={info.linkChave}

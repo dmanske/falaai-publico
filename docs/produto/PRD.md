@@ -59,3 +59,4 @@ login/conta, sincronização na nuvem, plano/assinatura, banners/pesquisas/convi
 | 26 | Menu na barra de cima | F0/F4 | ✅ pronto |
 | 27 | Atualização automática (GitHub Releases) | F4 | construído — o repositório privado impede a verificação; ver docs/planos |
 | 33 | Windows | F5 | construído (auxiliar Rust + instalador pelo GitHub Actions) — falta testar no PC Windows |
+| 34 | Marca FalaAi (logo, Fredoka, fundo com ondas escolhível), logos dos provedores e bandeiras nos idiomas | F5 | construído |

@@ -11,11 +11,10 @@ instalado** (CSS/tema do pacote), não estimados pelo print.
 
 ## Tipografia
 
-- **Prompt** (Google Fonts, SIL Open Font License; pacote `@fontsource/prompt`, pesos 500/600/700) nos
-  títulos, números grandes, teclas de atalho e logo → classe `font-titulo`. É a mesma família que o
-  Typeless usa (`--font-prompt`).
+- **Fredoka** (Google Fonts, SIL Open Font License; pacote `@fontsource/fredoka`, pesos 500/600/700) nos
+  títulos, números grandes, teclas de atalho e logo → classe `font-titulo`. Espaçamento entre letras 0.
 - **Fonte do sistema** (SF Pro no Mac, Segoe UI no Windows) no resto.
-- Título da página 54 px semibold, espaçamento −2%; título de seção 26 px medium cinza; número 34 px
+- Título da página 54 px semibold; título de seção 26 px medium cinza; número 34 px
   semibold com unidade 15 px; legenda 15 px.
 
 ## Cores (tokens em `src/renderer/src/estilos.css`)
@@ -37,10 +36,23 @@ instalado** (CSS/tema do pacote), não estimados pelo print.
 
 ## Toques próprios
 
-- Brilho azul/lilás desfocado atrás do título de cada página (`.brilho-titulo`).
+- Ondas azul-claro no fundo da área principal do hub (o menu lateral não tem), com duas opções na
+  preferência `fundo` (Configurações > Geral > Fundo): `"topo"` (padrão, ondas atrás do título) e
+  `"completo"` (ondas em cima e no pé da janela). Rolam com o conteúdo, não pegam cliques e no modo escuro
+  ficam bem discretas (opacidade 0,12). CSS em `.fundo-ondas-topo`, `.fundo-ondas-completo` e `.ondas-pe`
+  (`estilos.css`). Substituem o antigo brilho atrás do título, que foi removido.
+- Logos das empresas (provedores de IA e transcrição) e bandeiras dos idiomas, em
+  `src/renderer/src/assets/`; origem e licenças em `src/renderer/src/assets/LICENCAS.md`. Logos de uma cor
+  só invertem no modo escuro.
+- Logo do FalaAi (`assets/marca/logo.png`, já com o nome) no menu lateral e nas boas-vindas.
 - Calendário de dias ativos com células vazias **hachuradas** (`.celula-vazia`), como na referência.
 - Rodapé do menu: "Criado por Daniel Manske" e a marca da última atualização (data, hora e código
   aleatório do build — `src/shared/build.ts`), que muda a cada build.
+
+## Boas-vindas (onboarding)
+
+O 1º passo usa o papel de parede da marca com "Fale, não digite." (`assets/marca/boas-vindas.jpg`) na janela
+inteira e um cartão claro com o resumo. É sempre claro, mesmo com o tema escuro (`useTema(forcarClaro)`).
 
 ## Ícone do app
 

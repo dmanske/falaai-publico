@@ -1,10 +1,10 @@
 // Peças do cliente da Anthropic que não dependem de rede nem de Electron: tradução dos erros do
 // SDK, leitura dos blocos de resposta e regra do fallback. Testadas em anthropic.test.ts.
 import Anthropic from "@anthropic-ai/sdk";
-import { PROVEDORES } from "../../../../shared/provedores.ts";
 import { explicarFalhaDeRede } from "./erros.ts";
 
-const NOME = PROVEDORES.anthropic.nome;
+// Nos erros vale o nome da empresa: a conta e a chave são da Anthropic (o cartão mostra "Claude").
+const NOME = "Anthropic";
 
 /** Cabeçalho beta do fallback no servidor (se o modelo recusar, a Anthropic tenta outro sozinha). */
 export const BETA_FALLBACK = "server-side-fallback-2026-07-01";

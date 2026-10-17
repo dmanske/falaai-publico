@@ -4,13 +4,15 @@ import { PassoAtalho, PassoBoasVindas, PassoMicrofone, PassoPermissoes, PassoPro
 import { PassoChave } from "../components/PassoChave";
 import { usePreferencias } from "../hooks/usePreferencias";
 import { useTema } from "../hooks/useTema";
+import boasVindas from "@/assets/marca/boas-vindas.jpg";
 
 const TOTAL = 6;
 
 export function OnboardingApp() {
-  useTema();
-  const prefs = usePreferencias();
   const [passo, setPasso] = useState(0);
+  const inicio = passo === 0;
+  useTema(inicio);
+  const prefs = usePreferencias();
   const [temChave, setTemChave] = useState(false);
   const aoStatusChave = useCallback((c: boolean) => setTemChave(c), []);
 
@@ -18,7 +20,11 @@ export function OnboardingApp() {
   const ultimo = passo === TOTAL - 1;
 
   return (
-    <div className="flex h-screen flex-col bg-fundo text-texto">
+    <div
+      className="flex h-screen flex-col bg-fundo bg-cover bg-center text-texto"
+      // Boas-vindas: o papel de parede da marca ("Fale, não digite.") cobre a janela inteira.
+      style={inicio ? { backgroundImage: `url(${boasVindas})` } : undefined}
+    >
       <div className="flex gap-1.5 px-10 pt-8" aria-label={`Passo ${passo + 1} de ${TOTAL}`}>
         {Array.from({ length: TOTAL }, (_, i) => (
           <div key={i} className={`h-1.5 flex-1 rounded-full transition ${i <= passo ? "bg-destaque" : "bg-borda"}`} />
@@ -34,7 +40,7 @@ export function OnboardingApp() {
         {passo === 5 && <PassoPronto prefs={prefs} />}
       </main>
 
-      <footer className="flex items-center justify-between border-t border-borda px-10 py-4">
+      <footer className={`flex items-center justify-between px-10 py-4 ${inicio ? "" : "border-t border-borda"}`}>
         <Botao variante="fantasma" disabled={passo === 0} onClick={() => setPasso((p) => p - 1)}>
           Voltar
         </Botao>

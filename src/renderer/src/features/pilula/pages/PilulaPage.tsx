@@ -2,6 +2,7 @@ import type { ModoDitado } from "@shared/ipc";
 import { apiPilula } from "../api/ponte";
 import { Onda } from "../components/Onda";
 import { useComandosPilula } from "../hooks/useComandosPilula";
+import { bandeiraDaSigla } from "../lib/bandeiras";
 
 /** Cor da onda por modo: o usuário vê quando Espaço/⇧ trocou o modo no meio da gravação. */
 const COR_MODO: Record<ModoDitado, string> = { ditado: "#ffffff", pergunte: "#8ea2ff", traducao: "#6fe0a6" };
@@ -23,14 +24,16 @@ function Pontos() {
 
 /** Idioma de destino da tradução; clicar (ou ⇧ segurando Fn) passa para o próximo favorito. */
 function SiglaIdioma({ sigla, trocavel }: { sigla: string; trocavel: boolean }) {
+  const bandeira = bandeiraDaSigla(sigla);
   return (
     <button
       type="button"
       title={trocavel ? "Trocar o idioma (ou aperte ⇧ segurando Fn)" : undefined}
       disabled={!trocavel}
       onClick={() => apiPilula.acao("proximo-idioma")}
-      className="shrink-0 rounded-md bg-white/12 px-1.5 py-0.5 font-titulo text-[11px] font-semibold tracking-wider text-[#6fe0a6] hover:bg-white/20 disabled:hover:bg-white/12"
+      className="flex shrink-0 items-center gap-1 rounded-md bg-white/12 px-1.5 py-0.5 font-titulo text-[11px] font-semibold tracking-wider text-[#6fe0a6] hover:bg-white/20 disabled:hover:bg-white/12"
     >
+      {bandeira && <img src={bandeira} alt="" width={16} height={12} className="h-3 w-4 rounded-[2px]" />}
       {sigla}
     </button>
   );

@@ -1,11 +1,11 @@
 @import "tailwindcss";
-/* Prompt (SIL Open Font License) nos títulos e números grandes; o resto usa a fonte do sistema. */
-@import "@fontsource/prompt/latin-500.css";
-@import "@fontsource/prompt/latin-600.css";
-@import "@fontsource/prompt/latin-700.css";
-@import "@fontsource/prompt/latin-ext-500.css";
-@import "@fontsource/prompt/latin-ext-600.css";
-@import "@fontsource/prompt/latin-ext-700.css";
+/* Fredoka (SIL Open Font License) nos títulos e números grandes; o resto usa a fonte do sistema. */
+@import "@fontsource/fredoka/latin-500.css";
+@import "@fontsource/fredoka/latin-600.css";
+@import "@fontsource/fredoka/latin-700.css";
+@import "@fontsource/fredoka/latin-ext-500.css";
+@import "@fontsource/fredoka/latin-ext-600.css";
+@import "@fontsource/fredoka/latin-ext-700.css";
 
 /* Modo escuro por classe (o hub põe "dark" no <html> conforme a preferência de tema). */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -17,7 +17,7 @@
  * bg-destaque, font-titulo, shadow-cartao, shadow-tecla…
  */
 @theme {
-  --font-titulo: "Prompt", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  --font-titulo: "Fredoka", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
 
   --color-fundo: #ffffff;
   --color-painel: #f2f1f0;
@@ -95,7 +95,11 @@ body.pilula {
 
 /* Fundo pontilhado discreto da área principal do hub (como na referência). */
 .fundo-pontilhado {
-  background-image: radial-gradient(circle, color-mix(in srgb, var(--color-suave) 28%, transparent) 1px, transparent 1.2px);
+  background-image: radial-gradient(
+    circle,
+    var(--cor-ponto, color-mix(in srgb, var(--color-suave) 28%, transparent)) 1px,
+    transparent 1.2px
+  );
   background-size: 16px 16px;
 }
 
@@ -108,27 +112,69 @@ body.pilula {
   );
 }
 
-/* Brilho suave atrás do título das páginas (toque próprio do FalaAi). */
-.brilho-titulo {
+/*
+ * Ondas do fundo do hub (preferência "fundo"). Rolam junto com o conteúdo, ficam atrás de tudo e
+ * não pegam cliques. "topo": faixa atrás do título. "completo": faixa em cima e outra no pé da janela.
+ * Só a área principal tem ondas; o menu lateral não.
+ */
+.fundo-ondas-topo,
+.fundo-ondas-completo {
   position: relative;
   isolation: isolate;
 }
-.brilho-titulo::before {
+.fundo-ondas-topo::before,
+.fundo-ondas-completo::before {
   content: "";
   position: absolute;
   z-index: -1;
-  left: -40px;
-  top: -60px;
-  width: 520px;
-  height: 220px;
-  background: radial-gradient(
-      closest-side,
-      color-mix(in srgb, var(--color-destaque) 14%, transparent),
-      transparent
-    ),
-    radial-gradient(closest-side at 70% 60%, color-mix(in srgb, #b46bff 10%, transparent), transparent);
-  filter: blur(18px);
+  top: 0;
+  left: 0;
+  right: 0;
+  background: url("./assets/ondas/topo.jpg") left top / cover no-repeat;
   pointer-events: none;
+}
+.fundo-ondas-topo::before {
+  height: 300px;
+  -webkit-mask-image: linear-gradient(#000 40%, transparent);
+  mask-image: linear-gradient(#000 40%, transparent);
+}
+.fundo-ondas-completo {
+  background-color: #fbfcfe;
+  --cor-ponto: rgba(17, 17, 17, 0.06);
+}
+.fundo-ondas-completo::before {
+  height: 340px;
+  -webkit-mask-image: linear-gradient(#000 35%, transparent);
+  mask-image: linear-gradient(#000 35%, transparent);
+}
+/* Faixa do pé: elemento de altura 0 preso no fim da área visível; a imagem sobe a partir dele. */
+.ondas-pe {
+  position: sticky;
+  bottom: 0;
+  height: 0;
+  pointer-events: none;
+}
+.ondas-pe::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 340px;
+  background: url("./assets/ondas/baixo.jpg") left bottom / cover no-repeat;
+  -webkit-mask-image: linear-gradient(transparent, #000 65%);
+  mask-image: linear-gradient(transparent, #000 65%);
+}
+/* Modo escuro: ondas bem discretas e o fundo do "completo" volta ao normal (sem faixa clara). */
+.dark .fundo-ondas-topo::before,
+.dark .fundo-ondas-completo::before,
+.dark .ondas-pe::before {
+  opacity: 0.12;
+}
+.dark .fundo-ondas-completo {
+  background-color: transparent;
+  --cor-ponto: initial;
 }
 
 @keyframes pulo {

@@ -4,6 +4,7 @@ import { Botao } from "@/components/ui";
 import { BlocoTranscricao } from "@/features/configuracoes/components/BlocoTranscricao";
 import { CampoChave } from "@/features/configuracoes/components/CampoChave";
 import { GradeProvedores } from "@/features/configuracoes/components/GradeProvedores";
+import { LogoEmpresa } from "@/features/configuracoes/components/LogoEmpresa";
 import { ResultadoTeste } from "@/features/configuracoes/components/ResultadoTeste";
 import { useChave } from "@/features/configuracoes/hooks/useChave";
 import { usePreferencias } from "@/features/configuracoes/hooks/usePreferencias";
@@ -73,6 +74,7 @@ function Conteudo({
         <CampoChave
           key={provedor}
           nome={info.nome}
+          logo={<LogoEmpresa id={info.id} tamanho={16} />}
           status={chave.status}
           erro={chave.erro}
           link={info.linkChave}

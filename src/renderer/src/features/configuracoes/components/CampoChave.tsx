@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { StatusChave } from "@shared/ipc";
 import { Botao, CampoTexto } from "@/components/ui";
 import { apiSistema } from "../api/ponte";
@@ -16,10 +16,12 @@ interface Props {
   prefixo?: string;
   /** Aviso do provedor/serviço. */
   aviso?: string;
+  /** Logo da empresa, mostrado antes do rótulo. */
+  logo?: ReactNode;
 }
 
 /** Campo de uma chave do cofre: salvar, apagar, "…abcd", link de onde pegar, dica do prefixo e aviso. */
-export function CampoChave({ nome, status, erro, onSalvar, onApagar, link, prefixo, aviso }: Props) {
+export function CampoChave({ nome, status, erro, onSalvar, onApagar, link, prefixo, aviso, logo }: Props) {
   const [valor, setValor] = useState("");
   const [salvando, setSalvando] = useState(false);
   const id = `chave-${nome.replace(/\W+/g, "-").toLowerCase()}`;
@@ -33,7 +35,8 @@ export function CampoChave({ nome, status, erro, onSalvar, onApagar, link, prefi
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <label className="text-sm font-medium" htmlFor={id}>
+        <label className="flex items-center gap-2 text-sm font-medium" htmlFor={id}>
+          {logo}
           Chave {nome}
         </label>
         {link && (

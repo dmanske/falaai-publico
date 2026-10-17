@@ -114,7 +114,7 @@ export const PROVEDORES: Record<IdProvedor, Provedor> = {
   },
   anthropic: {
     id: "anthropic",
-    nome: "Anthropic (Claude)",
+    nome: "Claude",
     formato: "anthropic",
     baseUrl: "https://api.anthropic.com",
     ouveAudio: false,

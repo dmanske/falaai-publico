@@ -2,6 +2,7 @@ import { MAX_IDIOMAS_TRADUCAO, siglaIdioma } from "@shared/config";
 import { LinhaConfig } from "@/components/ui";
 import { IDIOMAS } from "../../lib/idiomas";
 import type { PropsSecaoPreferencias } from "../../types";
+import { Bandeira } from "../Bandeira";
 import { CartaoSecao } from "../CartaoSecao";
 import { Seletor } from "../Seletor";
 
@@ -40,10 +41,11 @@ export function SecaoIdiomas({ preferencias, salvar }: PropsSecaoPreferencias) {
                 type="button"
                 aria-pressed={ativo}
                 onClick={() => alternar(i.codigo)}
-                className={`rounded-full px-3.5 py-1.5 text-sm transition ring-1 ${
+                className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm transition ring-1 ${
                   ativo ? "bg-destaque-claro text-destaque ring-destaque" : "bg-cartao text-texto ring-borda hover:bg-painel"
                 }`}
               >
+                <Bandeira src={i.bandeira} />
                 {i.nome}
               </button>
             );
@@ -77,6 +79,7 @@ export function SecaoIdiomas({ preferencias, salvar }: PropsSecaoPreferencias) {
                     {posicao + 1}
                   </span>
                 )}
+                <Bandeira src={i.bandeira} />
                 {i.nome}
               </button>
             );

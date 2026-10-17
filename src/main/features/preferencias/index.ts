@@ -32,6 +32,7 @@ const PADRAO: Preferencias = {
   abrirComSistema: true,
   mostrarNoDock: true,
   tema: "sistema",
+  fundo: "topo",
   onboardingConcluido: false,
 };
 

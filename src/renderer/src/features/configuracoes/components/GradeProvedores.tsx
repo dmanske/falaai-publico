@@ -1,4 +1,5 @@
 import { ORDEM_PROVEDORES, PROVEDORES, type IdProvedor } from "@shared/provedores";
+import { LogoEmpresa } from "./LogoEmpresa";
 
 interface Props {
   selecionado: IdProvedor;
@@ -19,13 +20,16 @@ export function GradeProvedores({ selecionado, onEscolher }: Props) {
             role="radio"
             aria-checked={ativo}
             onClick={() => onEscolher(id)}
-            className={`rounded-xl px-3 py-2.5 text-left transition ${
+            className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition ${
               ativo ? "bg-destaque-claro ring-2 ring-destaque" : "bg-cartao shadow-cartao hover:bg-hover"
             }`}
           >
-            <span className="block truncate font-titulo text-sm font-medium">{p.nome}</span>
-            <span className={`mt-0.5 block text-[11px] leading-tight ${p.ouveAudio ? "text-sucesso" : "text-suave"}`}>
-              {p.ouveAudio ? "ouve áudio" : "precisa de transcrição"}
+            <LogoEmpresa id={id} tamanho={22} />
+            <span className="min-w-0">
+              <span className="block font-titulo text-sm font-medium leading-tight">{p.nome}</span>
+              <span className={`mt-0.5 block text-[11px] leading-tight ${p.ouveAudio ? "text-sucesso" : "text-suave"}`}>
+                {p.ouveAudio ? "ouve áudio" : "precisa de transcrição"}
+              </span>
             </span>
           </button>
         );

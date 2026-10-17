@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { NOME_APP } from "@shared/config";
 import { NOMES_ATALHOS, rotuloTecla, type IdAtalho } from "@shared/atalhos";
 import type { Preferencias, ResultadoTesteIa, StatusChave } from "@shared/ipc";
 import { Botao, CampoTexto, Tecla } from "@/components/ui";
@@ -37,12 +38,13 @@ function Atalho({ teclas, plataforma }: { teclas: string[]; plataforma: string }
 }
 
 /* 1 ---------------------------------------------------------------- */
+/** Boas-vindas: o logo e a frase já estão no papel de parede (fundo da janela); aqui só o resumo. */
 export function PassoBoasVindas({ prefs }: { prefs: Preferencias | null }) {
   const plataforma = window.ponte.plataforma;
   return (
-    <div>
-      <Titulo sub="O FalaAi transforma sua voz em texto pronto, em qualquer aplicativo.">Fale, não digite.</Titulo>
-      <ul className="space-y-4 text-base">
+    <div className="flex h-full flex-col justify-end">
+      <h1 className="sr-only">{NOME_APP} — Fale, não digite.</h1>
+      <ul className="space-y-3 rounded-cartao bg-white/75 p-5 text-[15px] shadow-cartao backdrop-blur-md">
         <li>
           <b>1. Segure</b>{" "}
           {prefs ? <Atalho teclas={prefs.atalhos.ditado} plataforma={plataforma} /> : "a tecla de ditado"}, <b>fale</b> e <b>solte</b>. O texto aparece onde o cursor estiver.

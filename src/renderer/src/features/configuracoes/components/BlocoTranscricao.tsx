@@ -1,6 +1,7 @@
 import { ORDEM_TRANSCRICOES, PROVEDORES, TRANSCRICOES, type IdProvedor, type IdTranscricao } from "@shared/provedores";
 import { useChave } from "../hooks/useChave";
 import { CampoChave } from "./CampoChave";
+import { LogoEmpresa } from "./LogoEmpresa";
 import { SeletorModelo } from "./SeletorModelo";
 import { Seletor } from "./Seletor";
 
@@ -29,7 +30,9 @@ export function BlocoTranscricao({ provedor, servico, modeloServico, onServico, 
         <p className="mt-0.5 text-xs text-suave">Este modelo não ouve áudio: um serviço transcreve a sua fala antes.</p>
       </div>
 
-      <Seletor
+      <div className="flex items-center gap-2.5">
+        {info && <LogoEmpresa id={info.id} tamanho={22} />}
+        <Seletor
         className="w-full"
         value={servico ?? ""}
         onChange={(e) => onServico(e.target.value as IdTranscricao)}
@@ -45,7 +48,8 @@ export function BlocoTranscricao({ provedor, servico, modeloServico, onServico, 
             {TRANSCRICOES[id].nome}
           </option>
         ))}
-      </Seletor>
+        </Seletor>
+      </div>
 
       {info && !compacto && modeloServico && (
         <SeletorModelo
@@ -65,6 +69,7 @@ export function BlocoTranscricao({ provedor, servico, modeloServico, onServico, 
           <CampoChave
             key={info.chave}
             nome={info.nome}
+            logo={<LogoEmpresa id={info.id} tamanho={16} />}
             status={chave.status}
             erro={chave.erro}
             link={info.linkChave}

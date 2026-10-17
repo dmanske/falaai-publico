@@ -1,13 +1,16 @@
 import { useEffect } from "react";
 import type { Tema } from "@shared/ipc";
 
-/** Aplica a classe "dark" no <html> conforme a preferência (e acompanha mudanças). */
-export function useTema(): void {
+/**
+ * Aplica a classe "dark" no <html> conforme a preferência (e acompanha mudanças).
+ * `forcarClaro`: a tela de boas-vindas é sempre clara (o papel de parede é claro).
+ */
+export function useTema(forcarClaro = false): void {
   useEffect(() => {
     let tema: Tema = "sistema";
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const aplicar = () => {
-      const escuro = tema === "escuro" || (tema === "sistema" && mq.matches);
+      const escuro = !forcarClaro && (tema === "escuro" || (tema === "sistema" && mq.matches));
       document.documentElement.classList.toggle("dark", escuro);
     };
     void window.ponte.preferencias.ler().then((p) => {
@@ -23,5 +26,5 @@ export function useTema(): void {
       sair();
       mq.removeEventListener("change", aplicar);
     };
-  }, []);
+  }, [forcarClaro]);
 }

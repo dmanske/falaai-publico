@@ -4,6 +4,7 @@ import { plataforma } from "../../api/ponte";
 import type { PropsSecaoPreferencias } from "../../types";
 import { CartaoSecao } from "../CartaoSecao";
 import { Seletor } from "../Seletor";
+import { SeletorFundo } from "../SeletorFundo";
 
 export function SecaoGeral({ preferencias, salvar }: PropsSecaoPreferencias) {
   const mac = plataforma === "darwin";
@@ -28,6 +29,13 @@ export function SecaoGeral({ preferencias, salvar }: PropsSecaoPreferencias) {
           <option value="escuro">Escuro</option>
         </Seletor>
       </LinhaConfig>
+      <div className="py-3">
+        <div className="text-sm font-medium">Fundo</div>
+        <p className="mt-0.5 text-xs text-suave">As ondas aparecem atrás do conteúdo da janela principal.</p>
+        <div className="mt-3">
+          <SeletorFundo valor={preferencias.fundo} aoMudar={(v) => void salvar({ fundo: v })} />
+        </div>
+      </div>
     </CartaoSecao>
   );
 }
