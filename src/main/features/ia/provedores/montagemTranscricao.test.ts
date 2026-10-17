@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   lerTextoTranscricao,
+  lerTranscricaoComQuebras,
   MAX_CARACTERES_PROMPT,
   montarPedidoTranscricao,
   montarPromptTranscricao,
@@ -104,5 +105,69 @@ describe("lerTextoTranscricao", () => {
     assert.equal(lerTextoTranscricao("openai", { text: " olá " }), "olá");
     assert.equal(lerTextoTranscricao("deepgram", { results: { channels: [{ alternatives: [{ transcript: "oi" }] }] } }), "oi");
     assert.equal(lerTextoTranscricao("deepgram", {}), "");
+  });
+});
+
+describe("marcação de tempo no pedido", () => {
+  it("Groq: pede verbose_json com segmentos; semMarcas não pede", () => {
+    const fd = montarPedidoTranscricao("groq", wav, { ...base, modelo: "whisper-large-v3-turbo" }).corpo as FormData;
+    assert.equal(fd.get("response_format"), "verbose_json");
+    assert.deepEqual(campos(fd, "timestamp_granularities[]"), ["segment"]);
+    const sem = montarPedidoTranscricao("groq", wav, { ...base, modelo: "whisper-large-v3-turbo", semMarcas: true }).corpo as FormData;
+    assert.equal(sem.get("response_format"), null);
+    assert.equal(sem.get("timestamp_granularities[]"), null);
+  });
+  it("OpenAI e ElevenLabs: pedido sem response_format nem timestamps", () => {
+    for (const s of ["openai", "elevenlabs"] as const) {
+      const fd = montarPedidoTranscricao(s, wav, { ...base, modelo: "x" }).corpo as FormData;
+      assert.equal(fd.get("response_format"), null);
+      assert.equal(fd.get("timestamp_granularities[]"), null);
+      assert.equal(fd.get("timestamps_granularity"), null);
+    }
+  });
+  it("Deepgram: paragraphs=true só com idioma único; semMarcas tira", () => {
+    const q = (o: object) => new URL(montarPedidoTranscricao("deepgram", wav, { ...base, modelo: "nova-3", ...o }).url).searchParams;
+    assert.equal(q({ idiomas: ["pt-BR"] }).get("paragraphs"), "true");
+    assert.equal(q({ idiomas: ["pt-BR", "en"] }).get("paragraphs"), null);
+    assert.equal(q({ idiomas: ["pt-BR"], semMarcas: true }).get("paragraphs"), null);
+  });
+});
+
+describe("lerTranscricaoComQuebras", () => {
+  it("Groq: quebra de linha onde a pausa entre segmentos é ≥ 1,2 s", () => {
+    const json = {
+      text: "a b c",
+      segments: [
+        { text: " Primeiro item.", start: 0, end: 2 },
+        { text: " Segundo item.", start: 2.5, end: 4 },
+        { text: " Outro assunto.", start: 5.5, end: 7 },
+      ],
+    };
+    assert.equal(lerTranscricaoComQuebras("groq", json), "Primeiro item. Segundo item.\nOutro assunto.");
+  });
+  it("Groq: sem segments cai no texto simples", () => {
+    assert.equal(lerTranscricaoComQuebras("groq", { text: " oi " }), "oi");
+    assert.equal(lerTranscricaoComQuebras("groq", { text: "oi", segments: [{ foo: 1 }, { bar: 2 }] }), "oi");
+  });
+  it("Deepgram: um parágrafo por linha; sem paragraphs cai no transcript", () => {
+    const alt = {
+      transcript: "um dois três",
+      paragraphs: { paragraphs: [{ sentences: [{ text: "Um." }, { text: "Dois." }] }, { sentences: [{ text: "Três." }] }] },
+    };
+    assert.equal(lerTranscricaoComQuebras("deepgram", { results: { channels: [{ alternatives: [alt] }] } }), "Um. Dois.\nTrês.");
+    assert.equal(lerTranscricaoComQuebras("deepgram", { results: { channels: [{ alternatives: [{ transcript: "oi" }] }] } }), "oi");
+  });
+  it("ElevenLabs: quebra onde a pausa entre palavras é ≥ 1,2 s; sem pausa, mantém o texto", () => {
+    const w = (text: string, start: number, end: number) => ({ text, type: "word", start, end });
+    const sp = { text: " ", type: "spacing", start: null, end: null };
+    const json = { text: "Oi tudo. Outra coisa.", words: [w("Oi", 0, 0.3), sp, w("tudo.", 0.4, 0.9), sp, w("Outra", 3, 3.3), sp, w("coisa.", 3.4, 3.9)] };
+    assert.equal(lerTranscricaoComQuebras("elevenlabs", json), "Oi tudo.\nOutra coisa.");
+    const colado = { text: "Oi tudo.", words: [w("Oi", 0, 0.3), sp, w("tudo.", 0.4, 0.9)] };
+    assert.equal(lerTranscricaoComQuebras("elevenlabs", colado), "Oi tudo.");
+    assert.equal(lerTranscricaoComQuebras("elevenlabs", { text: "Oi" }), "Oi");
+  });
+  it("OpenAI e Mistral: texto simples", () => {
+    assert.equal(lerTranscricaoComQuebras("openai", { text: "oi" }), "oi");
+    assert.equal(lerTranscricaoComQuebras("mistral", { text: "oi" }), "oi");
   });
 });

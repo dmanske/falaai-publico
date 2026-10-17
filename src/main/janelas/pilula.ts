@@ -5,6 +5,8 @@
 import { BrowserWindow, screen, session } from "electron";
 import { join } from "node:path";
 import { CANAIS_PILULA, type ComandoPilula, type EstadoPilula } from "@shared/ipc";
+import { larguraExtraEscudo } from "@shared/temas/clubes";
+import { aoMudarPreferencias, lerPreferencias } from "../features/preferencias";
 
 /** Tamanho da janela por estado (px). A pílula ocupa a janela inteira. */
 const TAMANHO = {
@@ -17,6 +19,8 @@ const TAMANHO = {
 const MARGEM_INFERIOR = 20;
 
 let janela: BrowserWindow | null = null;
+/** Último estado mostrado, para reposicionar a janela quando o estilo (escudo) muda com a pílula na tela. */
+let ultimoEstado: EstadoPilula = { estado: "oculta" };
 
 export function criarPilula(): void {
   janela = new BrowserWindow({
@@ -55,6 +59,12 @@ export function criarPilula(): void {
   session.defaultSession.setPermissionRequestHandler((wc, permissao, cb) => cb(permissao === "media" && doApp(wc.getURL())));
   session.defaultSession.setPermissionCheckHandler((_wc, permissao, origem) => permissao === "media" && doApp(origem));
 
+  // Trocar para (ou de) um estilo de clube muda a largura (o escudo ocupa 26 px): reposiciona na hora.
+  aoMudarPreferencias((nova, anterior) => {
+    if (larguraExtraEscudo(nova.estiloPilula) === larguraExtraEscudo(anterior.estiloPilula)) return;
+    if (janela?.isVisible() && ultimoEstado.estado !== "oculta") posicionar(tamanhoDoEstado(ultimoEstado));
+  });
+
   if (process.env.ELECTRON_RENDERER_URL) void janela.loadURL(`${process.env.ELECTRON_RENDERER_URL}/pilula.html`);
   else void janela.loadFile(join(__dirname, "../renderer/pilula.html"));
 }
@@ -79,16 +89,22 @@ function posicionar(tamanho: { largura: number; altura: number }): void {
   });
 }
 
+/** Tamanho da janela no estado dado; com escudo (estilo de clube) gravando/processando ficam 26 px mais largos. */
+function tamanhoDoEstado(estado: EstadoPilula): { largura: number; altura: number } {
+  if (estado.estado === "erro" || estado.estado === "aviso") return TAMANHO.erro;
+  const base = "idioma" in estado && estado.idioma ? TAMANHO.traducao : TAMANHO.normal;
+  return { ...base, largura: base.largura + larguraExtraEscudo(lerPreferencias().estiloPilula) };
+}
+
 export function mostrarEstadoPilula(estado: EstadoPilula): void {
   if (!janela) return;
+  ultimoEstado = estado;
   janela.webContents.send(CANAIS_PILULA.ESTADO, estado);
   if (estado.estado === "oculta") {
     janela.hide();
     return;
   }
-  const tamanho =
-    estado.estado === "erro" || estado.estado === "aviso" ? TAMANHO.erro : estado.idioma ? TAMANHO.traducao : TAMANHO.normal;
-  posicionar(tamanho);
+  posicionar(tamanhoDoEstado(estado));
   if (!janela.isVisible()) janela.showInactive();
 }
 

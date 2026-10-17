@@ -2,7 +2,7 @@
 import { TIMEOUT_IA_MS } from "@shared/config";
 import { TRANSCRICOES, type IdTranscricao } from "@shared/provedores";
 import { explicarErro, explicarFalhaDeRede } from "./erros";
-import { lerTextoTranscricao, montarPedidoTranscricao } from "./montagemTranscricao";
+import { lerTranscricaoComQuebras, montarPedidoTranscricao } from "./montagemTranscricao";
 
 export interface OpcoesTranscricao {
   chave: string;
@@ -22,8 +22,8 @@ export async function transcrever(servico: IdTranscricao, wav: Buffer, opcoes: O
   const nome = TRANSCRICOES[servico].nome;
   const limite = opcoes.timeoutMs ?? TIMEOUT_IA_MS;
 
-  const enviar = async (termos: string[]) => {
-    const pedido = montarPedidoTranscricao(servico, wav, { ...opcoes, termos });
+  const enviar = async (termos: string[], semMarcas = false) => {
+    const pedido = montarPedidoTranscricao(servico, wav, { ...opcoes, termos, semMarcas });
     const resp = await fetch(pedido.url, {
       method: "POST",
       headers: pedido.headers,
@@ -35,14 +35,14 @@ export async function transcrever(servico: IdTranscricao, wav: Buffer, opcoes: O
 
   try {
     let { resp, corpo } = await enviar(opcoes.termos);
-    // Campo de dicionário que o serviço não aceitou (400/422): tenta de novo sem os termos,
-    // para o dicionário nunca impedir o ditado.
-    if ((resp.status === 400 || resp.status === 422) && opcoes.termos.length) {
-      const segunda = await enviar([]);
+    // Campo que o serviço não aceitou (400/422): tenta de novo sem os termos do dicionário e sem a
+    // marcação de tempo/parágrafos, para nenhum dos dois impedir o ditado.
+    if (resp.status === 400 || resp.status === 422) {
+      const segunda = await enviar([], true);
       if (segunda.resp.ok) ({ resp, corpo } = segunda);
     }
     if (!resp.ok) return { ok: false, erro: explicarErro(nome, resp.status, corpo), ms: ms() };
-    return { ok: true, texto: lerTextoTranscricao(servico, JSON.parse(corpo)), ms: ms() };
+    return { ok: true, texto: lerTranscricaoComQuebras(servico, JSON.parse(corpo)), ms: ms() };
   } catch (e) {
     return { ok: false, erro: explicarFalhaDeRede(e), ms: ms() };
   }

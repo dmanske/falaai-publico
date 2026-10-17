@@ -31,6 +31,11 @@ Tela Configurações > IA (e o passo "Chave" do onboarding):
   `output_config.effort: "low"`, sem `thinking`. Padrão `claude-opus-5-5`; Opus 5.5 e Sonnet 5.5
   usam o *fallback* do servidor (`betas: ["server-side-fallback-2026-07-01"]`, `fallbacks: "default"`);
   Haiku 5.5 pode ser escolhido para ficar mais barato.
+- **Formatação:** o sistema do ditado/tradução leva o bloco "Ritmo da fala" (pausas medidas no Mac) e,
+  no caminho de 2 chamadas, a transcrição pode vir com quebras de linha. Requisições mudadas: **Groq**
+  (`response_format=verbose_json` + `timestamp_granularities[]=segment`) e **Deepgram** (`paragraphs=true`,
+  só com idioma único); 400/422 repete sem dicionário e sem isso. Detalhes em
+  [formatacao-ditado.md](formatacao-ditado.md).
 - Trocar de provedor ou de modelo zera `formatoAudio` (precisa testar de novo).
 
 ## Onde fica
@@ -71,4 +76,4 @@ créditos · 404 → modelo não encontrado · 413 → áudio grande demais · 4
 ## Falta testar com chave real
 
 Fallback e `effort` do Anthropic · `input_audio` e `context_bias` do Mistral · `gpt-transcribe` só
-com `prompt` · Deepgram com `multi` · cada serviço transcrevendo a amostra · app empacotado com o SDK.
+com `prompt` · Groq `verbose_json` com `whisper-large-v3-turbo` · Deepgram `paragraphs` com nova-3 · Deepgram com `multi` · cada serviço transcrevendo a amostra · app empacotado com o SDK.

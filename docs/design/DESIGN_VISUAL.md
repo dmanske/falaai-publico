@@ -75,3 +75,10 @@ Preta, com ✕ à esquerda, onda simétrica no meio (cor por modo: branca ditado
 tradução) e ✓ à direita (ver `docs/modulos/ditado.md`). Desde 17/10/2026 é mais compacta e mais baixa:
 144×38 (tradução 188×38, erro 300×38), botões de 28 px, onda de até 20 px, 20 px acima do Dock
 (`TAMANHO` e `MARGEM_INFERIOR` em `src/main/janelas/pilula.ts`).
+
+Estilos (17/10/2026): em Configurações > Pílula há 7 estilos gerais (original, vidro, azul, aurora, neon,
+pôr do sol, equalizador) e clubes de futebol (por enquanto só o Flamengo) com 3 variantes (camisa, escura,
+faixa) e o escudo de 20×25 entre o ✕ e a onda, que deixa a janela 26 px mais larga. O modo continua
+visível: no estilo original a onda muda de cor; nos demais, um pontinho de 5 px no alto da pílula (azul
+pergunte, verde tradução). Erro/aviso ficam sempre na pílula preta. Como funciona e como adicionar um
+clube: [../modulos/pilula-estilos.md](../modulos/pilula-estilos.md).

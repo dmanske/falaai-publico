@@ -5,6 +5,7 @@ import { HistoricoPage } from "@/features/historico";
 import { InicioPage } from "@/features/inicio";
 import type { FundoHub } from "@shared/ipc";
 import { MenuLateral } from "../components/MenuLateral";
+import { useCoresDoTema } from "../hooks/useCoresDoTema";
 import { useFundo } from "../hooks/useFundo";
 import { useNavegacao } from "../hooks/useNavegacao";
 import { useTema } from "../hooks/useTema";
@@ -20,6 +21,7 @@ const CLASSE_FUNDO: Record<FundoHub, string> = {
 
 export function HubApp() {
   useTema();
+  useCoresDoTema();
   const fundo = useFundo();
   const { destino, ir } = useNavegacao();
 

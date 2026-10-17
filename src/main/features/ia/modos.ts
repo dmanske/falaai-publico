@@ -1,3 +1,4 @@
+// Ditado e tradução recebem também o "Ritmo da fala" medido no áudio (ritmo/).
 // Executa um modo do ditado (1 chamada com áudio, ou transcrição + limpeza; ver motor.ts):
 //  - ditado: transcreve e limpa (PROMPT_DITADO + contexto);
 //  - traducao: transcreve e traduz para o idioma escolhido;
@@ -17,6 +18,8 @@ import {
   type DadosContexto,
 } from "./prompts";
 import { limparResposta } from "./audio";
+import { blocoRitmo } from "./ritmo/bloco";
+import { analisarRitmo } from "./ritmo";
 
 export interface PedidoModo {
   wav: Buffer;
@@ -53,7 +56,7 @@ export async function executarModo(p: PedidoModo): Promise<ResultadoModo> {
   let instrucaoAudio: string;
   let instrucaoTexto: (transcricao: string) => string = mensagemTranscricao;
   if (p.modo === "traducao") {
-    sistema = promptTraducao(p.idiomaDestino ?? prefs.idiomaTraducao) + blocoContexto({ ...p.contexto, antes: "", depois: "" });
+    sistema = promptTraducao(p.idiomaDestino ?? prefs.idiomaTraducao) + blocoContexto({ ...p.contexto, antes: "", depois: "" }) + blocoRitmo(analisarRitmo(p.wav));
     instrucaoAudio = "Traduza este áudio.";
   } else if (comSelecao) {
     sistema = PROMPT_COMANDO_SELECAO + blocoContexto({ ...p.contexto, antes: "", depois: "" });
@@ -63,7 +66,8 @@ export async function executarModo(p: PedidoModo): Promise<ResultadoModo> {
     sistema = PROMPT_PERGUNTA + blocoContexto({ ...p.contexto, antes: "", depois: "", dicionario: p.contexto.dicionario });
     instrucaoAudio = "Responda à pergunta deste áudio.";
   } else {
-    sistema = PROMPT_DITADO + blocoContexto(p.contexto);
+    // O ritmo (pausas) é medido aqui no computador e vai como dica, nos dois caminhos (1 ou 2 chamadas).
+    sistema = PROMPT_DITADO + blocoContexto(p.contexto) + blocoRitmo(analisarRitmo(p.wav));
     instrucaoAudio = "Transcreva e limpe este ditado.";
   }
 

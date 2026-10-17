@@ -34,6 +34,8 @@ const PADRAO: Preferencias = {
   mostrarNoDock: true,
   tema: "sistema",
   fundo: "topo",
+  estiloPilula: { tipo: "estilo", id: "original" },
+  coresDoClubeNoApp: true,
   onboardingConcluido: false,
 };
 

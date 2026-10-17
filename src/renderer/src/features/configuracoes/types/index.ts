@@ -1,6 +1,6 @@
 import type { Preferencias } from "@shared/ipc";
 
-export type SecaoConfig = "geral" | "atalhos" | "envio" | "idiomas" | "audio" | "dados" | "ia" | "permissoes" | "sobre";
+export type SecaoConfig = "geral" | "pilula" | "atalhos" | "envio" | "idiomas" | "audio" | "dados" | "ia" | "permissoes" | "sobre";
 
 /** Propriedades comuns das seções que editam preferências. */
 export interface PropsSecaoPreferencias {

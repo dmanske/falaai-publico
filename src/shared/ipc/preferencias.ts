@@ -1,5 +1,7 @@
 import type { Atalho, IdAtalho } from "../atalhos";
 import type { IdProvedor, IdTranscricao } from "../provedores";
+import type { VarianteClube } from "../temas/clubes";
+import type { IdEstiloPilula } from "../temas/estilosPilula";
 
 export const CANAIS_PREFERENCIAS = {
   LER: "preferencias:ler",
@@ -15,6 +17,12 @@ export type Tema = "sistema" | "claro" | "escuro";
 
 /** Fundo do hub: "topo" = ondas atrás do título; "completo" = ondas em cima e embaixo; "nenhum" = só o pontilhado. */
 export type FundoHub = "topo" | "completo" | "nenhum";
+
+/**
+ * Visual da pílula: um estilo geral (catálogo em src/shared/temas/estilosPilula.ts) ou um clube com uma
+ * das 3 variantes (catálogo em src/shared/temas/clubes.ts).
+ */
+export type EstiloPilula = { tipo: "estilo"; id: IdEstiloPilula } | { tipo: "clube"; id: string; variante: VarianteClube };
 
 export interface Preferencias {
   // IA (catálogo em src/shared/provedores.ts)
@@ -73,6 +81,10 @@ export interface Preferencias {
   mostrarNoDock: boolean;
   tema: Tema;
   fundo: FundoHub;
+  /** Visual da pílula (Configurações > Pílula). */
+  estiloPilula: EstiloPilula;
+  /** Com um clube na pílula, usar as cores dele como destaque do app também. Sem efeito nos estilos gerais. */
+  coresDoClubeNoApp: boolean;
   onboardingConcluido: boolean;
 }
 

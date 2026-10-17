@@ -1,0 +1,277 @@
+/*
+ * Visual da pílula. Um único conjunto de peças (.pil, .pil-cancelar, .pil-barra…) lido de variáveis
+ * --pil-*; cada estilo geral define as variáveis na classe `pil-<id>` e os de clube recebem as
+ * variáveis inline (geradas por variaveisDoClube, em src/shared/temas/coresClube.ts).
+ * A janela da pílula tem o tamanho exato dela, então contornos são "inset" e não há sombra para fora.
+ */
+.pil {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  overflow: hidden;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--pil-fundo, #0a0a0a);
+  box-shadow: var(--pil-sombra, none);
+}
+/* Véu escuro (laterais mais escuras nas camisas) para a onda branca sempre aparecer. */
+.pil::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--pil-overlay, none);
+  pointer-events: none;
+}
+.pil > * {
+  position: relative;
+  z-index: 1;
+}
+
+.pil-botao {
+  display: flex;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 0;
+  padding: 0;
+}
+button.pil-botao:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+.pil-botao:disabled {
+  opacity: 0.45;
+}
+.pil-botao svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pil-cancelar {
+  background: var(--pil-cancelar-bg);
+  color: var(--pil-cancelar-fg);
+}
+.pil-confirmar {
+  background: var(--pil-confirmar-bg);
+  color: var(--pil-confirmar-fg);
+  box-shadow: var(--pil-confirmar-sombra, none);
+}
+
+.pil-escudo {
+  width: 20px;
+  height: 25px;
+  flex: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+}
+
+.pil-onda {
+  display: flex;
+  height: 20px;
+  align-items: center;
+  gap: 3px;
+}
+.pil-barra {
+  width: 3px;
+  border-radius: 9999px;
+  background: var(--pil-barra-a, #fff);
+  transition: height 100ms ease-out;
+}
+.pil-barra:nth-child(even) {
+  background: var(--pil-barra-b, var(--pil-barra-a, #fff));
+}
+
+.pil-pontos {
+  display: flex;
+  height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+.pil-pontos i {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--pil-ponto, #fff);
+  animation: pil-pulo 1s infinite ease-in-out;
+}
+.pil-pontos i:nth-child(2) { animation-delay: 0.15s; }
+.pil-pontos i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes pil-pulo {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.45; }
+  40% { transform: translateY(-3px); opacity: 1; }
+}
+
+.pil-sigla {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 6px;
+  padding: 2px 6px;
+  background: var(--pil-sigla-bg);
+  color: var(--pil-sigla-fg);
+  font: 600 11px/1.2 var(--font-titulo);
+  letter-spacing: 0.05em;
+}
+button.pil-sigla:hover:not(:disabled) {
+  filter: brightness(1.25);
+}
+.pil-sigla img {
+  width: 16px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* Modo (pergunte/tradução) nos estilos que não mudam a cor da onda: pontinho no alto, no centro. */
+.pil-modo {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- Estilos gerais ---------- */
+
+.pil-original {
+  --pil-fundo: #0a0a0a;
+  --pil-cancelar-bg: rgba(255, 255, 255, 0.2);
+  --pil-cancelar-fg: #fff;
+  --pil-confirmar-bg: #fff;
+  --pil-confirmar-fg: #0a0a0a;
+  --pil-barra-a: #fff;
+  --pil-ponto: #fff;
+  --pil-sigla-bg: rgba(255, 255, 255, 0.12);
+  --pil-sigla-fg: #6fe0a6;
+}
+
+/* Vidro: branca translúcida (o desfoque só age sobre o que está dentro da janela da pílula). */
+.pil-vidro {
+  --pil-fundo: rgba(255, 255, 255, 0.62);
+  --pil-sombra: inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+  --pil-cancelar-bg: rgba(17, 17, 17, 0.08);
+  --pil-cancelar-fg: #111;
+  --pil-confirmar-bg: #111;
+  --pil-confirmar-fg: #fff;
+  --pil-barra-a: #111;
+  --pil-ponto: #111;
+  --pil-sigla-bg: rgba(17, 17, 17, 0.07);
+  --pil-sigla-fg: #111;
+  backdrop-filter: blur(14px) saturate(1.4);
+}
+/* O pontinho de modo precisa aparecer no fundo claro. */
+.pil-vidro .pil-modo { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9); }
+
+.pil-azul {
+  --pil-fundo: linear-gradient(180deg, #2f6bff, #1f5df2);
+  --pil-cancelar-bg: rgba(255, 255, 255, 0.22);
+  --pil-cancelar-fg: #fff;
+  --pil-confirmar-bg: #fff;
+  --pil-confirmar-fg: #1f5df2;
+  --pil-barra-a: #fff;
+  --pil-ponto: #fff;
+  --pil-sigla-bg: rgba(0, 0, 0, 0.18);
+  --pil-sigla-fg: #fff;
+}
+
+/* Aurora: o degradê anda devagar (parado com "reduzir movimento"). */
+.pil-aurora {
+  --pil-fundo: linear-gradient(110deg, #4338ca, #7c3aed, #0ea5e9, #4338ca);
+  --pil-cancelar-bg: rgba(255, 255, 255, 0.2);
+  --pil-cancelar-fg: #fff;
+  --pil-confirmar-bg: #fff;
+  --pil-confirmar-fg: #4338ca;
+  --pil-barra-a: #fff;
+  --pil-ponto: #fff;
+  --pil-sigla-bg: rgba(0, 0, 0, 0.2);
+  --pil-sigla-fg: #fff;
+  background-size: 300% 100%;
+  animation: pil-aurora 6s linear infinite;
+}
+@keyframes pil-aurora {
+  to { background-position: 300% 0; }
+}
+
+.pil-neon {
+  --pil-fundo: #05060a;
+  --pil-sombra: inset 0 0 0 1px rgba(34, 211, 238, 0.35), inset 0 0 12px -2px rgba(34, 211, 238, 0.45);
+  --pil-cancelar-bg: rgba(255, 255, 255, 0.08);
+  --pil-cancelar-fg: #f0abfc;
+  --pil-confirmar-bg: #22d3ee;
+  --pil-confirmar-fg: #05060a;
+  --pil-confirmar-sombra: 0 0 10px rgba(34, 211, 238, 0.8);
+  --pil-barra-a: #22d3ee;
+  --pil-ponto: #22d3ee;
+  --pil-sigla-bg: rgba(34, 211, 238, 0.12);
+  --pil-sigla-fg: #22d3ee;
+}
+.pil-neon .pil-barra { box-shadow: 0 0 6px #22d3ee; }
+.pil-neon .pil-barra:nth-child(3n) { background: #f0abfc; box-shadow: 0 0 6px #f0abfc; }
+.pil-neon .pil-pontos i { box-shadow: 0 0 6px #22d3ee; }
+
+.pil-por-do-sol {
+  --pil-fundo: linear-gradient(90deg, #f97316, #ec4899);
+  --pil-cancelar-bg: rgba(255, 255, 255, 0.22);
+  --pil-cancelar-fg: #fff;
+  --pil-confirmar-bg: #fff;
+  --pil-confirmar-fg: #ec4899;
+  --pil-barra-a: #fff;
+  --pil-ponto: #fff;
+  --pil-sigla-bg: rgba(0, 0, 0, 0.15);
+  --pil-sigla-fg: #fff;
+}
+
+/* Equalizador: cada uma das 11 barras de uma cor (arco-íris). */
+.pil-equalizador {
+  --pil-fundo: #0a0a0a;
+  --pil-cancelar-bg: rgba(255, 255, 255, 0.18);
+  --pil-cancelar-fg: #fff;
+  --pil-confirmar-bg: #fff;
+  --pil-confirmar-fg: #0a0a0a;
+  --pil-ponto: #fff;
+  --pil-sigla-bg: rgba(255, 255, 255, 0.12);
+  --pil-sigla-fg: #fde047;
+}
+.pil-equalizador .pil-barra:nth-child(1) { background: #ef4444; }
+.pil-equalizador .pil-barra:nth-child(2) { background: #f97316; }
+.pil-equalizador .pil-barra:nth-child(3) { background: #f59e0b; }
+.pil-equalizador .pil-barra:nth-child(4) { background: #eab308; }
+.pil-equalizador .pil-barra:nth-child(5) { background: #84cc16; }
+.pil-equalizador .pil-barra:nth-child(6) { background: #22c55e; }
+.pil-equalizador .pil-barra:nth-child(7) { background: #14b8a6; }
+.pil-equalizador .pil-barra:nth-child(8) { background: #06b6d4; }
+.pil-equalizador .pil-barra:nth-child(9) { background: #3b82f6; }
+.pil-equalizador .pil-barra:nth-child(10) { background: #6366f1; }
+.pil-equalizador .pil-barra:nth-child(11) { background: #a855f7; }
+
+/* Respeita "reduzir movimento" do sistema: sem aurora andando, sem pulo, barras sem transição. */
+@media (prefers-reduced-motion: reduce) {
+  .pil-aurora { animation: none; }
+  .pil-pontos i { animation: none; opacity: 0.8; }
+  .pil-barra { transition: none; }
+}
+
+/* Mensagens de erro/aviso: sempre a pílula preta, com texto. */
+.pil-mensagem {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  border-radius: 9999px;
+  background: #0a0a0a;
+  padding: 0 16px;
+  font-size: 12px;
+  line-height: 1.25;
+}

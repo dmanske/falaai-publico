@@ -34,6 +34,7 @@ login/conta, sincronização na nuvem, plano/assinatura, banners/pesquisas/convi
 | 1 | Ditado: segura a tecla, fala, solta, texto colado no cursor | F1 | ✅ pronto (usado pelo Daniel) |
 | 2 | Refinar com IA (tira vícios de fala, pontua, organiza) | F1 | ✅ pronto (usado pelo Daniel) |
 | 3 | Pílula flutuante (✕, onda simétrica, ✓) no estilo do Typeless | F1 | ✅ pronto — conferir clique no ✓/✕ sem perder o foco |
+| — | Estilos da pílula (7 gerais + clubes de futebol com 3 variantes e escudo) e cores do clube no app (ver modulos/pilula-estilos.md) | — | construído — só o Flamengo por enquanto; falta ver ao vivo e levantar os outros 19 clubes da Série A |
 | 4 | Modo mãos livres (toca para começar, toca para parar) | F1 | construído — falta testar com Fn físico |
 | 5 | Cancelar no meio (Esc) | F1 | construído — falta testar com Esc físico |
 | 6 | Colar de novo a última transcrição | F1 | construído — falta testar Ctrl+Cmd+V físico |
@@ -60,3 +61,4 @@ login/conta, sincronização na nuvem, plano/assinatura, banners/pesquisas/convi
 | 27 | Atualização automática (GitHub Releases) | F4 | construído — o repositório privado impede a verificação; ver docs/planos |
 | 33 | Windows | F5 | construído (auxiliar Rust + instalador pelo GitHub Actions) — falta testar no PC Windows |
 | 34 | Marca FalaAi (logo, Fredoka, fundo com ondas escolhível), logos dos provedores e bandeiras nos idiomas | F5 | construído |
+| 35 | Formatação do ditado: pausas, fala rápida, listas e tópicos (ritmo medido no Mac + regras no prompt) | F5 | construído — falta testar com a chave ([módulo](../modulos/formatacao-ditado.md)) |

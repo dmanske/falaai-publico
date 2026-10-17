@@ -11,6 +11,8 @@ export interface OpcoesMontagem {
   idiomas: string[];
   /** Dicionário da pessoa: ajuda nomes próprios e termos técnicos. */
   termos: string[];
+  /** true = não pede marcação de tempo/parágrafos (usado na nova tentativa quando o serviço recusa). */
+  semMarcas?: boolean;
 }
 
 export interface PedidoHttpTranscricao {
@@ -29,6 +31,8 @@ export const MAX_KEYTERMS_ELEVENLABS = 100;
 export const MAX_KEYTERMS_DEEPGRAM = 100;
 /** Mistral: `context_bias` aceita até 100 termos. */
 export const MAX_CONTEXT_BIAS_MISTRAL = 100;
+/** Pausa (s) entre palavras do ElevenLabs a partir da qual a transcrição ganha uma quebra de linha. */
+export const PAUSA_QUEBRA_S = 1.2;
 const MAX_CARACTERES_TERMO = 49;
 const MAX_PALAVRAS_TERMO = 5;
 
@@ -91,6 +95,9 @@ export function montarPedidoTranscricao(servico: IdTranscricao, wav: Uint8Array,
     const q = new URLSearchParams({ model: o.modelo, smart_format: "true" });
     // pt-BR só quando o português é o ÚNICO idioma; com mais de um (ou nenhum), detecção multilíngue.
     q.set("language", o.idiomas.length === 1 && idiomaIso(o.idiomas[0]) === "pt" ? "pt-BR" : "multi");
+    // paragraphs=true (documentado em developers.deepgram.com/docs/paragraphs) devolve a divisão em
+    // parágrafos; fora do "multi" porque a doc não confirma a combinação com detecção multilíngue.
+    if (!o.semMarcas && q.get("language") !== "multi") q.set("paragraphs", "true");
     for (const t of termosValidos(o.termos, MAX_KEYTERMS_DEEPGRAM)) q.append("keyterm", t);
     return {
       url: `${url}?${q.toString()}`,
@@ -120,6 +127,11 @@ export function montarPedidoTranscricao(servico: IdTranscricao, wav: Uint8Array,
     if (o.idiomas.length) fd.append("language", idiomaIso(o.idiomas[0]));
     const prompt = montarPromptTranscricao(o.idiomas, o.termos);
     if (prompt) fd.append("prompt", prompt);
+    // Segmentos com start/end (console.groq.com/docs/speech-to-text) para quebrar linha nas pausas.
+    if (!o.semMarcas) {
+      fd.append("response_format", "verbose_json");
+      fd.append("timestamp_granularities[]", "segment");
+    }
   } else {
     // OpenAI: `prompt` com os termos. `keywords`/`languages` do gpt-transcribe não têm formato
     // confirmado, então não são enviados. `language` (singular) só vale para o whisper-1.
@@ -143,4 +155,80 @@ export function lerTextoTranscricao(servico: IdTranscricao, json: unknown): stri
   }
   const t = (json as { text?: unknown })?.text;
   return typeof t === "string" ? t.trim() : "";
+}
+
+// ── Quebras de linha nas pausas (caminho de 2 chamadas) ──────────────────────
+const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
+/** Junta pedaços de texto com "\n" onde `quebra[i]` é true (entre o pedaço i-1 e o i). */
+function juntarComQuebras(pedacos: string[], quebra: boolean[]): string {
+  let saida = "";
+  pedacos.forEach((p, i) => {
+    const t = p.trim();
+    if (!t) return;
+    saida += saida ? (quebra[i] ? "\n" : " ") + t : t;
+  });
+  return saida;
+}
+
+/**
+ * Texto da transcrição já com "\n" onde o serviço deu a marcação (Groq: segmentos com pausa ≥ 1,2 s;
+ * Deepgram: parágrafos; ElevenLabs: palavras com pausa ≥ 1,2 s). Se o campo não vier, cai no texto simples.
+ */
+export function lerTranscricaoComQuebras(servico: IdTranscricao, json: unknown): string {
+  const simples = lerTextoTranscricao(servico, json);
+  try {
+    if (servico === "groq") {
+      const seg = (json as { segments?: unknown })?.segments;
+      if (!Array.isArray(seg) || seg.length < 2) return simples;
+      const textos: string[] = [];
+      const quebra: boolean[] = [];
+      let fimAnterior: number | null = null;
+      for (const s of seg as { text?: unknown; start?: unknown; end?: unknown }[]) {
+        if (typeof s?.text !== "string") return simples;
+        const ini = num(s.start);
+        quebra.push(ini !== null && fimAnterior !== null && ini - fimAnterior >= PAUSA_QUEBRA_S);
+        textos.push(s.text);
+        fimAnterior = num(s.end);
+      }
+      const t = juntarComQuebras(textos, quebra);
+      return t || simples;
+    }
+    if (servico === "deepgram") {
+      const alt = (json as { results?: { channels?: { alternatives?: { paragraphs?: { paragraphs?: unknown } }[] }[] } })?.results
+        ?.channels?.[0]?.alternatives?.[0];
+      const pars = alt?.paragraphs?.paragraphs;
+      if (!Array.isArray(pars) || pars.length < 2) return simples;
+      const textos = (pars as { sentences?: { text?: unknown }[] }[]).map((p) =>
+        (p?.sentences ?? []).map((f) => (typeof f?.text === "string" ? f.text.trim() : "")).filter(Boolean).join(" "),
+      );
+      const t = juntarComQuebras(textos, textos.map(() => true));
+      return t || simples;
+    }
+    if (servico === "elevenlabs") {
+      const palavras = (json as { words?: unknown })?.words;
+      if (!Array.isArray(palavras)) return simples;
+      let saida = "";
+      let fimAnterior: number | null = null;
+      let quebrou = false;
+      for (const w of palavras as { text?: unknown; type?: unknown; start?: unknown; end?: unknown }[]) {
+        if (typeof w?.text !== "string" || w.type === "audio_event") continue;
+        if (w.type === "word") {
+          const ini = num(w.start);
+          if (ini !== null && fimAnterior !== null && saida && ini - fimAnterior >= PAUSA_QUEBRA_S) {
+            saida = saida.trimEnd() + "\n";
+            quebrou = true;
+          }
+          const fim = num(w.end);
+          if (fim !== null) fimAnterior = fim;
+        }
+        saida += w.text;
+      }
+      // Só troca o texto simples quando de fato houve quebra (evita divergência à toa).
+      return quebrou && saida.trim() ? saida.replace(/[ \t]+\n/g, "\n").trim() : simples;
+    }
+  } catch {
+    // formato inesperado: cai no texto simples
+  }
+  return simples;
 }

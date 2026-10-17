@@ -11,6 +11,7 @@
 | [modulos/configuracoes-ia.md](modulos/configuracoes-ia.md) | Provedores de IA, chaves, modelos, transcrição e teste |
 | [modulos/envio-automatico.md](modulos/envio-automatico.md) | Enter automático depois do ditado |
 | [integracoes/PROVEDORES_IA.md](integracoes/PROVEDORES_IA.md) | Pesquisa dos provedores de IA e de transcrição |
+| [modulos/pilula-estilos.md](modulos/pilula-estilos.md) | Estilos da pílula, clubes de futebol e tema do app com as cores do clube |
 | [modulos/ditado.md](modulos/ditado.md) | Ditado: Fn, pílula, gravação, IA e colar |
 | [operacao/ASSINATURA_MAC.md](operacao/ASSINATURA_MAC.md) | Certificado local para o Mac não esquecer as permissões a cada versão |
 | [correcoes/CORRECAO_CHAVE_LOVABLE_COLADA_2026-10-17.md](correcoes/CORRECAO_CHAVE_LOVABLE_COLADA_2026-10-17.md) | Chave colada com a linha do .env junto |

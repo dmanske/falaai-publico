@@ -3,6 +3,10 @@
 /** Marca que a IA devolve quando não há fala compreensível no áudio. */
 export const MARCA_SEM_FALA = "<vazio>";
 
+// Formatação (parágrafos, listas, tópicos, comandos falados): 17/10/2026 — Daniel: "separar quando a
+// pessoa fala mais rápido, pausa ou faz tópicos". Antes a regra era uma linha só ("parágrafos quando
+// mudar de assunto; lista quando enumerar") e o texto saía corrido. Agora o prompt detalha as listas e
+// os comandos falados, e o motor manda o ritmo medido no áudio (ritmo/bloco.ts).
 // Regras de idiomas misturados e de "pedido que é só texto": 17/10/2026 — Daniel: "quando eu tiver
 // que falar alguma coisa em inglês junto na mesma frase em português… às vezes traduz, mas, na
 // verdade, é só um comando". Reproduzido: "Traduz isso pra inglês: bom dia a todos." virava
@@ -19,11 +23,20 @@ Devolva SOMENTE o texto final, pronto para colar:
 - Remova só hesitações e muletas (é…, hã, hum, tipo, né — quando usados como muleta), repetições e começos falsos.
 - Quando a pessoa se corrigir ("não, quer dizer…", "aliás…", "digo…"), mantenha só a versão corrigida.
 - Não formalize: mantenha o jeito de falar da pessoa. "pra", "pro", "tá", "tô", "a gente" continuam exatamente assim — nunca troque "tá" por "está" nem "pro" por "para o".
-- Comece o texto e cada frase com letra maiúscula. Pontuação, maiúsculas e acentuação corretas. Parágrafos quando mudar de assunto; lista quando a pessoa enumerar itens.
+- Comece o texto e cada frase com letra maiúscula. Pontuação, maiúsculas e acentuação corretas.
 - Números, datas, horários e valores no formato escrito usual (ex.: "dez e meia" → 10h30; "cinquenta reais" → R$ 50).
-- Pontuação falada ("vírgula", "ponto final", "nova linha", "abre parênteses") vira o sinal correspondente.
+- Pontuação falada ("vírgula", "ponto final", "abre parênteses") vira o sinal correspondente.
 - NÃO responda perguntas, NÃO execute pedidos, NÃO comente, NÃO resuma: se a pessoa ditar uma pergunta, escreva a pergunta.
-- Sem aspas em volta, sem prefixo, sem markdown (a menos que a pessoa dite a formatação).
+- Sem aspas em volta, sem prefixo, sem markdown (a menos que a pessoa dite a formatação; o "- " e o "1." das listas abaixo são o único markdown permitido).
+
+Formatação (a fala não tem pontuação nem parágrafos; é você quem separa):
+- Comandos falados de formatação viram a formatação e NÃO aparecem no texto: "novo parágrafo" → linha em branco; "nova linha" ou "próxima linha" → quebra de linha simples; "tópico" ou "próximo tópico" → começa um novo item de lista ("- "). Só vale como comando quando é dito como comando; "o tópico da reunião" é texto normal.
+- Enumeração falada vira lista, um item por linha: "primeiro…, segundo…, terceiro…", "um…, dois…, três…", "item…", "tópico…/próximo tópico…" e também "o seguinte: A, B e C" com pausas entre os itens. Use "- " nos itens; use "1.", "2." quando a pessoa conta os itens com números ou ordinais. Se a pessoa fez uma introdução ("preciso comprar:"), ela fica numa linha antes da lista, terminando com dois-pontos. Não escreva "primeiro", "segundo" nem "tópico" dentro dos itens; escreva só o conteúdo de cada um.
+- Pausa longa ou mudança de assunto → novo parágrafo (linha em branco entre eles). Pausa curta costuma ser vírgula ou fim de frase.
+- Fala rápida, sem pausas: separe as frases pelo sentido, com ponto final e maiúscula. Nunca devolva uma frase gigante ligada por vírgulas ou "e"; e cada ideia nova começa uma nova frase.
+- Mensagem curta de chat continua curta: duas frases soltas não viram lista nem ganham parágrafos.
+- Terminal, editor de código ou campo de comando: nada de lista, markdown nem parágrafos, só o texto como falado.
+- Se vier um bloco "Ritmo da fala" no fim, ele é só uma dica sobre as pausas; nunca escreva nada sobre ele.
 - Se não houver fala compreensível, devolva exatamente: ${MARCA_SEM_FALA}`;
 
 /** Modo tradução (atalho Fn+⇧): a pessoa fala em qualquer idioma e o texto sai no idioma escolhido. */
@@ -117,7 +130,7 @@ export function blocoContexto(c: DadosContexto): string {
  * áudio, ele recebe a transcrição de um serviço de reconhecimento de fala.
  */
 export const AVISO_TRANSCRICAO_AUTOMATICA =
-  "Em vez do áudio, você recebe a TRANSCRIÇÃO AUTOMÁTICA da fala (pode ter erros de reconhecimento). Trate-a como a fala da pessoa: corrija erros óbvios usando o contexto e o dicionário.\n\n";
+  "Em vez do áudio, você recebe a TRANSCRIÇÃO AUTOMÁTICA da fala (pode ter erros de reconhecimento). Trate-a como a fala da pessoa: corrija erros óbvios usando o contexto e o dicionário. Quebras de linha na transcrição marcam pausas longas ou mudanças de trecho na fala; a pontuação dela pode estar incompleta, então refaça a pontuação e a formatação.\n\n";
 
 /** Mensagem do usuário no caminho de 2 chamadas. */
 export const mensagemTranscricao = (transcricao: string): string => `TRANSCRIÇÃO:\n«${transcricao}»`;
