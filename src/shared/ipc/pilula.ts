@@ -16,12 +16,12 @@ export type ModoDitado = "ditado" | "pergunte" | "traducao";
 export type ComandoPilula =
   | { acao: "iniciar"; sessao: number; sons: boolean; microfoneId: string | null }
   | { acao: "parar"; sessao: number; sons: boolean }
-  /** `devolverAudio`: para a gravação e manda o WAV pelo canal AUDIO (para salvar como "cancelado"). */
+  /** `devolverAudio`: para a gravação e manda o WAV pelo canal AUDIO (para o "Desfazer" e o "cancelado" do Histórico). */
   | { acao: "cancelar"; sessao: number; sons: boolean; devolverAudio: boolean };
 
 /** Botão ao lado da mensagem de erro/aviso. O clique volta como a ação de mesmo id. */
 export interface AcaoMensagemPilula {
-  id: "tentar-de-novo" | "copiar";
+  id: "tentar-de-novo" | "copiar" | "desfazer" | "ver-novidades";
   rotulo: string;
 }
 
@@ -38,7 +38,7 @@ export type EstadoPilula =
   /** Aviso curto e neutro (ex.: "Palavra adicionada ao dicionário: Lovable"). */
   | { estado: "aviso"; mensagem: string; acao?: AcaoMensagemPilula };
 
-export type AcaoPilula = "confirmar" | "cancelar" | "proximo-idioma" | "microfone-mudo" | "tentar-de-novo" | "copiar";
+export type AcaoPilula = "confirmar" | "cancelar" | "proximo-idioma" | "microfone-mudo" | "tentar-de-novo" | "copiar" | "desfazer" | "ver-novidades";
 
 /** Microfone listado pela pílula (id do navegador + nome). */
 export interface MicrofoneListado {

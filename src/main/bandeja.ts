@@ -58,6 +58,7 @@ function montarMenu(): Menu {
     { label: `Abrir ${NOME_APP}`, click: () => abrirHub("inicio") },
     { label: "Histórico", click: () => abrirHub("historico") },
     { label: "Dicionário", click: () => abrirHub("dicionario") },
+    { label: "Novidades", click: () => abrirHub("novidades") },
     { type: "separator" },
     { label: "Microfone", submenu: submenuMicrofone() },
     { label: "Configurações…", click: () => abrirHub("configuracoes") },

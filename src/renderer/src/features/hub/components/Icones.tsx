@@ -37,6 +37,12 @@ export const IconeDicionario = () => (
     <path d="M5 17a3 3 0 0 1 3-3h11" />
   </Base>
 );
+export const IconeNovidades = () => (
+  <Base>
+    <path d="M12 3.5 14 9l5.5 2L14 13l-2 5.5L10 13l-5.5-2L10 9l2-5.5Z" />
+    <path d="M19 17.5v3M17.5 19h3" />
+  </Base>
+);
 export const IconeConfig = () => (
   <Base>
     <circle cx="12" cy="12" r="3" />

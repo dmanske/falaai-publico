@@ -42,7 +42,7 @@ depois (itens com "—" e 33 em diante). Ficam de fora: veja "Fora do escopo".
 | — | Estilos da pílula: 7 gerais + pacote de futebol (20 clubes da Série A 2026, 3 variantes, escudo) (ver modulos/pilula-estilos.md) | — | construído — falta ver a pílula dos clubes durante um ditado real |
 | — | Tema do clube no app: destaque, menu lateral com o padrão da camisa, faixa no topo e escudo | — | construído — modo escuro do tema do clube ainda sem revisão visual |
 | 4 | Modo mãos livres (toca para começar, toca para parar); opção de exigir **toque duplo** (400 ms, como o Typeless) | F1 | construído — falta testar com Fn físico |
-| 5 | Cancelar no meio (Esc); o ditado cancelado fica no Histórico como "cancelado" e dá para reprocessar | F1 | construído — falta testar com Esc físico |
+| 5 | Cancelar no meio (Esc); a pílula oferece Desfazer e, com "Guardar o áudio", o ditado fica no Histórico como "cancelado" | F1 | construído — falta testar com Esc físico |
 | 6 | Colar de novo a última transcrição | F1 | construído — falta testar Ctrl+Cmd+V físico |
 | 10 | Sons de início e fim | F1 | construído — conferir o som |
 | 11 | Contexto do app em foco (tom/formatação) | F2 | ✅ pronto (app em foco detectado: Kiro) |
@@ -81,6 +81,8 @@ depois (itens com "—" e 33 em diante). Ficam de fora: veja "Fora do escopo".
 | — | "Não achei um campo de texto aqui" + Copiar, quando o foco não era editável | — | construído |
 | — | Colar só neste Mac (sem Área de Transferência Universal), tecla V pelo layout, listas formatadas (HTML) | — | construído — falta testar colando |
 | — | Botões extras do mouse como atalho (Mac) e dica de teclado externo sem Fn | — | construído — falta testar com mouse e teclado externo |
+| — | Esc/✕: "Cancelado" com **Desfazer** por 6 s (o áudio fica só na memória; funciona com "Guardar o áudio" desligado) | — | construído — o Daniel testou o Esc com o áudio desligado e não havia como recuperar; corrigido em 18/10/2026 |
+| — | Página **Novidades** (histórico de versões com data) e aviso na pílula depois de atualizar (ver modulos/novidades.md) | — | construído em 18/10/2026 |
 
 ## Fora do escopo
 

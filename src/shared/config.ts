@@ -78,6 +78,14 @@ export const ERRO_PILULA_MS = 3500;
 export const ERRO_COM_ACAO_MS = 8000;
 /** Aviso com botão (ex.: "Copiar") fica este tempo na pílula (ms). */
 export const AVISO_COM_ACAO_MS = 6000;
+/** Depois de abrir o app, quanto esperar até avisar das novidades (ms): a pílula precisa ter carregado. */
+export const AVISO_NOVIDADES_ATRASO_MS = 4000;
+/** Quanto tempo o aviso "FalaAi atualizado" fica na pílula (ms). */
+export const AVISO_NOVIDADES_MS = 10_000;
+/** Se o ditado estiver em uso na hora do aviso, tenta de novo depois deste intervalo (ms)... */
+export const AVISO_NOVIDADES_REPETIR_MS = 5000;
+/** ...até este número de tentativas. */
+export const AVISO_NOVIDADES_TENTATIVAS = 5;
 /** Quanto tempo "Copiado." aparece (ms). */
 export const AVISO_COPIADO_MS = 1500;
 /** Quanto tempo a nota "Ainda no ditado anterior" aparece (ms). */

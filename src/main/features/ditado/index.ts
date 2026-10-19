@@ -5,7 +5,8 @@
 //    sem seleção, responde num cartão;
 //  - tradução (Fn+⇧ esq.): fala em qualquer idioma, sai no idioma escolhido.
 // Segurando Fn e apertando Espaço/⇧ no meio, o modo muda. Toque rápido = mãos livres (o próximo
-// toque para; com "mãos livres com toque duplo", só depois de dois toques). Esc ou ✕ cancelam (e guardam o áudio no Histórico como "cancelado"); ✓ termina.
+// toque para; com "mãos livres com toque duplo", só depois de dois toques). Esc ou ✕ cancelam (a pílula oferece "Desfazer" por alguns segundos e, com "Guardar o áudio", o ditado
+// fica no Histórico como "cancelado"); ✓ termina.
 // "Colar a última" cola de novo a última transcrição.
 import { clipboard, ipcMain } from "electron";
 import {
@@ -32,6 +33,7 @@ import {
 } from "@shared/config";
 import type { IdAtalho } from "@shared/atalhos";
 import { CANAIS_PILULA, type AcaoMensagemPilula, type AcaoPilula, type AudioPilula, type ModoDitado } from "@shared/ipc";
+import { abrirHub } from "../../janelas/hub";
 import { mostrarCartao } from "../../janelas/cartao";
 import { comandarPilula, idWebContentsPilula, mostrarEstadoPilula } from "../../janelas/pilula";
 import { observarEdicao, palavrasParaPrompt } from "../dicionario";
@@ -60,10 +62,12 @@ const AVISO_MS = 2500;
 const NOTA_DEMORANDO = "Demorando mais que o normal…";
 const NOTA_OCUPADO = "Ainda no ditado anterior · Esc cancela";
 const AVISO_CANCELADO = "Cancelado. Está no Histórico.";
+const AVISO_CANCELADO_SEM_HISTORICO = "Cancelado.";
 const AVISO_SEM_CAMPO = "Não achei um campo de texto aqui.";
 const ERRO_MICROFONE_MUDO = "O microfone não está mandando som. Veja se ele está mudo ou escolha outro em Configurações > Áudio.";
 const ACAO_TENTAR_DE_NOVO: AcaoMensagemPilula = { id: "tentar-de-novo", rotulo: "Tentar de novo" };
 const ACAO_COPIAR: AcaoMensagemPilula = { id: "copiar", rotulo: "Copiar" };
+const ACAO_DESFAZER: AcaoMensagemPilula = { id: "desfazer", rotulo: "Desfazer" };
 
 /** Tudo o que uma tentativa de IA precisa; guardado para "cancelado" e "Tentar de novo". */
 interface DadosSessao {
@@ -124,6 +128,8 @@ let timerDemora: NodeJS.Timeout | null = null;
 let timerOcupado: NodeJS.Timeout | null = null;
 /** Última tentativa que falhou na IA: "Tentar de novo" na pílula refaz com ela. */
 let ultimaFalha: DadosSessao | null = null;
+/** Ditado cancelado agora há pouco: "Desfazer" na pílula processa ele. Só na memória; some com o aviso. */
+let canceladoRecente: DadosSessao | null = null;
 /** Texto que o botão "Copiar" do aviso "Não achei um campo de texto" copia. */
 let textoParaCopiar = "";
 let ultimaTranscricao = "";
@@ -167,8 +173,9 @@ let ultimoEnterTeste = false;
 function ocultar(): void {
   if (timerPilula) clearTimeout(timerPilula);
   timerPilula = null;
-  // Sumiu da tela: os botões "Tentar de novo" e "Copiar" não existem mais.
+  // Sumiu da tela: os botões "Tentar de novo", "Copiar" e "Desfazer" não existem mais.
   ultimaFalha = null;
+  canceladoRecente = null;
   textoParaCopiar = "";
   mostrarEstadoPilula({ estado: "oculta" });
 }
@@ -177,6 +184,13 @@ function mostrarTemporario(tipo: "erro" | "aviso", mensagem: string, ms: number,
   if (timerPilula) clearTimeout(timerPilula);
   mostrarEstadoPilula({ estado: tipo, mensagem, acao });
   timerPilula = setTimeout(() => estado === "ocioso" && ocultar(), ms);
+}
+
+/** Aviso de fora do ditado (ex.: novidades da versão). Só aparece com o ditado ocioso; devolve se mostrou. */
+export function mostrarAvisoNaPilula(mensagem: string, acao: AcaoMensagemPilula, ms: number): boolean {
+  if (estado !== "ocioso") return false;
+  mostrarTemporario("aviso", mensagem, ms, acao);
+  return true;
 }
 
 /** Para a espera do 2º toque do mãos livres com toque duplo. */
@@ -242,6 +256,7 @@ async function iniciar(novoModo: ModoDitado, atalho: IdAtalho): Promise<void> {
   limparProcessamento();
   estourouLimite = false;
   ultimaFalha = null;
+  canceladoRecente = null;
   textoParaCopiar = "";
   idiomaDestino = lerPreferencias().idiomaTraducao;
   mostrarGravando();
@@ -310,11 +325,11 @@ function iniciarContagem(): void {
 }
 
 /**
- * Cancela o ditado. `salvar`: guarda o áudio no Histórico como "cancelado" (Esc e ✕); o atalho do
- * sistema (Fn+Delete…) e o microfone mudo não salvam. Só salva com `guardarAudio` ligado.
+ * Cancela o ditado. `salvar` (Esc e ✕): a pílula oferece "Desfazer" e, com `guardarAudio` ligado, o
+ * áudio vai para o Histórico como "cancelado". O atalho do sistema (Fn+Delete…), o microfone mudo e o
+ * toque sem querer (mãos livres com toque duplo) não oferecem nada.
  */
 function cancelar(salvar: boolean): void {
-  const guardar = salvar && lerPreferencias().guardarAudio;
   if (estado === "gravando") {
     const s = sessao;
     const m = modo;
@@ -322,17 +337,17 @@ function cancelar(salvar: boolean): void {
     const ctxDaSessao = contextoSessao;
     const copiaDaSessao = copiaSessao;
     // O estado volta para "ocioso" já (abaixo): o áudio chega depois, sem travar um novo ditado.
-    if (guardar) {
+    if (salvar) {
       void esperarAudio(s).then(async (a) => {
         if (!a.ok || a.duracaoMs < GRAVACAO_MINIMA_MS) return;
-        salvarCancelado(await montarDados(a, m, ctxDaSessao, copiaDaSessao, idioma, false));
+        oferecerDesfazer(await montarDados(a, m, ctxDaSessao, copiaDaSessao, idioma, false));
       });
     }
-    comandarPilula({ acao: "cancelar", sessao: s, sons: sons(), devolverAudio: guardar });
+    comandarPilula({ acao: "cancelar", sessao: s, sons: sons(), devolverAudio: salvar });
   } else if (estado === "processando") {
     const dados = processandoDados;
-    // Áudio ainda sendo convertido pela pílula: parar() salva quando ele chegar.
-    salvarCanceladoDaSessao = guardar && !dados ? sessao : null;
+    // Áudio ainda sendo convertido pela pílula: parar() oferece o "Desfazer" quando ele chegar.
+    salvarCanceladoDaSessao = salvar && !dados ? sessao : null;
     limparProcessamento();
     // A resposta da IA ainda vai chegar, mas com outra sessão ela é ignorada (ver processar()).
     sessao++;
@@ -340,8 +355,7 @@ function cancelar(salvar: boolean): void {
     limparTimerMaximo();
     void dessilenciar();
     ocultar();
-    // Erro refeito com "Tentar de novo" já tem item no histórico: não cria um cancelado repetido.
-    if (guardar && dados && !dados.itemId) salvarCancelado(dados);
+    if (salvar && dados) oferecerDesfazer(dados);
     return;
   } else {
     return;
@@ -352,10 +366,18 @@ function cancelar(salvar: boolean): void {
   ocultar();
 }
 
-/** Guarda no Histórico um ditado cancelado (sem texto, com áudio) e avisa na pílula se estiver livre. */
-function salvarCancelado(dados: DadosSessao): void {
-  registrarDitado({ ...dados.base, texto: "", status: "cancelado", erro: null });
-  if (estado === "ocioso") mostrarTemporario("aviso", AVISO_CANCELADO, AVISO_MS);
+/**
+ * Ditado cancelado: com `guardarAudio`, vai para o Histórico como "cancelado" (sem texto, com áudio).
+ * Com o app livre, a pílula mostra "Cancelado." com "Desfazer"; o áudio fica só na memória até o aviso sumir.
+ */
+function oferecerDesfazer(dados: DadosSessao): void {
+  const guardar = lerPreferencias().guardarAudio;
+  // Erro refeito com "Tentar de novo" já tem item no histórico: não cria um cancelado repetido.
+  let itemId = dados.itemId;
+  if (guardar && !itemId) itemId = registrarDitado({ ...dados.base, texto: "", status: "cancelado", erro: null })?.id ?? null;
+  if (estado !== "ocioso") return; // um novo ditado já começou: nada de "Desfazer"
+  canceladoRecente = { ...dados, itemId };
+  mostrarTemporario("aviso", guardar ? AVISO_CANCELADO : AVISO_CANCELADO_SEM_HISTORICO, AVISO_COM_ACAO_MS, ACAO_DESFAZER);
 }
 
 function esperarAudio(s: number): Promise<AudioPilula> {
@@ -467,7 +489,7 @@ async function parar(): Promise<void> {
     if (cancelado()) {
       if (salvarCanceladoDaSessao === minhaSessao) {
         salvarCanceladoDaSessao = null;
-        salvarCancelado(dados);
+        oferecerDesfazer(dados);
       }
       return;
     }
@@ -580,21 +602,30 @@ async function aposIa(dados: DadosSessao, r: Extract<ResultadoModo, { ok: true }
   }
 }
 
-/** "Tentar de novo" do erro da IA: refaz a mesma chamada, com o mesmo áudio e contexto. */
-function tentarDeNovo(): void {
-  const falha = ultimaFalha;
-  if (estado !== "ocioso" || !falha) return;
+/** Manda de novo para a IA um ditado já gravado (mesmo áudio e contexto) e segue o caminho normal. */
+function refazer(dados: DadosSessao): void {
   ultimaFalha = null;
+  canceladoRecente = null;
   textoParaCopiar = "";
   estado = "processando";
   const minhaSessao = ++sessao;
   if (timerPilula) clearTimeout(timerPilula);
   timerPilula = null;
-  procVisual = { modo: falha.modo, idioma: falha.modo === "traducao" ? siglaIdioma(falha.idiomaDestino) : null };
+  procVisual = { modo: dados.modo, idioma: dados.modo === "traducao" ? siglaIdioma(dados.idiomaDestino) : null };
   demorando = false;
   notaOcupado = null;
   mostrarProcessando();
-  void protegido(minhaSessao, () => processar(falha, minhaSessao));
+  void protegido(minhaSessao, () => processar(dados, minhaSessao));
+}
+
+/** "Tentar de novo" do erro da IA. */
+function tentarDeNovo(): void {
+  if (estado === "ocioso" && ultimaFalha) refazer(ultimaFalha);
+}
+
+/** "Desfazer" do cancelamento: processa e cola o ditado como se não tivesse sido cancelado. */
+function desfazerCancelamento(): void {
+  if (estado === "ocioso" && canceladoRecente) refazer(canceladoRecente);
 }
 
 /** O botão "Copiar" do aviso "Não achei um campo de texto aqui". */
@@ -738,8 +769,15 @@ export function iniciarDitado(): void {
       case "tentar-de-novo":
         tentarDeNovo();
         break;
+      case "desfazer":
+        desfazerCancelamento();
+        break;
       case "copiar":
         copiarTexto();
+        break;
+      case "ver-novidades":
+        abrirHub("novidades");
+        if (estado === "ocioso") ocultar();
         break;
     }
   });

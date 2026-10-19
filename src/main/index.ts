@@ -14,6 +14,7 @@ import { iniciarHistorico } from "./features/historico";
 import { registrarIpcHistorico } from "./features/historico/ipc";
 import { registrarIpcIa } from "./features/ia/ipc";
 import { auxiliar } from "./features/nativo";
+import { iniciarAvisoNovidades } from "./features/novidades";
 import { registrarIpcPermissoes } from "./features/permissoes/ipc";
 import { lerPreferencias } from "./features/preferencias";
 import { registrarIpcPreferencias } from "./features/preferencias/ipc";
@@ -69,6 +70,7 @@ if (!app.requestSingleInstanceLock()) {
     const prefs = lerPreferencias();
     if (!prefs.onboardingConcluido) abrirOnboarding();
     else if (prefs.abrirJanelaAoIniciar) abrirConfiguracoes();
+    iniciarAvisoNovidades();
   });
 
   app.on("activate", () => abrirConfiguracoes());

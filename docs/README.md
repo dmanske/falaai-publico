@@ -1,6 +1,6 @@
 # Documentação do FalaAi: índice
 
-Versão 1.0.0 (17/10/2026). Repositório privado `dmanske/falaai-oficial`; cópia pública `dmanske/falaai-publico`.
+Versão 1.1.0 (18/10/2026; o que mudou em cada versão: página Novidades do app, `src/shared/novidades.ts`). Repositório privado `dmanske/falaai-oficial`; cópia pública `dmanske/falaai-publico`.
 
 ## Geral
 
@@ -28,6 +28,7 @@ Versão 1.0.0 (17/10/2026). Repositório privado `dmanske/falaai-oficial`; cópi
 | [modulos/envio-automatico.md](modulos/envio-automatico.md) | Enter automático depois do ditado, por voz ou por app |
 | [modulos/estatisticas.md](modulos/estatisticas.md) | Números do Início permanentes: tabela de totais por dia e app, que apagar histórico não zera |
 | [modulos/pilula-estilos.md](modulos/pilula-estilos.md) | Estilos da pílula, clubes de futebol e tema do app com as cores do clube |
+| [modulos/novidades.md](modulos/novidades.md) | Página Novidades: o que mudou em cada versão, aviso depois de atualizar e o que fazer ao lançar uma versão |
 
 ## Integrações e operação
 

@@ -4,7 +4,7 @@ import { atualizacaoCurta, descreverBuild } from "@shared/build";
 import type { PaginaHub } from "@shared/ipc";
 import { apiPreferencias, plataforma } from "../api/ponte";
 import { useEscuro } from "../hooks/useEscuro";
-import { IconeConfig, IconeDicionario, IconeHistorico, IconeInicio, IconeLua, IconeSobre, IconeSol } from "./Icones";
+import { IconeConfig, IconeDicionario, IconeHistorico, IconeInicio, IconeLua, IconeNovidades, IconeSobre, IconeSol } from "./Icones";
 import { Logo } from "./Logo";
 
 const semArrastar = { WebkitAppRegion: "no-drag" } as React.CSSProperties;
@@ -14,6 +14,7 @@ const ITENS: { pagina: PaginaHub; rotulo: string; icone: ReactNode }[] = [
   { pagina: "inicio", rotulo: "Início", icone: <IconeInicio /> },
   { pagina: "historico", rotulo: "Histórico", icone: <IconeHistorico /> },
   { pagina: "dicionario", rotulo: "Dicionário", icone: <IconeDicionario /> },
+  { pagina: "novidades", rotulo: "Novidades", icone: <IconeNovidades /> },
 ];
 
 interface Props {

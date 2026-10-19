@@ -16,7 +16,7 @@ cópia da seleção no Pergunte, ditado cancelado recuperável, avisos na pílul
 | Pergunte qualquer coisa | Fn + Espaço | Alt direito + Espaço |
 | Traduzir | Fn + Shift esquerdo | Alt direito + Shift direito |
 | Mãos livres | Toque rápido na tecla do ditado (menos de 0,3 s); o próximo toque para. Com a opção "Mãos livres com toque duplo": dois toques rápidos (o 2º até 0,4 s depois); um toque só cancela sem salvar | igual |
-| Cancelar | Esc ou ✕ (o áudio fica no Histórico como "cancelado") | Esc |
+| Cancelar | Esc ou ✕ (a pílula oferece Desfazer; com "Guardar o áudio", fica no Histórico como "cancelado") | Esc |
 | Colar a última de novo | Ctrl+Cmd+V | Ctrl esquerdo + Shift direito + V |
 | Fn usada como modificador (Fn+Delete, Fn+F5…) | Cancela sozinho, sem som de erro | não se aplica |
 
@@ -93,7 +93,7 @@ O `contexto` é lido no começo da gravação (enquanto a pessoa fala), pelo aux
 
 | Situação | O que acontece |
 |---|---|
-| Esc ou ✕ | Para; com "Guardar o áudio" ligado, o ditado vai para o Histórico como **cancelado** (dá para reprocessar) e a pílula diz "Cancelado. Está no Histórico." Fn+Delete (atalho do sistema) não salva |
+| Esc ou ✕ | Para e mostra "Cancelado." com o botão **Desfazer** por 6 s: clicou, o ditado é processado e colado normalmente (o áudio fica só na memória e some com o aviso). Com "Guardar o áudio" ligado, também vai para o Histórico como **cancelado** ("Cancelado. Está no Histórico."), e o Desfazer atualiza esse mesmo item. Fn+Delete (atalho do sistema) não oferece nada |
 | Microfone sem nenhuma amostra ≠ 0 em 5 s | Cancela sem salvar: "O microfone não está mandando som…" (só silêncio digital absoluto; sala silenciosa não dispara) |
 | IA falhou | Erro com o botão **Tentar de novo** (8 s): refaz com o mesmo áudio e contexto e atualiza o mesmo item do histórico |
 | IA demorando | "Demorando mais que o normal…" depois de 8 s + 0,5 s a cada 30 s de áudio + 0,5 s a cada 1.000 caracteres selecionados |

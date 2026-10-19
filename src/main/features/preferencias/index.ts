@@ -41,6 +41,7 @@ const PADRAO: Preferencias = {
   estiloPilula: { tipo: "estilo", id: "original" },
   coresDoClubeNoApp: true,
   onboardingConcluido: false,
+  novidadesVistas: null,
 };
 
 const eventos = new EventEmitter<{ mudou: [nova: Preferencias, anterior: Preferencias] }>();

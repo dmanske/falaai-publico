@@ -94,6 +94,8 @@ export interface Preferencias {
   /** Com um clube na pílula, usar as cores dele como destaque do app também. Sem efeito nos estilos gerais. */
   coresDoClubeNoApp: boolean;
   onboardingConcluido: boolean;
+  /** Última versão cujas novidades foram mostradas (aviso na pílula ou página Novidades); null = nenhuma ainda. */
+  novidadesVistas: string | null;
 }
 
 export interface PontePreferencias {

@@ -3,7 +3,7 @@ import type { PaginaHub } from "@shared/ipc";
 import { apiJanelas } from "../api/ponte";
 import type { Destino } from "../types";
 
-const PAGINAS: PaginaHub[] = ["inicio", "historico", "dicionario", "configuracoes"];
+const PAGINAS: PaginaHub[] = ["inicio", "historico", "dicionario", "novidades", "configuracoes"];
 
 /** Lê "#pagina" ou "#pagina:secao" (a janela abre assim; ver src/main/janelas/hub.ts). */
 function lerHash(): Destino | null {

@@ -1,8 +1,9 @@
-// Janela principal: menu lateral + página atual (Início, Histórico, Dicionário, Configurações).
+// Janela principal: menu lateral + página atual (Início, Histórico, Dicionário, Novidades, Configurações).
 import { ConfiguracoesPage } from "@/features/configuracoes";
 import { DicionarioPage } from "@/features/dicionario";
 import { HistoricoPage } from "@/features/historico";
 import { InicioPage } from "@/features/inicio";
+import { NovidadesPage } from "@/features/novidades";
 import type { FundoHub } from "@shared/ipc";
 import { MenuLateral } from "../components/MenuLateral";
 import { useCoresDoTema } from "../hooks/useCoresDoTema";
@@ -37,6 +38,7 @@ export function HubApp() {
             {destino.pagina === "inicio" && <InicioPage />}
             {destino.pagina === "historico" && <HistoricoPage />}
             {destino.pagina === "dicionario" && <DicionarioPage />}
+            {destino.pagina === "novidades" && <NovidadesPage />}
             {destino.pagina === "configuracoes" && <ConfiguracoesPage secaoInicial={destino.secao} />}
           </div>
           {fundo === "completo" && <div className="ondas-pe" aria-hidden />}

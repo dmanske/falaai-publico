@@ -86,9 +86,13 @@ Tudo em `app.getPath("userData")` (Mac: `~/Library/Application Support/FalaAi/`)
 | Como funciona hoje | `docs/modulos/` |
 | Funcionalidade nova | seção em `docs/produto/PRD.md` |
 
-A pasta `docs/planos/` ainda não existe (cria-se na primeira pendência). Análise pontual fica no chat. Documento velho vai para `docs/_arquivo/`, nunca é apagado.
+A pasta `docs/planos/` existe desde 18/10/2026. Análise pontual fica no chat. Documento velho vai para `docs/_arquivo/`, nunca é apagado.
 
 ## 6. Git
 
 - Repositório privado `dmanske/falaai-oficial` (renomeado de `newtypeless-oficial` em 17/10/2026) e cópia pública `dmanske/falaai-publico` (mesmo código; é nela que o app procura atualizações, ver `REPO_ATUALIZACOES` em `src/shared/config.ts`). `main` é a versão estável.
 - Mensagens de commit em português.
+- **Versão nova** (`version` do `package.json`): acrescente no TOPO de `src/shared/novidades.ts` a entrada da versão,
+  com a data e o que mudou em linguagem de quem usa. É o que aparece na página **Novidades** do app (e no aviso da
+  pílula depois de atualizar). O teste `src/shared/novidades.test.ts` falha se a versão não tiver entrada.
+  Cada versão ganha a tag `vX.Y.Z` no git.

@@ -8,7 +8,7 @@ export const CANAIS_JANELAS = {
   CARTAO_FECHAR: "janelas:cartao-fechar",
 } as const;
 
-export type PaginaHub = "inicio" | "historico" | "dicionario" | "configuracoes";
+export type PaginaHub = "inicio" | "historico" | "dicionario" | "novidades" | "configuracoes";
 
 export interface ConteudoCartao {
   /** O que a pessoa perguntou/pediu (transcrição do comando). */
