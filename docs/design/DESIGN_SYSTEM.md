@@ -1,6 +1,6 @@
 # Design system do FalaAi
 
-Descreve o que **está implementado** (versão 1.0.0, 17/10/2026). Os valores foram tirados do código; quando
+Descreve o que **está implementado** (versão 1.1.0, 18/10/2026). Os valores foram tirados do código; quando
 um valor mudar lá, mude aqui. A fonte de verdade é sempre o arquivo citado em cada seção.
 
 Não confundir com a proposta anterior (Nunito Sans e outra paleta), que não foi adotada e está em
@@ -151,7 +151,7 @@ o que só um módulo usa fica no módulo.
 
 Padrões de tela:
 
-- **Menu lateral** (`features/hub/components/MenuLateral.tsx`): logo, três itens (Início, Histórico, Dicionário)
+- **Menu lateral** (`features/hub/components/MenuLateral.tsx`): logo, quatro itens (Início, Histórico, Dicionário, Novidades)
   e, no rodapé, três botões de ícone (Configurações, Sobre e o **botão de tema** que alterna claro/escuro na hora
   e salva a preferência), o cartão com o nome do criador e a marca "Atualizado ..." (data da última build).
   O código aleatório da build só aparece na dica ao passar o mouse e em Configurações > Sobre.
@@ -175,15 +175,20 @@ Janela flutuante, transparente, que não rouba o foco (ver [../modulos/ditado.md
 |---|---|
 | Gravando / processando | 144 × 38 |
 | Tradução (cabe bandeira e sigla) | 188 × 38 |
-| Erro ou aviso | 300 × 38 |
-| Com escudo de clube | +26 px nos dois primeiros (170 e 214) |
+| Gravando com contagem regressiva (último minuto) | +44 px |
+| Processando com nota ("Demorando…", "Ainda no ditado anterior…") | 340 × 38 |
+| Erro ou aviso | 300 × 38 (420 × 38 se a mensagem passa de 60 caracteres) |
+| Erro ou aviso com botão (Tentar de novo, Copiar, Desfazer, Ver novidades) | +100 px |
+| Com escudo de clube | +26 px em gravando/processando (170 e 214) |
 
 Peças: botões ✕ e ✓ de 28 px (ícone de 14 px), onda de até 20 px de altura com barras de 3 px e vão de 3 px,
 escudo de 20×25 px, sigla do idioma com bandeira de 16×12 px. Os contornos são `inset` e não há sombra para
 fora, porque a janela tem o tamanho exato da pílula.
 
-**Estados:** gravando (onda acompanha o volume), processando (três pontos pulando), erro e aviso (sempre pílula
-preta `#0A0A0A` com texto de 12 px, em qualquer estilo) e oculta.
+**Estados:** gravando (onda acompanha o volume; no último minuto, o tempo que falta), processando (três pontos
+pulando, ou uma nota de 12 px no lugar deles), erro e aviso (sempre pílula preta `#0A0A0A` com texto de 12 px, em
+qualquer estilo; o botão de ação é uma pílula `rgb(255 255 255 / 0.18)` com texto de 12 px em negrito, `.pil-acao`)
+e oculta.
 
 **Cor por modo** (estilo Original, `COR_MODO` em `PilulaVisual.tsx`): ditado branco `#FFFFFF`, pergunte azul
 `#8EA2FF`, tradução verde `#6FE0A6`. Nos outros estilos a onda tem as cores do estilo e o modo aparece como um

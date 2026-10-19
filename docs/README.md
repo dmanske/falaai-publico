@@ -16,7 +16,7 @@ Versão 1.1.0 (18/10/2026; o que mudou em cada versão: página Novidades do app
 | [design/DESIGN_SYSTEM.md](design/DESIGN_SYSTEM.md) | Design system real do app: marca, fonte, cores, componentes, pílula, tema do clube e acessibilidade |
 | [design/DESIGN_VISUAL.md](design/DESIGN_VISUAL.md) | Ponteiro para o design system, com a origem do visual (referência do Typeless) |
 | [design/DESIGN_FALAAI.md](design/DESIGN_FALAAI.md) | Histórico: engenharia reversa do Typeless, decisões técnicas iniciais e fases |
-| [design/PROTOCOLO_AUXILIAR.md](design/PROTOCOLO_AUXILIAR.md) | Protocolo v3 dos auxiliares nativos (Mac em Swift, Windows em Rust) |
+| [design/PROTOCOLO_AUXILIAR.md](design/PROTOCOLO_AUXILIAR.md) | Protocolo v4 dos auxiliares nativos (Mac em Swift na v4; Windows em Rust ainda na v3) |
 
 ## Como funciona (módulos)
 

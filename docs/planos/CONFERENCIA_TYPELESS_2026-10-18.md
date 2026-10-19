@@ -60,15 +60,22 @@ toque duplo e mãos livres resolvidos no nativo, religar o monitor de teclado.
 | 1 | Auxiliar do Mac, protocolo v4: colar (só este Mac, tecla V pelo layout, HTML), `copiar_selecao`, contexto novo (acessibilidade Electron, marker range, conversa, texto da janela, `editavel`), navegadores, `dispositivos_audio`, `teclados`, botões do mouse | feito em 18/10/2026 (testes automáticos e comandos de leitura; falta uso real) |
 | 2 | Não perder ditado: Esc salva como cancelado, microfone mudo, prazo proporcional + "demorando", contagem regressiva, "ainda processando", tentar de novo na pílula, campo não editável, baixar áudio, microfone no menu da barra | feito em 18/10/2026 (testes automáticos e comandos de leitura; falta uso real) |
 | 3 | Ligar o protocolo v4 no app: contexto no prompt, seleção por Cmd+C, HTML, rótulos dos microfones, dica de teclado externo, atalhos com mouse, opção do toque duplo | feito em 18/10/2026 (testes automáticos e comandos de leitura; falta uso real) |
-| 4 | Documentação (protocolo, módulos, PRD), testes e empacotar | docs e testes feitos em 18/10/2026; empacotar/instalar combinar com o Daniel |
+| 4 | Documentação (protocolo, módulos, PRD), testes e empacotar | feito: 1.1.0 instalada e publicada (privado + público, release v1.1.0) em 18/10/2026 |
 
 O Windows não ganha os comandos novos nesta rodada (o auxiliar Rust responde "Comando desconhecido" e o app segue sem
 eles); fica como pendência.
 
+## Testado pelo Daniel (18/10/2026)
+
+- Esc com "Guardar o áudio" desligado: no começo não havia como recuperar (o "cancelado" só ia para o Histórico com o
+  áudio ligado). Virou o botão **Desfazer** na pílula, e funcionou.
+- Página **Novidades** e o aviso depois de atualizar: funcionaram.
+
 ## O que falta conferir no uso real (18/10/2026)
 
 Nada disto pôde ser testado sem mexer nos apps, no teclado ou na área de transferência do Daniel:
-colar (só neste Mac, tecla V, HTML em Notas/Mail/Gmail/Notion); Cmd+C do Pergunte; Esc salvando o cancelado;
+colar (só neste Mac, tecla V, HTML em Notas/Mail/Gmail/Notion); Cmd+C do Pergunte; Esc salvando o cancelado no
+Histórico (com o áudio ligado);
 microfone mudo; "Tentar de novo" e "Copiar" sem roubar o foco; contagem regressiva; leitura de contexto em apps Electron
 (Discord, Obsidian, Claude) e em campos web; botões do mouse; toque duplo; avisos de Bluetooth/tampa; menu
 "Microfone" da barra; baixar o áudio.

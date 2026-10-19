@@ -2,7 +2,7 @@
 
 Programa em Rust (`falaai-auxiliar-win.exe`) que o FalaAi inicia como processo filho. Faz o que o app
 Electron não consegue sozinho: **teclado global**, **colar texto**, **ler o contexto** (app e campo em
-foco) e **silenciar o som**. Segue o protocolo v3, igual ao auxiliar do Mac:
+foco) e **silenciar o som**. Segue o protocolo v3 (o auxiliar do Mac já está na v4; os comandos novos ainda não existem aqui e o app segue sem eles):
 [`docs/design/PROTOCOLO_AUXILIAR.md`](../../docs/design/PROTOCOLO_AUXILIAR.md).
 
 ## Compilar

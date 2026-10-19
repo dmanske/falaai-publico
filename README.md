@@ -3,7 +3,7 @@
 Ditado por voz com IA, 100% local: segura a tecla, fala, solta, e o texto já limpo aparece onde
 o cursor está. Inspirado nas funcionalidades do Typeless, com código próprio.
 
-- **App:** Electron + React + TypeScript (electron-vite), Mac e Windows. Versão 1.0.0.
+- **App:** Electron + React + TypeScript (electron-vite), Mac e Windows. Versão 1.1.0 (o que mudou em cada versão: página **Novidades** do app, `src/shared/novidades.ts`).
 - **IA com a sua chave:** Lovable, Google Gemini, OpenRouter, OpenAI, Claude (Anthropic), Groq,
   Mistral ou DeepSeek, colada na tela de Configurações e guardada criptografada pelo sistema.
   Quando o modelo não ouve áudio, um serviço de transcrição (OpenAI, Groq, ElevenLabs, Deepgram,
@@ -15,7 +15,11 @@ o cursor está. Inspirado nas funcionalidades do Typeless, com código próprio.
 - A IA limpa o texto, entende listas faladas, tópicos, pausas e mudanças de assunto, e respeita
   português com termos em inglês.
 - Envio automático (Enter) por comando de voz ou por app; atalhos livres, inclusive toque duplo.
-- Histórico, estatísticas, dicionário pessoal que aprende com as correções.
+- Contexto do app em foco: texto em volta do cursor (inclusive em apps Electron e campos de sites), a conversa em
+  volta da caixa de texto e o texto da janela, para acertar nomes e o tom.
+- Pílula que avisa e recupera: Desfazer depois do Esc, Tentar de novo quando a IA falha, microfone mudo, "demorando",
+  contagem regressiva, e Copiar quando não há campo de texto.
+- Histórico, estatísticas, dicionário pessoal que aprende com as correções, e a página Novidades.
 - Visual: fonte Fredoka, fundo com ondas, pílula com 7 estilos e pacote de futebol (20 clubes da
   Série A 2026, com o tema do clube no app inteiro).
 

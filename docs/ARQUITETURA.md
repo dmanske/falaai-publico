@@ -27,9 +27,9 @@ CSP no HTML, links externos abrem no navegador.
 ## 3. Código: módulo novo sempre em pasta própria
 
 Features do processo principal hoje: `chaves`, `dicionario`, `ditado`, `estatisticas`, `historico`, `ia`
-(motor, prompts, `provedores/`, `ritmo/`), `nativo`, `permissoes`, `preferencias` e `sistema`. Janelas em
+(motor, prompts, `provedores/`, `ritmo/`), `nativo`, `novidades`, `permissoes`, `preferencias` e `sistema`. Janelas em
 `src/main/janelas/` (hub, pílula, cartão, onboarding, configurações). Features das telas: `cartao`,
-`configuracoes`, `dicionario`, `historico`, `hub`, `inicio`, `onboarding` e `pilula`.
+`configuracoes`, `dicionario`, `historico`, `hub`, `inicio`, `novidades`, `onboarding` e `pilula`.
 
 Processo principal:
 

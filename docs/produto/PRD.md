@@ -1,6 +1,6 @@
 # PRD — FalaAi
 
-**Versão do produto:** 1.0.0 (17/10/2026).
+**Versão do produto:** 1.1.0 (18/10/2026). O que mudou em cada versão: página Novidades do app (`src/shared/novidades.ts`).
 
 **Problema:** digitar é lento. Falar é 3–4× mais rápido, mas o ditado comum sai cru (com "é…",
 "tipo", sem pontuação, sem parágrafos) e não sabe onde você está escrevendo.
@@ -81,8 +81,8 @@ depois (itens com "—" e 33 em diante). Ficam de fora: veja "Fora do escopo".
 | — | "Não achei um campo de texto aqui" + Copiar, quando o foco não era editável | — | construído |
 | — | Colar só neste Mac (sem Área de Transferência Universal), tecla V pelo layout, listas formatadas (HTML) | — | construído — falta testar colando |
 | — | Botões extras do mouse como atalho (Mac) e dica de teclado externo sem Fn | — | construído — falta testar com mouse e teclado externo |
-| — | Esc/✕: "Cancelado" com **Desfazer** por 6 s (o áudio fica só na memória; funciona com "Guardar o áudio" desligado) | — | construído — o Daniel testou o Esc com o áudio desligado e não havia como recuperar; corrigido em 18/10/2026 |
-| — | Página **Novidades** (histórico de versões com data) e aviso na pílula depois de atualizar (ver modulos/novidades.md) | — | construído em 18/10/2026 |
+| — | Esc/✕: "Cancelado" com **Desfazer** por 6 s (o áudio fica só na memória; funciona com "Guardar o áudio" desligado) | — | ✅ testado pelo Daniel (18/10/2026; antes, com o áudio desligado, não havia como recuperar) |
+| — | Página **Novidades** (histórico de versões com data) e aviso na pílula depois de atualizar (ver modulos/novidades.md) | — | ✅ testado pelo Daniel (18/10/2026) |
 
 ## Fora do escopo
 
