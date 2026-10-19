@@ -19,12 +19,13 @@ interface Props {
   aoCopiar(): void;
   aoOuvir(): void;
   aoReprocessar(): void;
+  aoBaixarAudio(): void;
   aoApagar(): void;
 }
 
 const BOTAO = "px-3! py-1.5! text-xs!";
 
-export function CartaoDitado({ item, copiado, tocando, carregandoAudio, reprocessando, erroAcao, aoCopiar, aoOuvir, aoReprocessar, aoApagar }: Props) {
+export function CartaoDitado({ item, copiado, tocando, carregandoAudio, reprocessando, erroAcao, aoCopiar, aoOuvir, aoReprocessar, aoBaixarAudio, aoApagar }: Props) {
   const [aberto, setAberto] = useState(false);
   const [cortado, setCortado] = useState(false);
   const texto = useRef<HTMLParagraphElement>(null);
@@ -41,6 +42,9 @@ export function CartaoDitado({ item, copiado, tocando, carregandoAudio, reproces
         <span className="font-medium text-texto">{formatarHora(item.criadoEm)}</span>
         {item.app && <span>· {item.app}</span>}
         <span className="rounded-full bg-destaque-claro px-2 py-0.5 text-xs font-medium text-destaque">{ROTULO_MODO[item.modo]}</span>
+        {item.status === "cancelado" && (
+          <span className="rounded-full bg-fundo px-2 py-0.5 text-xs font-medium text-suave ring-1 ring-borda">Cancelado</span>
+        )}
       </div>
 
       {item.textoSelecionado && <p className="mb-2 line-clamp-2 border-l-2 border-borda pl-3 text-sm text-suave">{item.textoSelecionado}</p>}
@@ -50,7 +54,7 @@ export function CartaoDitado({ item, copiado, tocando, carregandoAudio, reproces
           {item.texto}
         </p>
       ) : (
-        <p className="text-base text-suave">(sem texto)</p>
+        <p className="text-base text-suave">{item.status === "cancelado" ? "(cancelado — dá para reprocessar)" : "(sem texto)"}</p>
       )}
       {(cortado || aberto) && (
         <button type="button" onClick={() => setAberto((a) => !a)} className="mt-1 text-sm font-medium text-destaque hover:underline">
@@ -73,6 +77,11 @@ export function CartaoDitado({ item, copiado, tocando, carregandoAudio, reproces
         {item.temAudio && (
           <Botao variante="fantasma" className={BOTAO} onClick={aoReprocessar} disabled={reprocessando}>
             {reprocessando ? "Reprocessando…" : "Reprocessar"}
+          </Botao>
+        )}
+        {item.temAudio && (
+          <Botao variante="fantasma" className={BOTAO} onClick={aoBaixarAudio}>
+            Baixar áudio
           </Botao>
         )}
         <Botao variante="fantasma" className={`${BOTAO} text-perigo!`} onClick={aoApagar}>

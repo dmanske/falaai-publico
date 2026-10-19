@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { EstiloPilula, ModoDitado } from "@shared/ipc";
+import { formatarTempoRestante } from "@shared/config";
 import { bandeiraDaSigla } from "../lib/bandeiras";
 import { resolverVisual } from "../lib/visualEstilo";
 import { Onda } from "./Onda";
@@ -20,6 +21,10 @@ interface Props {
   /** Sigla do idioma de destino (modo tradução). */
   idioma?: string | null;
   nivel?: number;
+  /** Segundos que faltam para o limite da gravação (só nos últimos); null = não mostra. */
+  restanteS?: number | null;
+  /** Texto no lugar dos pontinhos enquanto processa (ex.: "Demorando mais que o normal…"). */
+  nota?: string | null;
   /** Prévia: onda parada e botões sem ação (Configurações). */
   parada?: boolean;
   /** Largura fixa em px (prévia). Sem ela a pílula ocupa a janela inteira. */
@@ -56,7 +61,7 @@ function Botao({ classe, titulo, desativado, aoClicar, children }: { classe: str
 }
 
 /** A pílula inteira (✕, escudo, sigla, onda ou pontos, ✓). Usada na janela real e nas miniaturas. */
-export function PilulaVisual({ estilo, estado, modo, idioma, nivel = 0, parada = false, largura, aoCancelar, aoConfirmar, aoTrocarIdioma }: Props) {
+export function PilulaVisual({ estilo, estado, modo, idioma, nivel = 0, restanteS = null, nota = null, parada = false, largura, aoCancelar, aoConfirmar, aoTrocarIdioma }: Props) {
   const visual = resolverVisual(estilo);
   const bandeira = idioma ? bandeiraDaSigla(idioma) : undefined;
   const conteudo = (
@@ -74,7 +79,12 @@ export function PilulaVisual({ estilo, estado, modo, idioma, nivel = 0, parada =
           </span>
         ))}
       {estado === "gravando" ? (
-        <Onda nivel={nivel} parada={parada} cor={visual.original && modo !== "ditado" ? COR_MODO[modo] : undefined} />
+        <>
+          <Onda nivel={nivel} parada={parada} cor={visual.original && modo !== "ditado" ? COR_MODO[modo] : undefined} />
+          {restanteS != null && <span className="pil-tempo">{formatarTempoRestante(restanteS)}</span>}
+        </>
+      ) : nota ? (
+        <span className="pil-nota">{nota}</span>
       ) : (
         <div className="pil-pontos">
           <i />

@@ -29,21 +29,60 @@ export const MODELO_PADRAO = MODELOS_IA[0].id;
 
 /** Tempo máximo de uma chamada à IA (ms). O Typeless usa 40 s no /ai/voice_flow. */
 export const TIMEOUT_IA_MS = 40_000;
+/** Prazo extra por duração do áudio: ditado longo ganha mais tempo (1 = 1 s de prazo por 1 s de fala). */
+export const FATOR_PRAZO_AUDIO = 1;
+
+/** Prazo da IA para um áudio: nunca menos que TIMEOUT_IA_MS; áudio longo ganha mais. */
+export function prazoIaMs(duracaoAudioMs: number): number {
+  return Math.max(TIMEOUT_IA_MS, duracaoAudioMs * FATOR_PRAZO_AUDIO);
+}
+
+/** Base do aviso "Demorando mais que o normal…" (ms). Escolha nossa; o resto da fórmula é a do Typeless. */
+export const AVISO_DEMORA_BASE_MS = 8000;
+
+/** Depois de quanto tempo processando a pílula avisa que está demorando (ms). */
+export function atrasoAvisoDemoraMs(duracaoAudioMs: number, caracteresSelecionados: number): number {
+  const blocosAudio = Math.ceil(duracaoAudioMs / 1000 / 30);
+  const blocosTexto = Math.ceil(caracteresSelecionados / 1000);
+  return AVISO_DEMORA_BASE_MS + blocosAudio * 500 + blocosTexto * 500;
+}
 
 // ── Ditado ────────────────────────────────────────────────────────────────────
 
 /** Soltar Fn antes disso (ms) = toque rápido → liga o modo mãos livres. */
 export const TOQUE_RAPIDO_MS = 300;
+/** Mãos livres com toque duplo (opção): prazo (ms) para o 2º toque depois do 1º. Valor do Typeless. */
+export const TOQUE_DUPLO_MS = 400;
 /** Gravações mais curtas que isso (ms) são descartadas (toque sem fala). */
 export const GRAVACAO_MINIMA_MS = 400;
 /** Limite de uma gravação (s). 6 min de WAV 16 kHz ≈ 11,5 MB. */
 export const GRAVACAO_MAXIMA_S = 360;
+/** Nos últimos segundos antes do limite, a pílula mostra o tempo que falta. */
+export const CONTAGEM_REGRESSIVA_S = 60;
+
+/** "0:42" a partir de segundos restantes. */
+export function formatarTempoRestante(segundos: number): string {
+  const s = Math.max(0, Math.ceil(segundos));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+/** Sem nenhuma amostra de áudio diferente de zero por tanto tempo (ms), o microfone é dado como mudo. */
+export const MICROFONE_MUDO_MS = 5000;
 /** Fn combinada com outra tecla até este tempo (ms) após descer = atalho do sistema, não ditado. */
 export const JANELA_FN_COMBINADO_MS = 800;
 /** Taxa de amostragem enviada para a IA. */
 export const TAXA_AMOSTRAGEM = 16_000;
 /** Por quanto tempo a pílula mostra uma mensagem de erro (ms). */
 export const ERRO_PILULA_MS = 3500;
+/** Erro com botão (ex.: "Tentar de novo") fica mais tempo na pílula (ms). */
+export const ERRO_COM_ACAO_MS = 8000;
+/** Aviso com botão (ex.: "Copiar") fica este tempo na pílula (ms). */
+export const AVISO_COM_ACAO_MS = 6000;
+/** Quanto tempo "Copiado." aparece (ms). */
+export const AVISO_COPIADO_MS = 1500;
+/** Quanto tempo a nota "Ainda no ditado anterior" aparece (ms). */
+export const AVISO_OCUPADO_MS = 2500;
+
 /** Quantos idiomas favoritos a tradução pode ter para trocar na hora. */
 export const MAX_IDIOMAS_TRADUCAO = 4;
 
@@ -70,6 +109,31 @@ export const VELOCIDADE_DIGITACAO_PPM = 40;
 /** Quantos caracteres antes/depois do cursor vão de contexto para a IA. */
 export const CONTEXTO_ANTES_CHARS = 800;
 export const CONTEXTO_DEPOIS_CHARS = 300;
+/** Caracteres da conversa em volta do campo e do texto da janela enviados à IA (valores do Typeless). */
+export const CONTEXTO_CONVERSA_CHARS = 1000;
+export const CONTEXTO_TELA_CHARS = 10_000;
+/**
+ * Editores de código: ligar a acessibilidade neles pode ativar o "modo leitor de tela" (muda o
+ * comportamento do editor), então o auxiliar não liga a árvore de acessibilidade nesses apps.
+ */
+export const APPS_SEM_LIGAR_ACESSIBILIDADE = [
+  "com.microsoft.VSCode",
+  "com.microsoft.VSCodeInsiders",
+  "com.vscodium",
+  "dev.kiro.desktop",
+  "com.todesktop.230313mzl4w4u92", // Cursor
+  "com.exafunction.windsurf",
+  "com.stablyai.orca",
+];
+/** Prazo (ms) da cópia da seleção por Cmd+C no "pergunte" (o auxiliar aceita de 50 a 1000). */
+export const COPIAR_SELECAO_PRAZO_MS = 300;
+/**
+ * Apps em que Cmd+C SEM seleção copia a linha inteira: o "pergunte" substituiria a linha, então
+ * nunca se simula a cópia neles. Soma dos editores acima e destes; ver também PREFIXOS_….
+ */
+export const APPS_COPIAM_LINHA_SEM_SELECAO = [...APPS_SEM_LIGAR_ACESSIBILIDADE, "com.sublimetext.4", "dev.zed.Zed"];
+/** Qualquer app cujo bundle id começa com isto também copia a linha (família JetBrains). */
+export const PREFIXOS_COPIAM_LINHA_SEM_SELECAO = ["com.jetbrains."];
 /** Por quanto tempo, depois de colar, o dicionário observa correções no campo (ms). */
 export const OBSERVAR_CORRECOES_MS = 20_000;
 
@@ -82,3 +146,30 @@ export const REPO_ATUALIZACOES = "dmanske/falaai-publico";
 export const FRASE_AMOSTRA = "Teste de ditado, um, dois, três.";
 /** Palavra que precisa aparecer na transcrição para o teste de áudio passar. */
 export const PALAVRA_CHAVE_AMOSTRA = "ditado";
+
+// ── Campo de texto não encontrado (lista do Typeless 2.8.2) ─────────────────────
+
+/** Apps em que a colagem costuma funcionar mesmo sem o macOS enxergar um campo de texto. */
+export const APPS_INSERCAO_MELHOR_ESFORCO = [
+  "com.sublimetext.4",
+  "com.tencent.xinWeChat",
+  "com.microsoft.Excel",
+  "com.kingsoft.wpsoffice.mac",
+  "dev.zed.Zed",
+];
+/** Apps que sempre aceitam texto: nunca mostrar "Não achei um campo de texto". */
+export const APPS_SEMPRE_GRAVAVEIS = [
+  "com.todesktop.230313mzl4w4u92",
+  "com.tinyspeck.slackmacgap",
+  "com.apple.mail",
+  "com.figma.Desktop",
+  "com.openai.atlas",
+  "com.conductor.app",
+  "com.github.wez.wezterm",
+  "org.mozilla.thunderbird",
+  "jp.naver.line.mac",
+];
+/** Páginas (prefixo da URL) em que a colagem costuma funcionar. */
+export const URLS_INSERCAO_MELHOR_ESFORCO = ["https://docs.google.com/document/d"];
+/** Páginas (prefixo da URL) que sempre aceitam texto. */
+export const URLS_SEMPRE_GRAVAVEIS = ["https://www.figma.com/design/"];

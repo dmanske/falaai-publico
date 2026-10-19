@@ -14,7 +14,12 @@ export function PilulaPage() {
     const cor = estado.estado === "erro" ? "text-red-200" : "text-white/90";
     return (
       <div className={`pil-mensagem ${cor}`}>
-        <span className="line-clamp-2">{estado.mensagem}</span>
+        <span className="line-clamp-2 min-w-0 flex-1">{estado.mensagem}</span>
+        {estado.acao && (
+          <button type="button" className="pil-acao" onClick={() => apiPilula.acao(estado.acao!.id)}>
+            {estado.acao.rotulo}
+          </button>
+        )}
       </div>
     );
   }
@@ -26,6 +31,8 @@ export function PilulaPage() {
       modo={estado.modo}
       idioma={estado.idioma}
       nivel={nivel}
+      restanteS={estado.estado === "gravando" ? estado.restanteS : null}
+      nota={estado.estado === "processando" ? estado.nota : null}
       aoCancelar={() => apiPilula.acao("cancelar")}
       aoConfirmar={() => apiPilula.acao("confirmar")}
       aoTrocarIdioma={() => apiPilula.acao("proximo-idioma")}

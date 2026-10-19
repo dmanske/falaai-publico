@@ -13,7 +13,7 @@ mkdir -p resources/bin
 
 compilar() { # $1 = arquitetura
   swiftc -O -swift-version 5 -target "$1-apple-macos12" \
-    -framework Cocoa -framework ApplicationServices -framework Carbon -framework CoreAudio \
+    -framework Cocoa -framework ApplicationServices -framework Carbon -framework CoreAudio -framework IOKit \
     "${FONTES[@]}" -o "$TMP/aux-$1"
 }
 

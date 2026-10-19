@@ -23,6 +23,13 @@ export function SecaoEnvio({ preferencias, salvar }: PropsSecaoPreferencias) {
         descricao="Termine a fala com “enviar” ou “manda” para enviar só daquela vez, em qualquer app."
       />
 
+      <Interruptor
+        ligado={preferencias.colarFormatado}
+        aoMudar={(colarFormatado) => void salvar({ colarFormatado })}
+        rotulo="Colar listas formatadas"
+        descricao="Listas viram listas de verdade em apps como Notas, Mail, Gmail e Notion. Os outros apps recebem o texto normal."
+      />
+
       <div className="py-3">
         <span className="block text-sm font-medium">Apps</span>
         {apps === null ? (

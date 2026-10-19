@@ -63,6 +63,8 @@ export interface PedidoIa {
   termos: string[];
   /** Teste da chave: força o formato do áudio (1 chamada). */
   formatoForcado?: FormatoAudio;
+  /** Prazo de cada chamada (ms); sem ele vale TIMEOUT_IA_MS. O ditado passa um proporcional à duração. */
+  timeoutMs?: number;
 }
 
 export type ResultadoIa =
@@ -83,6 +85,7 @@ export async function executarPedidoIa(p: PedidoIa): Promise<ResultadoIa> {
       provedor,
       chave,
       modelo,
+      timeoutMs: p.timeoutMs,
       mensagens: [
         { role: "system", content: p.sistema },
         {
@@ -108,6 +111,7 @@ export async function executarPedidoIa(p: PedidoIa): Promise<ResultadoIa> {
     modelo: prefs.modeloPorTranscricao[servico] || modeloTranscricaoPadrao(servico),
     idiomas: p.idiomas,
     termos: p.termos,
+    timeoutMs: p.timeoutMs,
   });
   if (!t.ok) return { ok: false, erro: t.erro, ms: t.ms };
   if (!t.texto) return { ok: true, texto: "", ms: t.ms, semFala: true };
@@ -116,6 +120,7 @@ export async function executarPedidoIa(p: PedidoIa): Promise<ResultadoIa> {
     provedor,
     chave,
     modelo,
+    timeoutMs: p.timeoutMs,
     mensagens: [
       { role: "system", content: AVISO_TRANSCRICAO_AUTOMATICA + p.sistema },
       { role: "user", content: p.instrucaoTexto(t.texto) },

@@ -74,7 +74,7 @@ export function LinhaAtalho({ id, atalho, editando, erro, aviso, onEditar, onCan
             </Botao>
           </div>
           <p className="text-xs leading-relaxed text-suave">
-            Aperte a combinação que quiser (vale Fn) e solte. Para <b className="font-medium text-medio">toque duplo</b>, toque a tecla
+            Aperte a combinação que quiser (vale Fn){plataforma === "darwin" ? " ou um botão extra do mouse" : ""} e solte. Para <b className="font-medium text-medio">toque duplo</b>, toque a tecla
             duas vezes rápido — ex.: 2× ⌥ dir. Esc cancela.
           </p>
           {(erro ?? gravador.erro) && <p className="text-xs text-perigo">{erro ?? gravador.erro}</p>}

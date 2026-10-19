@@ -8,6 +8,8 @@ export type IdAtalho = "ditado" | "pergunte" | "traducao" | "colarUltima";
  * Modificadores: Fn, Ctrl, CtrlLeft, CtrlRight, Option, OptionLeft, OptionRight (Windows: Alt*),
  * Cmd, CmdLeft, CmdRight (Windows: Win*), Shift, ShiftLeft, ShiftRight.
  * No máximo uma tecla comum: Space, A–Z, 0–9, F1–F20, Enter, Tab, Esc.
+ * Botões extras do mouse (só Mac, auxiliar v4): Mouse3 (meio), Mouse4, Mouse5 — contam como a tecla
+ * comum, podem ficar sozinhos (como F1–F20) e valem com Duplo.
  * "Ctrl"/"Option"/"Cmd"/"Shift" sem lado aceitam qualquer um dos dois lados.
  * Toque duplo: ["Duplo", X] — tocar X duas vezes rápido (X = uma tecla qualquer).
  */
@@ -57,6 +59,9 @@ const ROTULOS_MAC: Record<string, string> = {
   Shift: "⇧",
   ShiftLeft: "⇧ esq.",
   ShiftRight: "⇧ dir.",
+  Mouse3: "Botão do meio",
+  Mouse4: "Botão 4 do mouse",
+  Mouse5: "Botão 5 do mouse",
   Space: "Espaço",
   Enter: "↩",
   Tab: "⇥",
@@ -93,6 +98,8 @@ const MODIFICADORES = new Set([
 ]);
 export const ehModificador = (t: string) => MODIFICADORES.has(t);
 const ehTeclaF = (t: string) => /^F([1-9]|1[0-9]|20)$/.test(t);
+/** Botão extra do mouse (só Mac por enquanto). */
+export const ehBotaoMouse = (t: string) => t === "Mouse3" || t === "Mouse4" || t === "Mouse5";
 /** Teclas que digitam algo: no toque duplo, o primeiro toque chega a escrever o caractere. */
 const digita = (t: string) => /^[A-Z0-9]$/.test(t) || t === "Space" || t === "Tab";
 
@@ -105,7 +112,12 @@ export interface ResultadoValidacao {
   aviso: string | null;
 }
 
-export function validarAtalho(id: IdAtalho, novo: Atalho, todos: Record<IdAtalho, Atalho>): ResultadoValidacao {
+export function validarAtalho(
+  id: IdAtalho,
+  novo: Atalho,
+  todos: Record<IdAtalho, Atalho>,
+  plataforma: string = "darwin",
+): ResultadoValidacao {
   const ok = (aviso: string | null = null): ResultadoValidacao => ({ erro: null, aviso });
   const falha = (erro: string): ResultadoValidacao => ({ erro, aviso: null });
   if (novo.length === 0) return falha("Escolha pelo menos uma tecla.");
@@ -115,9 +127,10 @@ export function validarAtalho(id: IdAtalho, novo: Atalho, todos: Record<IdAtalho
   if (duplo && novo.length !== 2) return falha("O toque duplo vale para uma tecla só.");
 
   const teclas = duplo ? novo.slice(1) : novo;
+  if (plataforma === "win32" && teclas.some(ehBotaoMouse)) return falha("Botões do mouse só funcionam no Mac por enquanto.");
   const comuns = teclas.filter((t) => !ehModificador(t));
   if (comuns.length > 1) return falha("Use no máximo uma tecla comum (letra, número, Espaço…).");
-  if (!duplo && teclas.length === 1 && comuns.length === 1 && !ehTeclaF(comuns[0])) {
+  if (!duplo && teclas.length === 1 && comuns.length === 1 && !ehTeclaF(comuns[0]) && !ehBotaoMouse(comuns[0])) {
     return falha("Uma tecla comum sozinha digitaria texto. Combine com um modificador ou use toque duplo.");
   }
 

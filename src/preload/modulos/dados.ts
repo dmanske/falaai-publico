@@ -15,6 +15,7 @@ export const ponteHistorico: PonteHistorico = {
   apagarTudo: () => invocar(CANAIS_HISTORICO.APAGAR_TUDO),
   reprocessar: (id) => invocar(CANAIS_HISTORICO.REPROCESSAR, id),
   audio: (id) => invocar(CANAIS_HISTORICO.AUDIO, id),
+  salvarAudio: (id) => invocar(CANAIS_HISTORICO.SALVAR_AUDIO, id),
   aoMudar: (cb) => ouvir(CANAIS_HISTORICO.MUDOU, cb),
 };
 

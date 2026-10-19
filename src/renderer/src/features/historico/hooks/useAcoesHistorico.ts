@@ -56,5 +56,15 @@ export function useAcoesHistorico({ aoAtualizar, aoApagar, aoApagarTudo }: Retor
     [aoAtualizar],
   );
 
-  return { reprocessando, errosReprocesso, erroGeral, apagar, apagarTudo, reprocessar };
+  /** Abre o "Salvar como…" do sistema; cancelar a janela não é erro. */
+  const baixarAudio = useCallback(async (id: string) => {
+    try {
+      await apiHistorico.salvarAudio(id);
+    } catch (e) {
+      const msg = ((e as Error).message || "Não consegui salvar o áudio.").replace(/^Error invoking remote method '[^']*': (Error: )?/, "");
+      setErroGeral(msg);
+    }
+  }, []);
+
+  return { reprocessando, errosReprocesso, erroGeral, apagar, apagarTudo, reprocessar, baixarAudio };
 }

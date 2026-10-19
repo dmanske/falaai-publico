@@ -6,6 +6,7 @@ export const CANAIS_HISTORICO = {
   APAGAR_TUDO: "historico:apagar-tudo",
   REPROCESSAR: "historico:reprocessar",
   AUDIO: "historico:audio",
+  SALVAR_AUDIO: "historico:salvar-audio",
   /** main → janelas: um item foi criado ou mudou (envia o item). */
   MUDOU: "historico:mudou",
 } as const;
@@ -25,7 +26,8 @@ export interface ItemHistorico {
   app: string | null;
   appId: string | null;
   url: string | null;
-  status: "ok" | "erro";
+  /** "cancelado": Esc/✕ durante o ditado; o áudio fica guardado e dá para reprocessar. */
+  status: "ok" | "erro" | "cancelado";
   erro: string | null;
   temAudio: boolean;
 }
@@ -45,5 +47,7 @@ export interface PonteHistorico {
   reprocessar(id: string): Promise<ItemHistorico>;
   /** WAV guardado, para ouvir na tela; null se não houver. */
   audio(id: string): Promise<ArrayBuffer | null>;
+  /** Abre o "Salvar como…" e grava o WAV; true se o arquivo foi salvo. */
+  salvarAudio(id: string): Promise<boolean>;
   aoMudar(cb: (item: ItemHistorico) => void): () => void;
 }

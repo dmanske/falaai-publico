@@ -17,7 +17,7 @@ export async function transcreverERefinar(wav: Buffer, formatoForcado?: FormatoA
   const idiomas = lerPreferencias().idiomas;
   const dicionario = palavrasParaPrompt();
   const r = await executarPedidoIa({
-    sistema: PROMPT_DITADO + blocoContexto({ app: null, janela: null, url: null, placeholder: null, antes: "", depois: "", idiomas, dicionario }),
+    sistema: PROMPT_DITADO + blocoContexto({ app: null, janela: null, url: null, placeholder: null, antes: "", depois: "", conversa: null, tela: null, idiomas, dicionario }),
     instrucaoAudio: "Transcreva e limpe este ditado.",
     instrucaoTexto: mensagemTranscricao,
     wav,

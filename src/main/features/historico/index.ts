@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { BrowserWindow } from "electron";
 import { CANAIS_HISTORICO, type ItemHistorico, type ModoDitado } from "@shared/ipc";
 import { banco, migrar } from "../../lib/banco";
-import { somarDitado } from "../estatisticas/lib/totais";
+import { ajustarReprocessamento, somarDitado } from "../estatisticas/lib/totais";
 import { aoMudarPreferencias, lerPreferencias } from "../preferencias";
 import { apagarAudio, gravarAudio } from "./lib/audios";
 import { contarPalavras } from "./lib/contarPalavras";
@@ -17,7 +17,7 @@ export interface NovoDitado {
   app: string | null;
   appId: string | null;
   url: string | null;
-  status: "ok" | "erro";
+  status: "ok" | "erro" | "cancelado";
   erro: string | null;
   /** WAV do ditado; guardado só se preferencias.guardarAudio. */
   wav: Buffer | null;
@@ -134,6 +134,36 @@ export function registrarDitado(d: NovoDitado): ItemHistorico | null {
   } catch (e) {
     console.error("[historico] falha ao registrar ditado", e);
     apagarAudio(audio);
+    return null;
+  }
+}
+
+/**
+ * Dá um texto a um item que ainda não tinha (erro de IA refeito com "Tentar de novo", ou cancelado
+ * reprocessado): vira "ok", soma nas estatísticas como o reprocessamento e avisa as janelas.
+ * Devolve null se o item não existe mais.
+ */
+export function concluirDitado(id: string, texto: string): ItemHistorico | null {
+  try {
+    const linha = banco().prepare("SELECT * FROM historico WHERE id = ?").get(id) as LinhaHistorico | undefined;
+    if (!linha) return null;
+    const palavras = contarPalavras(texto);
+    banco().prepare("UPDATE historico SET texto = ?, palavras = ?, status = 'ok', erro = NULL WHERE id = ?").run(texto, palavras, id);
+    // Ajusta a diferença nos totais permanentes (falha não impede a atualização).
+    try {
+      ajustarReprocessamento(
+        banco(),
+        { criadoEm: linha.criado_em, modo: linha.modo, palavras: linha.palavras, duracaoMs: linha.duracao_ms, app: linha.app, status: linha.status },
+        palavras,
+      );
+    } catch (e) {
+      console.error("[estatisticas] falha ao ajustar os totais ao concluir o ditado", e);
+    }
+    const item = linhaParaItem({ ...linha, texto, palavras, status: "ok", erro: null });
+    avisarMudanca(item);
+    return item;
+  } catch (e) {
+    console.error("[historico] falha ao concluir ditado", e);
     return null;
   }
 }

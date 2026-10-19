@@ -275,3 +275,40 @@ button.pil-sigla:hover:not(:disabled) {
   font-size: 12px;
   line-height: 1.25;
 }
+
+/* Tempo que falta para o limite da gravação (últimos segundos). */
+.pil-tempo {
+  flex: none;
+  color: #fff;
+  font: 600 12px/1 var(--font-titulo);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Nota no lugar dos pontinhos ("Demorando mais que o normal…"). */
+.pil-nota {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: rgb(255 255 255 / 0.9);
+  font-size: 12px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Botão ao lado da mensagem de erro/aviso ("Tentar de novo", "Copiar"). */
+.pil-acao {
+  flex: none;
+  margin-left: 10px;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.18);
+  padding: 5px 11px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+.pil-acao:hover {
+  background: rgb(255 255 255 / 0.3);
+}

@@ -4,12 +4,12 @@ Processo filho do Electron, escrito em Swift (`main.swift`). Faz o que o Electro
 atalhos globais configuráveis (CGEventTap ativo), colar texto no app em foco (Cmd+V simulado,
 preservando a área de transferência), ler o contexto da tela pela Acessibilidade e silenciar o som.
 
-**Especificação completa (fonte da verdade): `docs/design/PROTOCOLO_AUXILIAR.md`.** Abaixo, o resumo (versão 3).
+**Especificação completa (fonte da verdade): `docs/design/PROTOCOLO_AUXILIAR.md`.** Abaixo, o resumo (versão 4).
 
-## Protocolo v3 (resumo)
+## Protocolo v4 (resumo)
 
 JSON UTF-8, uma mensagem por linha. stdin = comandos; stdout = respostas e eventos (logs vão para stderr).
-Ao iniciar: `{"evento":"pronto","versao":3}`. EOF no stdin (ou `sair`) restaura pendências
+Ao iniciar: `{"evento":"pronto","versao":4}`. EOF no stdin (ou `sair`) restaura pendências
 (área de transferência, som) e encerra.
 
 Todo comando tem `id` numérico e `cmd`; a resposta traz o mesmo `id`, `ok` e, em erro, `erro`.
@@ -21,8 +21,11 @@ Todo comando tem `id` numérico e `cmd`; a resposta traz o mesmo `id`, `ok` e, e
 | `configurar_atalhos` (`atalhos:[{id,teclas[]}]`) | — (substitui a lista; erro claro se houver tecla desconhecida, duas teclas comuns etc.) |
 | `capturar_atalho` | `teclas` (só responde quando a captura termina, até 10 s; uma por vez) |
 | `cancelar_captura` | — (a captura em andamento responde `ok:false` "Captura cancelada.") |
-| `colar` (`texto`) | — (área de transferência restaurada ~450 ms depois se ninguém mexeu) |
-| `contexto` | `app`, `navegador`, `campo` (texto antes/depois do cursor, selecionado, placeholder; senha nunca é lida) |
+| `colar` (`texto`, `html?`) | — (área de transferência restaurada ~450 ms depois se ninguém mexeu) |
+| `contexto` (`pid?`, `extras?`) | `app`, `navegador`, `campo` (texto antes/depois do cursor, selecionado, placeholder, `editavel`, `leitura`; senha nunca é lida), `conversa`, `tela`, `acessibilidadeLigada` |
+| `copiar_selecao` (`prazoMs?`) | `texto` (Cmd+C simulado; devolve a área de transferência) |
+| `dispositivos_audio` | `entradas[]`, `tampaFechada` |
+| `teclados` | `teclados[]` |
 | `ler_campo` | `texto` (até 20.000 caracteres, `null` se não der/senha), `appId` |
 | `mutar_saida` | `jaEstavaMudo` |
 | `desmutar_saida` | — (só desfaz se foi o auxiliar que silenciou) |
@@ -33,8 +36,14 @@ só de modificadores, ex. Fn, seguro), `esc`. Sem atalhos configurados, só saem
 
 Regras dos atalhos (ver a especificação): modificadores com/sem lado (`Ctrl`, `CtrlLeft`...), Fn só pelo keycode 63;
 atalho com tecla comum engole o keyDown/keyUp dessa tecla (o tap é ativo; todo o resto passa intacto).
-Detalhe desta implementação: tecla comum **sozinha** (sem modificador) só é aceita para F1–F20; `A`, `Space`, `Esc` etc.
+Detalhe desta implementação: tecla comum **sozinha** (sem modificador) só é aceita para F1–F20 e botões do mouse (Mouse3–Mouse5); `A`, `Space`, `Esc` etc.
 sem modificador dão `ok:false`, porque engoliriam a digitação normal.
+
+## Novidades da v4
+
+`colar` com `html`; `copiar_selecao`; `contexto` com `pid`/`extras` (marcadores de texto para campos web, conversa, texto da
+janela, ligar a acessibilidade de Electron/Chromium); `dispositivos_audio`; `teclados`; botões do mouse `Mouse3`/`Mouse4`/`Mouse5`
+como atalho. Detalhes e regras em `docs/design/PROTOCOLO_AUXILIAR.md`. O Windows ainda é v3.
 
 ## Novidades da v3
 

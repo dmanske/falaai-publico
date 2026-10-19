@@ -53,6 +53,7 @@ export function HistoricoPage() {
                   aoCopiar={() => void copiar(item.id, item.texto)}
                   aoOuvir={() => void audio.alternar(item.id)}
                   aoReprocessar={() => void acoes.reprocessar(item.id)}
+                  aoBaixarAudio={() => void acoes.baixarAudio(item.id)}
                   aoApagar={() => void acoes.apagar(item.id)}
                 />
               ))}

@@ -1,4 +1,5 @@
 import { Interruptor, LinhaConfig } from "@/components/ui";
+import { plataforma } from "../../api/ponte";
 import type { PropsSecaoPreferencias } from "../../types";
 import { CartaoSecao } from "../CartaoSecao";
 import { Seletor } from "../Seletor";
@@ -44,6 +45,22 @@ export function SecaoDados({ preferencias, salvar }: PropsSecaoPreferencias) {
         ligado={preferencias.usarContexto}
         aoMudar={(v) => void salvar({ usarContexto: v })}
       />
+      {preferencias.usarContexto && (
+        <Interruptor
+          rotulo="Ler a conversa e o texto da janela"
+          descricao="Manda para a IA, junto com o contexto, as mensagens em volta do campo e o texto da janela (até 10 mil caracteres). Melhora nomes e o tom; envia mais dados."
+          ligado={preferencias.lerTela}
+          aoMudar={(v) => void salvar({ lerTela: v })}
+        />
+      )}
+      {plataforma === "darwin" && (
+        <Interruptor
+          rotulo="Copiar a seleção quando o app não mostra"
+          descricao="No Pergunte, se o app não informa o texto selecionado, o FalaAi aperta Cmd+C e devolve a sua área de transferência em seguida."
+          ligado={preferencias.copiarSelecao}
+          aoMudar={(v) => void salvar({ copiarSelecao: v })}
+        />
+      )}
     </CartaoSecao>
   );
 }

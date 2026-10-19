@@ -14,7 +14,17 @@ const TAMANHO = {
   /** Modo tradução: cabe a bandeira e a sigla do idioma (ex.: "EN") ao lado da onda. */
   traducao: { largura: 188, altura: 38 },
   erro: { largura: 300, altura: 38 },
+  /** Mensagem comprida (duas linhas de 12 px). */
+  erroLongo: { largura: 420, altura: 38 },
+  /** Processando com nota no lugar dos pontinhos, entre o ✕ e o ✓. */
+  nota: { largura: 340, altura: 38 },
 };
+/** Largura a mais para o botão de ação ("Tentar de novo", "Copiar") ao lado da mensagem (px). */
+const EXTRA_BOTAO_ACAO = 100;
+/** Largura a mais para o tempo restante ("0:42") ao lado da onda (px). */
+const EXTRA_CONTAGEM = 44;
+/** Mensagens acima disso (caracteres) usam a janela larga. */
+const LIMITE_MENSAGEM_CURTA = 60;
 /** Distância da pílula até a borda de baixo da área útil da tela, logo acima do Dock (px). */
 const MARGEM_INFERIOR = 20;
 
@@ -91,9 +101,15 @@ function posicionar(tamanho: { largura: number; altura: number }): void {
 
 /** Tamanho da janela no estado dado; com escudo (estilo de clube) gravando/processando ficam 26 px mais largos. */
 function tamanhoDoEstado(estado: EstadoPilula): { largura: number; altura: number } {
-  if (estado.estado === "erro" || estado.estado === "aviso") return TAMANHO.erro;
+  if (estado.estado === "erro" || estado.estado === "aviso") {
+    const base = estado.mensagem.length > LIMITE_MENSAGEM_CURTA ? TAMANHO.erroLongo : TAMANHO.erro;
+    return { ...base, largura: base.largura + (estado.acao ? EXTRA_BOTAO_ACAO : 0) };
+  }
+  const escudo = larguraExtraEscudo(lerPreferencias().estiloPilula);
+  if (estado.estado === "processando" && estado.nota) return { ...TAMANHO.nota, largura: TAMANHO.nota.largura + escudo };
   const base = "idioma" in estado && estado.idioma ? TAMANHO.traducao : TAMANHO.normal;
-  return { ...base, largura: base.largura + larguraExtraEscudo(lerPreferencias().estiloPilula) };
+  const contagem = estado.estado === "gravando" && estado.restanteS != null ? EXTRA_CONTAGEM : 0;
+  return { ...base, largura: base.largura + escudo + contagem };
 }
 
 export function mostrarEstadoPilula(estado: EstadoPilula): void {

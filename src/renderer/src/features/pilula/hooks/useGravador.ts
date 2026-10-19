@@ -1,6 +1,6 @@
 // Grava o microfone (MediaRecorder) e mede o volume para a onda da pílula.
-import { useCallback, useRef, useState } from "react";
-import { TAXA_AMOSTRAGEM } from "@shared/config";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { MICROFONE_MUDO_MS, TAXA_AMOSTRAGEM } from "@shared/config";
 import type { AudioPilula } from "@shared/ipc";
 import { gravacaoParaWav } from "../lib/wav";
 
@@ -19,7 +19,17 @@ function liberar(g: Gravacao): void {
   void g.ctx.close();
 }
 
-export function useGravador() {
+interface Opcoes {
+  /** Chamado uma vez quando o microfone passa MICROFONE_MUDO_MS sem mandar nenhum sinal. */
+  aoMicrofoneMudo?: () => void;
+}
+
+export function useGravador({ aoMicrofoneMudo }: Opcoes = {}) {
+  // Ref: o callback pode mudar entre renders sem refazer o iniciar().
+  const aoMudo = useRef(aoMicrofoneMudo);
+  useEffect(() => {
+    aoMudo.current = aoMicrofoneMudo;
+  }, [aoMicrofoneMudo]);
   const atual = useRef<Gravacao | null>(null);
   /** Enquanto o getUserMedia não volta, o "parar" espera por esta promessa. */
   const preparando = useRef<Promise<void> | null>(null);
@@ -43,6 +53,12 @@ export function useGravador() {
       analisador.fftSize = 512;
       ctx.createMediaStreamSource(stream).connect(analisador);
       const amostras = new Uint8Array(analisador.fftSize);
+      // Float32 para o teste de microfone mudo: silêncio digital absoluto (todas as amostras = 0).
+      // O byte de 8 bits dispararia em sala silenciosa, por isso não serve.
+      const amostrasFloat = new Float32Array(analisador.fftSize);
+      const inicio = performance.now();
+      let teveSinal = false;
+      let avisouMudo = false;
 
       const gravador = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
       const g: Gravacao = { sessao, stream, gravador, pedacos: [], ctx, quadroAnimacao: 0 };
@@ -54,6 +70,14 @@ export function useGravador() {
         let soma = 0;
         for (const a of amostras) soma += ((a - 128) / 128) ** 2;
         setNivel(Math.min(1, Math.sqrt(soma / amostras.length) * 4));
+        if (!teveSinal) {
+          analisador.getFloatTimeDomainData(amostrasFloat);
+          teveSinal = amostrasFloat.some((a) => a !== 0);
+          if (!teveSinal && !avisouMudo && performance.now() - inicio >= MICROFONE_MUDO_MS) {
+            avisouMudo = true;
+            aoMudo.current?.();
+          }
+        }
         g.quadroAnimacao = requestAnimationFrame(medir);
       };
       medir();

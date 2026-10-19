@@ -1,11 +1,12 @@
-import { ipcMain } from "electron";
+import { BrowserWindow, app, dialog, ipcMain } from "electron";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { CANAIS_HISTORICO, type FiltroHistorico, type ItemHistorico } from "@shared/ipc";
 import { banco } from "../../lib/banco";
-import { ajustarReprocessamento } from "../estatisticas/lib/totais";
 import { transcreverERefinar } from "../ia/transcrever";
-import { avisarMudanca } from "./index";
+import { concluirDitado } from "./index";
 import { apagarAudio, lerAudio } from "./lib/audios";
-import { contarPalavras } from "./lib/contarPalavras";
+import { nomeArquivoAudio } from "./lib/nomeAudio";
 import { linhaParaItem, type LinhaHistorico } from "./lib/linhas";
 
 const LIMITE_PADRAO = 50;
@@ -56,20 +57,8 @@ async function reprocessar(id: string): Promise<ItemHistorico> {
   const r = await transcreverERefinar(wav);
   // Falha da IA: não mexe no registro (para não estragar um texto que já estava bom).
   if (!r.ok) throw new Error(r.erro);
-  const palavras = contarPalavras(r.texto);
-  banco().prepare("UPDATE historico SET texto = ?, palavras = ?, status = 'ok', erro = NULL WHERE id = ?").run(r.texto, palavras, id);
-  // Ajusta a diferença de palavras nos totais permanentes (falha não impede o reprocessamento).
-  try {
-    ajustarReprocessamento(
-      banco(),
-      { criadoEm: linha.criado_em, modo: linha.modo, palavras: linha.palavras, duracaoMs: linha.duracao_ms, app: linha.app, status: linha.status },
-      palavras,
-    );
-  } catch (e) {
-    console.error("[estatisticas] falha ao ajustar os totais no reprocessamento", e);
-  }
-  const item = linhaParaItem({ ...linha, texto: r.texto, palavras, status: "ok", erro: null });
-  avisarMudanca(item);
+  const item = concluirDitado(id, r.texto);
+  if (!item) throw new Error("Esse ditado não existe mais.");
   return item;
 }
 
@@ -80,10 +69,26 @@ function audio(id: string): ArrayBuffer | null {
   return wav.buffer.slice(wav.byteOffset, wav.byteOffset + wav.byteLength) as ArrayBuffer;
 }
 
+/** "Salvar como…" do áudio guardado; true se o arquivo foi gravado. */
+async function salvarAudio(id: string, janela: BrowserWindow | null): Promise<boolean> {
+  const linha = buscarLinha(id);
+  const wav = linha?.audio_arquivo ? lerAudio(linha.audio_arquivo) : null;
+  if (!linha || !wav) throw new Error("Este ditado não tem áudio guardado.");
+  const opcoes = {
+    defaultPath: join(app.getPath("downloads"), nomeArquivoAudio(linha.criado_em)),
+    filters: [{ name: "Áudio WAV", extensions: ["wav"] }],
+  };
+  const r = janela ? await dialog.showSaveDialog(janela, opcoes) : await dialog.showSaveDialog(opcoes);
+  if (r.canceled || !r.filePath) return false;
+  writeFileSync(r.filePath, wav);
+  return true;
+}
+
 export function registrarIpcHistorico(): void {
   ipcMain.handle(CANAIS_HISTORICO.LISTAR, (_e, filtro: FiltroHistorico) => listar(filtro));
   ipcMain.handle(CANAIS_HISTORICO.APAGAR, (_e, id: string) => apagar(String(id)));
   ipcMain.handle(CANAIS_HISTORICO.APAGAR_TUDO, () => apagarTudo());
   ipcMain.handle(CANAIS_HISTORICO.REPROCESSAR, (_e, id: string) => reprocessar(String(id)));
   ipcMain.handle(CANAIS_HISTORICO.AUDIO, (_e, id: string) => audio(String(id)));
+  ipcMain.handle(CANAIS_HISTORICO.SALVAR_AUDIO, (e, id: string) => salvarAudio(String(id), BrowserWindow.fromWebContents(e.sender)));
 }

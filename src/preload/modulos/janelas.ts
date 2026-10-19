@@ -8,6 +8,7 @@ export const pontePilula: PontePilula = {
   aoEstado: (cb) => ouvir(CANAIS_PILULA.ESTADO, cb),
   enviarAudio: (a) => ipcRenderer.send(CANAIS_PILULA.AUDIO, a),
   acao: (acao) => ipcRenderer.send(CANAIS_PILULA.ACAO, acao),
+  enviarMicrofones: (lista) => ipcRenderer.send(CANAIS_PILULA.MICROFONES, lista),
 };
 
 export const ponteJanelas: PonteJanelas = {

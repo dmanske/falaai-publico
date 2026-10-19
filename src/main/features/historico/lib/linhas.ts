@@ -29,7 +29,7 @@ export function linhaParaItem(l: LinhaHistorico): ItemHistorico {
     app: l.app,
     appId: l.app_id,
     url: l.url,
-    status: l.status === "erro" ? "erro" : "ok",
+    status: l.status === "erro" || l.status === "cancelado" ? l.status : "ok",
     erro: l.erro,
     temAudio: !!l.audio_arquivo,
   };

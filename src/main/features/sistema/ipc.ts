@@ -1,6 +1,14 @@
 import { app, clipboard, ipcMain, shell } from "electron";
-import { CANAIS_JANELAS, CANAIS_SISTEMA, type InfoSistema, type PaginaHub } from "@shared/ipc";
+import {
+  CANAIS_JANELAS,
+  CANAIS_SISTEMA,
+  type DispositivosAudio,
+  type InfoSistema,
+  type PaginaHub,
+  type TecladoConectado,
+} from "@shared/ipc";
 import { abrirHub } from "../../janelas/hub";
+import { lerDispositivosAudio, lerTeclados } from "./lib/dispositivos";
 import { verificarAtualizacao } from "./api/github";
 
 export function registrarIpcSistema(): void {
@@ -17,6 +25,9 @@ export function registrarIpcSistema(): void {
     if (typeof texto !== "string") throw new Error("Texto inválido para copiar.");
     clipboard.writeText(texto);
   });
+  // Só informativos: ok:false (Windows v3, auxiliar caído) vira null, sem mensagem de erro.
+  ipcMain.handle(CANAIS_SISTEMA.DISPOSITIVOS_AUDIO, (): Promise<DispositivosAudio | null> => lerDispositivosAudio());
+  ipcMain.handle(CANAIS_SISTEMA.TECLADOS, (): Promise<TecladoConectado[] | null> => lerTeclados());
   ipcMain.handle(CANAIS_JANELAS.ABRIR_HUB, (_e, pagina?: PaginaHub) => {
     abrirHub(pagina);
   });

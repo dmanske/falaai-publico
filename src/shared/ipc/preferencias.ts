@@ -40,6 +40,8 @@ export interface Preferencias {
   formatoAudio: FormatoAudio | null;
   /** Mandar o contexto do app em foco (nome, janela, texto ao redor do cursor) para a IA. */
   usarContexto: boolean;
+  /** Mandar também a conversa em volta do campo e o texto da janela (só vale com `usarContexto`). */
+  lerTela: boolean;
 
   // Ditado
   /** Sons de início/fim do ditado. */
@@ -58,6 +60,12 @@ export interface Preferencias {
   /** Silenciar o som do computador (música, vídeo) enquanto grava. */
   silenciarFundo: boolean;
   atalhos: Record<IdAtalho, Atalho>;
+  /** Mac: toque rápido no atalho NÃO liga o mãos livres; precisa de dois toques (TOQUE_DUPLO_MS). */
+  maosLivresComToqueDuplo: boolean;
+  /** Mac, no "pergunte": se o app não informa a seleção, aperta Cmd+C e devolve a área de transferência. */
+  copiarSelecao: boolean;
+  /** Colar listas como HTML (listas de verdade) nos apps que aceitam; os outros recebem o texto. */
+  colarFormatado: boolean;
 
   // Envio automático (Enter depois de colar)
   /** Apps (appId: bundle id no Mac / exe no Windows) onde o FalaAi aperta Enter sozinho depois de colar. */

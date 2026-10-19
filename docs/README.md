@@ -36,6 +36,12 @@ Versão 1.0.0 (17/10/2026). Repositório privado `dmanske/falaai-oficial`; cópi
 | [integracoes/PROVEDORES_IA.md](integracoes/PROVEDORES_IA.md) | Pesquisa dos provedores de IA e de transcrição (endpoints, formatos, preços) |
 | [operacao/ASSINATURA_MAC.md](operacao/ASSINATURA_MAC.md) | Certificado local para o Mac não esquecer as permissões a cada versão |
 
+## Planos e pendências
+
+| Documento | Para quê |
+|---|---|
+| [planos/CONFERENCIA_TYPELESS_2026-10-18.md](planos/CONFERENCIA_TYPELESS_2026-10-18.md) | Segunda engenharia reversa do Typeless (Ghidra): o que faltava no FalaAi, decisões e etapas |
+
 ## Correções feitas
 
 | Documento | Para quê |

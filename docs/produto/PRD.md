@@ -41,22 +41,22 @@ depois (itens com "—" e 33 em diante). Ficam de fora: veja "Fora do escopo".
 | 3 | Pílula flutuante (✕, onda simétrica, ✓) no estilo do Typeless | F1 | ✅ pronto — conferir clique no ✓/✕ sem perder o foco |
 | — | Estilos da pílula: 7 gerais + pacote de futebol (20 clubes da Série A 2026, 3 variantes, escudo) (ver modulos/pilula-estilos.md) | — | construído — falta ver a pílula dos clubes durante um ditado real |
 | — | Tema do clube no app: destaque, menu lateral com o padrão da camisa, faixa no topo e escudo | — | construído — modo escuro do tema do clube ainda sem revisão visual |
-| 4 | Modo mãos livres (toca para começar, toca para parar) | F1 | construído — falta testar com Fn físico |
-| 5 | Cancelar no meio (Esc) | F1 | construído — falta testar com Esc físico |
+| 4 | Modo mãos livres (toca para começar, toca para parar); opção de exigir **toque duplo** (400 ms, como o Typeless) | F1 | construído — falta testar com Fn físico |
+| 5 | Cancelar no meio (Esc); o ditado cancelado fica no Histórico como "cancelado" e dá para reprocessar | F1 | construído — falta testar com Esc físico |
 | 6 | Colar de novo a última transcrição | F1 | construído — falta testar Ctrl+Cmd+V físico |
 | 10 | Sons de início e fim | F1 | construído — conferir o som |
 | 11 | Contexto do app em foco (tom/formatação) | F2 | ✅ pronto (app em foco detectado: Kiro) |
-| 12 | Texto ao redor do cursor | F2 | construído — conferir continuação de frase |
-| 13 | "Pergunte qualquer coisa" (comando sobre o texto selecionado / cartão de resposta) | F2 | ✅ testado em modo de teste (cartão); com seleção falta testar ao vivo |
+| 12 | Texto ao redor do cursor; em campos web (Gmail, Notion, ChatGPT) lido por marcadores; conversa em volta do campo e texto da janela (opção) | F2 | construído — conferir continuação de frase e a leitura em apps Electron/web |
+| 13 | "Pergunte qualquer coisa" (comando sobre o texto selecionado / cartão de resposta); sem seleção pela Acessibilidade, copia com Cmd+C (opção) | F2 | ✅ testado em modo de teste (cartão); com seleção e Cmd+C falta testar ao vivo |
 | 14 | Modo tradução | F2 | ✅ testado em modo de teste |
 | 15 | Idiomas (escolher ou detectar) e **idiomas favoritos da tradução** (até 4, troca durante a gravação com ⇧ ou clicando na sigla da pílula) | F2 | construído (idiomas vão no prompt) — falta testar a troca com a tecla física |
 | 7 | Atalhos livres: combinações de teclas e toque duplo, com validação (ver design/PROTOCOLO_AUXILIAR.md) | F3 | construído — conferir a gravação de atalhos e o toque duplo com teclado físico |
-| 8 | Escolher microfone / reserva automática | F3 | construído — conferir lista de microfones |
+| 8 | Escolher microfone / reserva automática; tipo do microfone (embutido, Bluetooth, iPhone…), aviso de Bluetooth e de tampa fechada; escolher pelo menu da barra | F3 | construído — conferir lista de microfones |
 | 9 | Silenciar música e vídeo durante o ditado | F3 | construído — NÃO testado (mexe no som do Mac) |
 | 16 | Dicionário pessoal | F3 | ✅ pronto (Lovable, Supabase, Manske, FalaAi cadastrados) |
 | 17 | Aprender com as correções (adiciona ao dicionário) | F3 | construído — conferir ao vivo |
 | 18 | Importar dicionário em lote (CSV) | F3 | construído |
-| 19 | Histórico (busca, copiar, reprocessar) | F3 | ✅ pronto (testado) |
+| 19 | Histórico (busca, copiar, reprocessar, baixar o áudio) | F3 | ✅ pronto (testado); baixar o áudio falta testar |
 | 20 | Guardar o áudio para reprocessar | F3 | ✅ pronto |
 | 21 | Limpeza automática do histórico | F3 | construído |
 | 22 | Estatísticas (palavras, tempo economizado, ppm) | F3 | ✅ pronto (testado) |
@@ -72,6 +72,15 @@ depois (itens com "—" e 33 em diante). Ficam de fora: veja "Fora do escopo".
 | 35 | Formatação do ditado: pausas, fala rápida, listas e tópicos (ritmo medido no Mac + regras no prompt) | F5 | construído — falta testar com a IA de verdade ([módulo](../modulos/formatacao-ditado.md)) |
 | — | Idiomas misturados: o ditado mantém cada trecho no idioma falado e não executa pedidos ditados (ver correcoes/) | — | ✅ pronto — corrigido em 17/10/2026 |
 | — | Chave colada com a linha do `.env` junto é limpa ao salvar e ao ler (`limparChave`) | — | ✅ pronto — corrigido em 17/10/2026 |
+| — | Conferência do Typeless com o Ghidra (18/10/2026, ver planos/CONFERENCIA_TYPELESS_2026-10-18.md): | — | construído em 18/10/2026; testes automáticos ok, falta uso real |
+| — | Microfone mudo (5 s de silêncio digital) avisa e cancela | — | construído — falta testar ao vivo |
+| — | Prazo da IA proporcional ao áudio e aviso "Demorando mais que o normal…" | — | construído |
+| — | Contagem regressiva no último minuto antes do limite de 6 min | — | construído |
+| — | "Ainda no ditado anterior · Esc cancela" quando o atalho é apertado durante o processamento | — | construído |
+| — | "Tentar de novo" na pílula quando a IA falha (atualiza o mesmo item do histórico) | — | construído |
+| — | "Não achei um campo de texto aqui" + Copiar, quando o foco não era editável | — | construído |
+| — | Colar só neste Mac (sem Área de Transferência Universal), tecla V pelo layout, listas formatadas (HTML) | — | construído — falta testar colando |
+| — | Botões extras do mouse como atalho (Mac) e dica de teclado externo sem Fn | — | construído — falta testar com mouse e teclado externo |
 
 ## Fora do escopo
 
@@ -85,6 +94,8 @@ depois (itens com "—" e 33 em diante). Ficam de fora: veja "Fora do escopo".
 ## Pendências
 
 - **Windows** não testado em um PC Windows (o instalador sai do GitHub Actions, sem assinatura).
+- **Windows no protocolo v4**: o auxiliar Rust continua v3 (sem contexto rico, cópia da seleção, lista de microfones e
+  teclados, botões do mouse). O app funciona sem eles.
 - **Transcrição com chaves reais** dos outros provedores e serviços (só a Lovable foi testada de ponta a ponta).
 - **Modo escuro do tema do clube**: falta revisar visualmente.
 - **Pílula dos clubes durante um ditado real**: conferida só nas miniaturas e em prints.

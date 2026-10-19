@@ -42,6 +42,8 @@ export const ponteSistema: PonteSistema = {
   verificarAtualizacao: () => invocar(CANAIS_SISTEMA.VERIFICAR_ATUALIZACAO),
   abrirLink: (url) => invocar(CANAIS_SISTEMA.ABRIR_LINK, url),
   copiarTexto: (texto) => invocar(CANAIS_SISTEMA.COPIAR_TEXTO, texto),
+  dispositivosAudio: () => invocar(CANAIS_SISTEMA.DISPOSITIVOS_AUDIO),
+  teclados: () => invocar(CANAIS_SISTEMA.TECLADOS),
 };
 
 export const ponteAtalhos: PonteAtalhos = {

@@ -29,6 +29,8 @@ export interface PedidoModo {
   selecionado: string;
   /** Modo tradução: idioma de destino escolhido na hora (se omitido, o das preferências). */
   idiomaDestino?: string;
+  /** Prazo de cada chamada à IA (ms); o ditado passa prazoIaMs(duração). */
+  timeoutMs?: number;
 }
 
 export type ResultadoModo =
@@ -78,6 +80,7 @@ export async function executarModo(p: PedidoModo): Promise<ResultadoModo> {
     wav: p.wav,
     idiomas: p.contexto.idiomas,
     termos: p.contexto.dicionario,
+    timeoutMs: p.timeoutMs,
   });
   if (!r.ok) return { ok: false, erro: r.erro, ms: r.ms };
   // Transcrição vazia ou "<vazio>": o ditado mostra "Não entendi nenhuma fala".

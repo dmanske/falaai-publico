@@ -7,6 +7,8 @@ export const CANAIS_PILULA = {
   AUDIO: "pilula:audio",
   /** pílula → main: clique no ✓ (terminar e colar), no ✕ (cancelar) ou na sigla do idioma. */
   ACAO: "pilula:acao",
+  /** pílula → main: microfones que o navegador enxerga (o processo principal não lista). */
+  MICROFONES: "pilula:microfones",
 } as const;
 
 export type ModoDitado = "ditado" | "pergunte" | "traducao";
@@ -14,18 +16,35 @@ export type ModoDitado = "ditado" | "pergunte" | "traducao";
 export type ComandoPilula =
   | { acao: "iniciar"; sessao: number; sons: boolean; microfoneId: string | null }
   | { acao: "parar"; sessao: number; sons: boolean }
-  | { acao: "cancelar"; sessao: number; sons: boolean };
+  /** `devolverAudio`: para a gravação e manda o WAV pelo canal AUDIO (para salvar como "cancelado"). */
+  | { acao: "cancelar"; sessao: number; sons: boolean; devolverAudio: boolean };
+
+/** Botão ao lado da mensagem de erro/aviso. O clique volta como a ação de mesmo id. */
+export interface AcaoMensagemPilula {
+  id: "tentar-de-novo" | "copiar";
+  rotulo: string;
+}
 
 export type EstadoPilula =
   | { estado: "oculta" }
-  /** `idioma`: sigla do destino no modo tradução (ex.: "EN"); null nos outros modos. */
-  | { estado: "gravando"; modo: ModoDitado; maosLivres: boolean; idioma: string | null }
-  | { estado: "processando"; modo: ModoDitado; idioma: string | null }
-  | { estado: "erro"; mensagem: string }
+  /**
+   * `idioma`: sigla do destino no modo tradução (ex.: "EN"); null nos outros modos.
+   * `restanteS`: segundos que faltam para o limite da gravação (só nos últimos segundos); null = não mostra.
+   */
+  | { estado: "gravando"; modo: ModoDitado; maosLivres: boolean; idioma: string | null; restanteS?: number | null }
+  /** `nota`: texto no lugar dos pontinhos (ex.: "Demorando mais que o normal…"). */
+  | { estado: "processando"; modo: ModoDitado; idioma: string | null; nota?: string | null }
+  | { estado: "erro"; mensagem: string; acao?: AcaoMensagemPilula }
   /** Aviso curto e neutro (ex.: "Palavra adicionada ao dicionário: Lovable"). */
-  | { estado: "aviso"; mensagem: string };
+  | { estado: "aviso"; mensagem: string; acao?: AcaoMensagemPilula };
 
-export type AcaoPilula = "confirmar" | "cancelar" | "proximo-idioma";
+export type AcaoPilula = "confirmar" | "cancelar" | "proximo-idioma" | "microfone-mudo" | "tentar-de-novo" | "copiar";
+
+/** Microfone listado pela pílula (id do navegador + nome). */
+export interface MicrofoneListado {
+  id: string;
+  nome: string;
+}
 
 export type AudioPilula =
   | { sessao: number; ok: true; wav: ArrayBuffer; duracaoMs: number }
@@ -37,4 +56,5 @@ export interface PontePilula {
   aoEstado(cb: (e: EstadoPilula) => void): () => void;
   enviarAudio(a: AudioPilula): void;
   acao(acao: AcaoPilula): void;
+  enviarMicrofones(lista: MicrofoneListado[]): void;
 }

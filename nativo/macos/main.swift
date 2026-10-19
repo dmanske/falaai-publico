@@ -2,7 +2,8 @@
 //
 // O app Electron inicia este binário como processo filho e conversa por JSON,
 // uma mensagem por linha (stdin = comandos, stdout = respostas e eventos).
-// Protocolo v3: veja docs/design/PROTOCOLO_AUXILIAR.md e nativo/macos/README.md.
+// Protocolo v4 (v3 + html no colar, copiar_selecao, contexto ampliado, dispositivos_audio,
+// teclados e botões do mouse como atalho): veja docs/design/PROTOCOLO_AUXILIAR.md e nativo/macos/README.md.
 //
 // Regras importantes:
 //  - Nada além de JSON pode ir para o stdout. Logs de depuração vão para stderr.
@@ -11,12 +12,16 @@
 //  - O callback do tap de teclado roda na main e NUNCA pode bloquear: só mexe em
 //    memória e enfileira a escrita no stdout (fila serial própria).
 //  - Consultas de Acessibilidade lentas (contexto, ler_campo) rodam numa fila de
-//    background, para não atrasar o teclado do usuário.
+//    background, para não atrasar o teclado do usuário. O conjunto `axTratados` (apps em que
+//    já ligamos a acessibilidade) é tocado só nessa fila.
+//  - `copiar_selecao` nunca dorme: acompanha a cópia com `asyncAfter` na main.
 
 import Cocoa
 import ApplicationServices
 import Carbon.HIToolbox
 import CoreAudio
+import IOKit
+import IOKit.hid
 
 // MARK: - Saída (stdout)
 
@@ -87,6 +92,7 @@ let navegadores: Set<String> = [
     "org.mozilla.firefox", "org.mozilla.firefoxdeveloperedition", "org.mozilla.nightly",
     "com.operasoftware.Opera", "com.operasoftware.OperaGX", "com.vivaldi.Vivaldi",
     "app.zen-browser.zen", "com.kagi.kagimacOS",
+    "com.openai.atlas", "ai.perplexity.comet", "com.duckduckgo.macos.browser",
 ]
 let papeisDeTexto: Set<String> = ["AXTextField", "AXTextArea", "AXComboBox", "AXSearchField", "AXWebArea"]
 
@@ -131,17 +137,243 @@ func ehSenha(_ el: AXUIElement) -> Bool {
         || axTexto(el, kAXSubroleAttribute) == "AXSecureTextField"
 }
 
-/// Elemento em foco (systemWide primeiro; cai para o app em foco).
-func campoEmFoco(_ axApp: AXUIElement?) -> AXUIElement? {
-    let sistema = AXUIElementCreateSystemWide()
-    AXUIElementSetMessagingTimeout(sistema, timeoutAX)
-    if let e = axElemento(sistema, kAXFocusedUIElementAttribute) { return e }
+/// Elemento em foco. Sem `pid`: systemWide primeiro, cai para o app em foco.
+/// Com `pid` (diagnóstico): SÓ o elemento em foco daquele app (o systemWide é do app da frente).
+func campoEmFoco(_ axApp: AXUIElement?, soDoApp: Bool = false) -> AXUIElement? {
+    if !soDoApp {
+        let sistema = AXUIElementCreateSystemWide()
+        AXUIElementSetMessagingTimeout(sistema, timeoutAX)
+        if let e = axElemento(sistema, kAXFocusedUIElementAttribute) { return e }
+    }
     if let a = axApp { return axElemento(a, kAXFocusedUIElementAttribute) }
     return nil
 }
 
-/// Procura (em largura, com limites) um AXWebArea na janela e devolve (url, título).
-func acharWebArea(_ janela: AXUIElement, ate limite: Date) -> (url: String?, titulo: String?)? {
+/// O valor do elemento pode ser gravado? (campo editável mesmo com papel incomum)
+func axGravavel(_ el: AXUIElement, _ nome: String) -> Bool {
+    var b: DarwinBoolean = false
+    return AXUIElementIsAttributeSettable(el, nome as CFString, &b) == .success && b.boolValue
+}
+
+/// Lê vários atributos numa ida só. Atributos com erro vêm como `nil`.
+func axVarios(_ el: AXUIElement, _ nomes: [String]) -> [CFTypeRef?] {
+    var saida: CFArray?
+    let r = AXUIElementCopyMultipleAttributeValues(el, nomes as CFArray, AXCopyMultipleAttributeOptions(rawValue: 0), &saida)
+    guard r == .success, let arr = saida as? [CFTypeRef], arr.count == nomes.count else {
+        return Array(repeating: nil, count: nomes.count)
+    }
+    // Um AXValue do tipo "erro" no lugar do atributo = não deu para ler.
+    return arr.map { v in
+        if CFGetTypeID(v) == AXValueGetTypeID(), AXValueGetType(v as! AXValue) == .axError { return nil }
+        return v
+    }
+}
+
+// MARK: Texto por marcador (campos web: Gmail, Notion, ChatGPT)
+
+/// Intervalo do documento inteiro do elemento (parametrizado AXTextMarkerRangeForUIElement).
+func axIntervaloDoDocumento(_ el: AXUIElement) -> AXTextMarkerRange? {
+    var saida: CFTypeRef?
+    guard AXUIElementCopyParameterizedAttributeValue(el, "AXTextMarkerRangeForUIElement" as CFString, el, &saida) == .success,
+          let v = saida, CFGetTypeID(v) == AXTextMarkerRangeGetTypeID() else { return nil }
+    return (v as! AXTextMarkerRange)
+}
+
+func axTextoDoIntervalo(_ el: AXUIElement, _ r: AXTextMarkerRange) -> String? {
+    var saida: CFTypeRef?
+    guard AXUIElementCopyParameterizedAttributeValue(el, "AXStringForTextMarkerRange" as CFString, r, &saida) == .success
+    else { return nil }
+    return saida as? String
+}
+
+/// Texto antes/depois do cursor e selecionado, lido por marcadores. nil = não deu (segue como antes).
+func textoPorMarcador(_ el: AXUIElement, antes: Int, depois: Int) -> (antes: String, depois: String, selecionado: String)? {
+    guard let selV = axAttr(el, "AXSelectedTextMarkerRange"), CFGetTypeID(selV) == AXTextMarkerRangeGetTypeID(),
+          let doc = axIntervaloDoDocumento(el) else { return nil }
+    let sel = selV as! AXTextMarkerRange
+    let iniDoc = AXTextMarkerRangeCopyStartMarker(doc)
+    let fimDoc = AXTextMarkerRangeCopyEndMarker(doc)
+    let iniSel = AXTextMarkerRangeCopyStartMarker(sel)
+    let fimSel = AXTextMarkerRangeCopyEndMarker(sel)
+    let rAntes = AXTextMarkerRangeCreate(kCFAllocatorDefault, iniDoc, iniSel)
+    let rDepois = AXTextMarkerRangeCreate(kCFAllocatorDefault, fimSel, fimDoc)
+    guard let tAntes = axTextoDoIntervalo(el, rAntes), let tDepois = axTextoDoIntervalo(el, rDepois) else { return nil }
+    let nsA = tAntes as NSString, nsD = tDepois as NSString
+    var selecionado = axTextoDoIntervalo(el, sel) ?? ""
+    let nsS = selecionado as NSString
+    if nsS.length > maxCampo { selecionado = recortar(nsS, 0, maxCampo) }
+    return (recortar(nsA, nsA.length - antes, nsA.length), recortar(nsD, 0, depois), selecionado)
+}
+
+// MARK: Ligar a acessibilidade de apps que a deixam desligada
+
+/// pids em que já ligamos a acessibilidade. Somente na `filaAX`.
+var axTratados = Set<pid_t>()
+
+let prefixosChromium = [
+    "com.google.Chrome", "org.chromium.Chromium", "com.microsoft.edgemac", "com.brave.Browser",
+    "company.thebrowser.Browser", "company.thebrowser.dia", "com.vivaldi.Vivaldi", "com.operasoftware.Opera",
+    "com.openai.atlas", "ai.perplexity.comet",
+]
+func ehChromium(_ appId: String?) -> Bool {
+    guard let id = appId else { return false }
+    return prefixosChromium.contains { id.hasPrefix($0) }
+}
+func ehElectron(_ app: NSRunningApplication) -> Bool {
+    guard let url = app.bundleURL else { return false }
+    let caminho = url.appendingPathComponent("Contents/Frameworks/Electron Framework.framework").path
+    return FileManager.default.fileExists(atPath: caminho)
+}
+
+// MARK: Extras do `contexto` (v4)
+
+let limiteExtras = 20_000
+
+struct ExtrasContexto {
+    var antes = maxAntes
+    var depois = maxDepois
+    var conversa = 0
+    var tela = 0
+    var ligar = false
+    var naoLigarEm = Set<String>()
+
+    init() {}
+    /// Lê o objeto `extras` do pedido. Ausente ou inválido = padrão da v3.
+    init(_ bruto: Any?) {
+        guard let d = bruto as? [String: Any] else { return }
+        func numero(_ k: String, _ padrao: Int) -> Int {
+            guard let n = d[k] as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID() else { return padrao }
+            return max(0, min(n.intValue, limiteExtras))
+        }
+        antes = numero("antes", maxAntes)
+        depois = numero("depois", maxDepois)
+        conversa = numero("conversa", 0)
+        tela = numero("tela", 0)
+        ligar = (d["ligarAcessibilidade"] as? Bool) ?? false
+        if let l = d["naoLigarEm"] as? [Any] { naoLigarEm = Set(l.compactMap { $0 as? String }) }
+    }
+}
+
+// MARK: Percorrer texto (conversa e tela)
+
+/// Orçamento de uma varredura: elementos, profundidade e prazo.
+final class Orcamento {
+    var visitados = 0
+    let maxVisitados: Int
+    let maxProfundidade: Int
+    let limite: Date
+    init(maxVisitados: Int, maxProfundidade: Int, prazo: TimeInterval) {
+        self.maxVisitados = maxVisitados
+        self.maxProfundidade = maxProfundidade
+        self.limite = Date().addingTimeInterval(prazo)
+    }
+    var esgotado: Bool { visitados >= maxVisitados || Date() >= limite }
+}
+
+/// Junta os pedaços de texto: entre `AXStaticText` seguidos um espaço; nos demais, quebra de linha.
+struct Acumulador {
+    var texto = ""
+    var comprimento = 0            // unidades UTF-16
+    var ultimoEstatico = false
+    let maximo: Int                // 0 = sem limite
+    init(maximo: Int = 0) { self.maximo = maximo }
+    var cheio: Bool { maximo > 0 && comprimento >= maximo }
+    mutating func juntar(_ pedaco: String, estatico: Bool) {
+        if texto.isEmpty {
+            texto = pedaco
+        } else if estatico && ultimoEstatico {
+            if let u = texto.unicodeScalars.last, CharacterSet.whitespacesAndNewlines.contains(u) {
+                texto += pedaco
+            } else {
+                texto += " " + pedaco
+            }
+        } else {
+            texto += "\n" + pedaco
+        }
+        ultimoEstatico = estatico
+        comprimento = (texto as NSString).length
+    }
+}
+
+let papeisLeituraTexto: Set<String> = ["AXStaticText", "AXTextField", "AXTextArea", "AXSearchField", "AXComboBox"]
+
+/// Busca em profundidade juntando o texto dos elementos. Nunca lê senha; pula `pular` (o campo em foco).
+func coletarTextos(_ el: AXUIElement, _ prof: Int, _ orc: Orcamento, _ acc: inout Acumulador, pular: AXUIElement?) {
+    if orc.esgotado || acc.cheio || prof > orc.maxProfundidade { return }
+    orc.visitados += 1
+    if let p = pular, CFEqual(el, p) { return }
+    AXUIElementSetMessagingTimeout(el, timeoutAX)
+    let v = axVarios(el, [kAXRoleAttribute, kAXSubroleAttribute, kAXValueAttribute, kAXTitleAttribute, kAXChildrenAttribute])
+    let papel = v[0] as? String
+    if papel == "AXSecureTextField" || (v[1] as? String) == "AXSecureTextField" { return }
+    if let papel = papel, papeisLeituraTexto.contains(papel) {
+        var t = (v[2] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if t.isEmpty { t = (v[3] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "" }
+        if !t.isEmpty { acc.juntar(t, estatico: papel == "AXStaticText") }
+        if papel != "AXStaticText" { return }   // o valor do campo já é o texto dele
+    }
+    if let filhos = v[4] as? [AXUIElement] {
+        for f in filhos {
+            if orc.esgotado || acc.cheio { return }
+            coletarTextos(f, prof + 1, orc, &acc, pular: pular)
+        }
+    }
+}
+
+func axPapel(_ el: AXUIElement) -> String? { axTexto(el, kAXRoleAttribute) }
+func axFilhos(_ el: AXUIElement) -> [AXUIElement]? { axAttr(el, kAXChildrenAttribute) as? [AXUIElement] }
+
+/// Texto de conversa ao redor de um campo (porte do Typeless, getFocusedElementRelatedContent).
+/// nil = o campo não está num recipiente de conversa reconhecível.
+func lerConversa(_ campo: AXUIElement, papel: String?, maximo: Int) -> [String: Any]? {
+    guard papel == "AXTextArea",
+          let pai = axElemento(campo, kAXParentAttribute), axPapel(pai) == "AXScrollArea",
+          let irmaos = axFilhos(pai), irmaos.count == 1, CFEqual(irmaos[0], campo) else { return nil }
+    var recipiente = pai
+    while let p = axElemento(recipiente, kAXParentAttribute),
+          let papelP = axPapel(p), papelP == "AXGroup" || papelP == "AXSplitGroup",
+          let fs = axFilhos(p), fs.count == 1 {
+        recipiente = p
+    }
+    let orc = Orcamento(maxVisitados: 400, maxProfundidade: 50, prazo: 0.5)
+
+    func textoDe(_ el: AXUIElement) -> String {
+        var acc = Acumulador()
+        coletarTextos(el, 0, orc, &acc, pular: campo)
+        return acc.texto
+    }
+    // Sobe até 10 níveis, sem passar de AXWindow; `anterior` = irmãos antes do recipiente, senão depois.
+    func varrer(anterior: Bool) -> String {
+        var rec = recipiente
+        var partes: [String] = []
+        var total = 0
+        for _ in 0..<10 {
+            if orc.esgotado || total >= maximo { break }
+            if axPapel(rec) == "AXWindow" { break }
+            guard let p = axElemento(rec, kAXParentAttribute) else { break }
+            AXUIElementSetMessagingTimeout(p, timeoutAX)
+            if let fs = axFilhos(p), let idx = fs.firstIndex(where: { CFEqual($0, rec) }) {
+                let ordem: [Int] = anterior ? Array((0..<idx).reversed()) : Array((idx + 1)..<fs.count)
+                for i in ordem {
+                    if orc.esgotado || total >= maximo { break }
+                    let t = textoDe(fs[i])
+                    if t.isEmpty { continue }
+                    if anterior { partes.insert(t, at: 0) } else { partes.append(t) }
+                    total += (t as NSString).length
+                }
+            }
+            rec = p
+        }
+        let junto = partes.joined(separator: "\n") as NSString
+        return anterior ? recortar(junto, junto.length - maximo, junto.length) : recortar(junto, 0, maximo)
+    }
+    let antes = varrer(anterior: true)
+    let depois = varrer(anterior: false)
+    return ["antes": antes, "depois": depois]
+}
+
+/// Procura (em largura, com limites) um AXWebArea na janela e devolve (url, título, elemento).
+func acharWebArea(_ janela: AXUIElement, ate limite: Date) -> (url: String?, titulo: String?, elemento: AXUIElement)? {
     var fila: [(AXUIElement, Int)] = [(janela, 0)]
     var i = 0
     var visitados = 0
@@ -156,7 +388,7 @@ func acharWebArea(_ janela: AXUIElement, ate limite: Date) -> (url: String?, tit
                 if CFGetTypeID(v) == CFURLGetTypeID() { url = (v as! CFURL as URL).absoluteString }
                 else { url = v as? String }
             }
-            if url != nil { return (url, axTexto(el, kAXTitleAttribute)) }
+            if url != nil { return (url, axTexto(el, kAXTitleAttribute), el) }
         }
         if prof < 8, let filhos = axAttr(el, kAXChildrenAttribute) as? [AXUIElement] {
             for f in filhos.prefix(60) { fila.append((f, prof + 1)) }
@@ -165,63 +397,139 @@ func acharWebArea(_ janela: AXUIElement, ate limite: Date) -> (url: String?, tit
     return nil
 }
 
-func montarContexto() -> [String: Any] {
-    let limite = Date().addingTimeInterval(prazoContexto)
+/// Texto visível da janela (ou do AXWebArea), até `maximo` caracteres.
+func lerTela(_ raiz: AXUIElement, maximo: Int, pular: AXUIElement?) -> String? {
+    let orc = Orcamento(maxVisitados: 1500, maxProfundidade: 50, prazo: 0.5)
+    var acc = Acumulador(maximo: maximo)
+    coletarTextos(raiz, 0, orc, &acc, pular: pular)
+    if acc.texto.isEmpty { return nil }
+    let ns = acc.texto as NSString
+    return ns.length > maximo ? recortar(ns, 0, maximo) : acc.texto
+}
+
+let papeisEditaveis: Set<String> = ["AXTextField", "AXTextArea", "AXComboBox", "AXSearchField"]
+
+/// Lê o campo em foco. nil = sem campo de texto em foco (ou não deu para ler).
+func lerCampoEmFoco(_ axApp: AXUIElement, soDoApp: Bool, extras: ExtrasContexto) -> (campo: [String: Any], elemento: AXUIElement, papel: String?)? {
+    guard let el = campoEmFoco(axApp, soDoApp: soDoApp) else { return nil }
+    AXUIElementSetMessagingTimeout(el, timeoutAX)
+    let papel = axTexto(el, kAXRoleAttribute)
+    let editavelPorPapel = papel.map { papeisEditaveis.contains($0) } ?? false
+    if ehSenha(el) {
+        let c: [String: Any] = ["papel": ou(papel), "placeholder": NSNull(), "antes": "", "depois": "", "selecionado": "",
+                                "editavel": true, "leitura": "nenhuma"]
+        return (c, el, papel)
+    }
+    let valor = axAttr(el, kAXValueAttribute) as? String
+    let intervalo = axIntervalo(el, kAXSelectedTextRangeAttribute)
+    let ehTexto = (papel.map { papeisDeTexto.contains($0) } ?? false) || (valor != nil && intervalo != nil)
+    guard ehTexto else { return nil }
+    let editavel = editavelPorPapel || axGravavel(el, kAXValueAttribute)
+    var antes = "", depois = "", selecionado = axTexto(el, kAXSelectedTextAttribute) ?? ""
+    var leitura = "nenhuma"
+    if let v = valor, intervalo != nil {
+        leitura = "valor"
+        let ns = v as NSString
+        let loc = max(0, min(intervalo!.location, ns.length))
+        let tam = max(0, min(intervalo!.length, ns.length - loc))
+        antes = recortar(ns, loc - extras.antes, loc)
+        depois = recortar(ns, loc + tam, loc + tam + extras.depois)
+        if selecionado.isEmpty && tam > 0 { selecionado = recortar(ns, loc, loc + min(tam, maxCampo)) }
+    } else if let m = textoPorMarcador(el, antes: extras.antes, depois: extras.depois) {
+        leitura = "marcador"
+        antes = m.antes; depois = m.depois
+        if selecionado.isEmpty { selecionado = m.selecionado }
+    } else if let v = valor {
+        // Sem intervalo e sem marcador: como na v3, o cursor é tratado como estando no fim.
+        leitura = "valor"
+        let ns = v as NSString
+        antes = recortar(ns, ns.length - extras.antes, ns.length)
+    }
+    let c: [String: Any] = ["papel": ou(papel), "placeholder": ou(axTexto(el, kAXPlaceholderValueAttribute)),
+                            "antes": antes, "depois": depois, "selecionado": selecionado,
+                            "editavel": editavel, "leitura": leitura]
+    return (c, el, papel)
+}
+
+func montarContexto(pid: pid_t?, extras: ExtrasContexto) -> [String: Any] {
+    let inicio = Date()
+    var limite = inicio.addingTimeInterval(prazoContexto)
     let confiavel = AXIsProcessTrusted()
-    var app: Any = NSNull()
     var navegador: Any = NSNull()
     var campo: Any = NSNull()
+    var conversa: Any = NSNull()
+    var tela: Any = NSNull()
+    var ligou = false
 
-    guard let front = NSWorkspace.shared.frontmostApplication else {
-        return ["app": app, "navegador": navegador, "campo": campo]
+    func resposta(_ app: Any) -> [String: Any] {
+        ["app": app, "navegador": navegador, "campo": campo, "conversa": conversa, "tela": tela,
+         "acessibilidadeLigada": ligou]
     }
+
+    let alvo: NSRunningApplication? = pid != nil ? NSRunningApplication(processIdentifier: pid!)
+                                                : NSWorkspace.shared.frontmostApplication
+    guard let front = alvo else { return resposta(NSNull()) }
     let appId = front.bundleIdentifier
     var janelaTitulo: String? = nil
     var appInfo: [String: Any] = ["nome": ou(front.localizedName), "appId": ou(appId), "janela": NSNull()]
+    let soDoApp = pid != nil
 
     if confiavel {
         let axApp = AXUIElementCreateApplication(front.processIdentifier)
         AXUIElementSetMessagingTimeout(axApp, timeoutAX)
+        let permitido = extras.ligar && !(appId.map { extras.naoLigarEm.contains($0) } ?? false)
+        let jaTratado = axTratados.contains(front.processIdentifier)
 
-        // Campo em foco.
-        if Date() < limite, let el = campoEmFoco(axApp) {
-            AXUIElementSetMessagingTimeout(el, timeoutAX)
-            let papel = axTexto(el, kAXRoleAttribute)
-            if ehSenha(el) {
-                campo = ["papel": ou(papel), "placeholder": NSNull(), "antes": "", "depois": "", "selecionado": ""] as [String: Any]
-            } else {
-                let valor = axAttr(el, kAXValueAttribute) as? String
-                let intervalo = axIntervalo(el, kAXSelectedTextRangeAttribute)
-                let ehTexto = (papel.map { papeisDeTexto.contains($0) } ?? false) || (valor != nil && intervalo != nil)
-                if ehTexto {
-                    var antes = "", depois = "", selecionado = axTexto(el, kAXSelectedTextAttribute) ?? ""
-                    if let v = valor {
-                        let ns = v as NSString
-                        let loc = max(0, min(intervalo?.location ?? ns.length, ns.length))
-                        let tam = max(0, min(intervalo?.length ?? 0, ns.length - loc))
-                        antes = recortar(ns, loc - maxAntes, loc)
-                        depois = recortar(ns, loc + tam, loc + tam + maxDepois)
-                        if selecionado.isEmpty && tam > 0 { selecionado = recortar(ns, loc, loc + min(tam, maxCampo)) }
-                    }
-                    campo = ["papel": ou(papel), "placeholder": ou(axTexto(el, kAXPlaceholderValueAttribute)),
-                             "antes": antes, "depois": depois, "selecionado": selecionado] as [String: Any]
-                }
-            }
+        // Apps Electron: liga a acessibilidade antes de ler o campo (uma vez por pid).
+        if permitido && !jaTratado && ehElectron(front) {
+            axTratados.insert(front.processIdentifier)
+            AXUIElementSetAttributeValue(axApp, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+            ligou = true
         }
 
+        // Campo em foco.
+        var lido: (campo: [String: Any], elemento: AXUIElement, papel: String?)? = nil
+        if Date() < limite { lido = lerCampoEmFoco(axApp, soDoApp: soDoApp, extras: extras) }
+
+        // Navegador Chromium: só se o campo não pôde ser lido, liga a interface melhorada.
+        if lido == nil && permitido && !jaTratado && !ligou && ehChromium(appId) {
+            axTratados.insert(front.processIdentifier)
+            AXUIElementSetAttributeValue(axApp, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue)
+            ligou = true
+        }
+        // Ligou agora: o app leva um instante para montar a árvore. Espera e tenta de novo.
+        if ligou && lido == nil {
+            limite = max(limite, inicio.addingTimeInterval(0.5))
+            usleep(100_000)   // estamos na filaAX; nunca na main
+            if Date() < limite { lido = lerCampoEmFoco(axApp, soDoApp: soDoApp, extras: extras) }
+        }
+        if let l = lido { campo = l.campo }
+
         // Janela em foco e URL do navegador.
+        var raizTela: AXUIElement? = nil
         if Date() < limite, let janela = axElemento(axApp, kAXFocusedWindowAttribute) {
             AXUIElementSetMessagingTimeout(janela, timeoutAX)
+            raizTela = janela
             if let t = axTexto(janela, kAXTitleAttribute), !t.isEmpty { janelaTitulo = t }
             if let id = appId, navegadores.contains(id), let w = acharWebArea(janela, ate: limite) {
                 let t = (w.titulo?.isEmpty == false) ? w.titulo : janelaTitulo
                 navegador = ["url": ou(w.url), "titulo": ou(t)] as [String: Any]
+                raizTela = w.elemento
             }
+        }
+
+        // Conversa ao redor do campo (prazo próprio).
+        if extras.conversa > 0, let l = lido, !ehSenha(l.elemento),
+           let c = lerConversa(l.elemento, papel: l.papel, maximo: extras.conversa) {
+            conversa = c
+        }
+        // Texto da janela (prazo próprio).
+        if extras.tela > 0, let raiz = raizTela {
+            if let t = lerTela(raiz, maximo: extras.tela, pular: lido?.elemento) { tela = t }
         }
     }
     appInfo["janela"] = ou(janelaTitulo)
-    app = appInfo
-    return ["app": app, "navegador": navegador, "campo": campo]
+    return resposta(appInfo)
 }
 
 func montarLerCampo() -> [String: Any] {
@@ -236,6 +544,10 @@ func montarLerCampo() -> [String: Any] {
         if let el = campoEmFoco(axApp), !ehSenha(el) {
             AXUIElementSetMessagingTimeout(el, timeoutAX)
             if let v = axAttr(el, kAXValueAttribute) as? String {
+                let ns = v as NSString
+                texto = ns.length > maxCampo ? recortar(ns, 0, maxCampo) : v
+            } else if let doc = axIntervaloDoDocumento(el), let v = axTextoDoIntervalo(el, doc) {
+                // Campo web sem AXValue: texto inteiro pelos marcadores.
                 let ns = v as NSString
                 texto = ns.length > maxCampo ? recortar(ns, 0, maxCampo) : v
             }
@@ -328,6 +640,109 @@ func desfazerMute() {
     for el in s.elementos { gravarMute(s.dispositivo, el, false) }
 }
 
+// MARK: - Dispositivos de entrada de áudio e teclados (v4)
+
+func enderecoAudio(_ seletor: AudioObjectPropertySelector, _ escopo: AudioObjectPropertyScope = kAudioObjectPropertyScopeGlobal) -> AudioObjectPropertyAddress {
+    AudioObjectPropertyAddress(mSelector: seletor, mScope: escopo, mElement: kAudioObjectPropertyElementMain)
+}
+
+func audioTexto(_ dev: AudioObjectID, _ seletor: AudioObjectPropertySelector) -> String? {
+    var end = enderecoAudio(seletor)
+    var cf: Unmanaged<CFString>? = nil
+    var tam = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+    guard AudioObjectGetPropertyData(dev, &end, 0, nil, &tam, &cf) == noErr, let c = cf else { return nil }
+    return c.takeRetainedValue() as String
+}
+
+func audioNumero(_ dev: AudioObjectID, _ seletor: AudioObjectPropertySelector) -> UInt32? {
+    var end = enderecoAudio(seletor)
+    var v: UInt32 = 0
+    var tam = UInt32(MemoryLayout<UInt32>.size)
+    return AudioObjectGetPropertyData(dev, &end, 0, nil, &tam, &v) == noErr ? v : nil
+}
+
+func nomeDoTransporte(_ t: UInt32?) -> String {
+    switch t {
+    case kAudioDeviceTransportTypeBuiltIn?: return "embutido"
+    case kAudioDeviceTransportTypeBluetooth?, kAudioDeviceTransportTypeBluetoothLE?: return "bluetooth"
+    case kAudioDeviceTransportTypeUSB?: return "usb"
+    case kAudioDeviceTransportTypeAirPlay?: return "airplay"
+    case kAudioDeviceTransportTypeThunderbolt?: return "thunderbolt"
+    case kAudioDeviceTransportTypeVirtual?: return "virtual"
+    case kAudioDeviceTransportTypePCI?: return "pci"
+    case kAudioDeviceTransportTypeFireWire?: return "firewire"
+    case kAudioDeviceTransportTypeHDMI?: return "hdmi"
+    case kAudioDeviceTransportTypeDisplayPort?: return "displayport"
+    case kAudioDeviceTransportTypeAggregate?: return "agregado"
+    // Microfone do iPhone pela Continuidade ('ccwd' com fio, 'ccwl' sem fio; macOS 13+).
+    case 0x6363_7764?, 0x6363_776C?: return "iphone"
+    default: return "desconhecido"
+    }
+}
+
+/// Tampa do notebook fechada? (IOPMrootDomain/AppleClamshellState). nil = Mac sem tampa.
+func tampaFechada() -> Bool? {
+    let servico = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPMrootDomain"))
+    guard servico != 0 else { return nil }
+    defer { IOObjectRelease(servico) }
+    guard let v = IORegistryEntryCreateCFProperty(servico, "AppleClamshellState" as CFString, kCFAllocatorDefault, 0)
+    else { return nil }
+    return (v.takeRetainedValue() as? NSNumber)?.boolValue
+}
+
+func montarDispositivosAudio() -> [String: Any] {
+    var end = enderecoAudio(kAudioHardwarePropertyDevices)
+    var tam: UInt32 = 0
+    let sistema = AudioObjectID(kAudioObjectSystemObject)
+    var entradas: [[String: Any]] = []
+    if AudioObjectGetPropertyDataSize(sistema, &end, 0, nil, &tam) == noErr, tam > 0 {
+        var ids = [AudioObjectID](repeating: 0, count: Int(tam) / MemoryLayout<AudioObjectID>.size)
+        if AudioObjectGetPropertyData(sistema, &end, 0, nil, &tam, &ids) == noErr {
+            var padrao = AudioObjectID(kAudioObjectUnknown)
+            var endPadrao = enderecoAudio(kAudioHardwarePropertyDefaultInputDevice)
+            var tamP = UInt32(MemoryLayout<AudioObjectID>.size)
+            _ = AudioObjectGetPropertyData(sistema, &endPadrao, 0, nil, &tamP, &padrao)
+            for dev in ids {
+                // Só quem tem fluxos de ENTRADA.
+                var endFluxos = enderecoAudio(kAudioDevicePropertyStreams, kAudioObjectPropertyScopeInput)
+                var tamF: UInt32 = 0
+                guard AudioObjectGetPropertyDataSize(dev, &endFluxos, 0, nil, &tamF) == noErr, tamF > 0 else { continue }
+                entradas.append([
+                    "nome": audioTexto(dev, kAudioObjectPropertyName) ?? "Dispositivo sem nome",
+                    "uid": audioTexto(dev, kAudioDevicePropertyDeviceUID) ?? "",
+                    "transporte": nomeDoTransporte(audioNumero(dev, kAudioDevicePropertyTransportType)),
+                    "padrao": dev == padrao,
+                    "vivo": (audioNumero(dev, kAudioDevicePropertyDeviceIsAlive) ?? 1) != 0,
+                ])
+            }
+        }
+    }
+    let tampa: Any = tampaFechada().map { $0 as Any } ?? NSNull()
+    return ["entradas": entradas, "tampaFechada": tampa]
+}
+
+/// Teclados conectados (IOHIDManager, página Genérico/Teclado). Só lista; não escuta nada.
+func listarTeclados() -> [[String: Any]] {
+    let gerente = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
+    let criterio: [String: Any] = [kIOHIDDeviceUsagePageKey: 0x01, kIOHIDDeviceUsageKey: 0x06]
+    IOHIDManagerSetDeviceMatching(gerente, criterio as CFDictionary)
+    guard let conjunto = IOHIDManagerCopyDevices(gerente) as? Set<IOHIDDevice> else { return [] }
+    var vistos = Set<String>()
+    var lista: [[String: Any]] = []
+    for d in conjunto {
+        let nome = (IOHIDDeviceGetProperty(d, kIOHIDProductKey as CFString) as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if nome.isEmpty || nome.localizedCaseInsensitiveContains("Karabiner") { continue }
+        let transporte = IOHIDDeviceGetProperty(d, kIOHIDTransportKey as CFString) as? String
+        let embutido = (IOHIDDeviceGetProperty(d, kIOHIDBuiltInKey as CFString) as? NSNumber)?.boolValue == true
+            || transporte == "FIFO" || transporte == "SPI"
+        if vistos.insert("\(nome)|\(embutido)").inserted {
+            lista.append(["nome": nome, "embutido": embutido])
+        }
+    }
+    return lista
+}
+
 // MARK: - Atalhos configuráveis (modelo)
 
 enum Familia: Int, CaseIterable { case fn, ctrl, option, cmd, shift }
@@ -377,8 +792,12 @@ let nomesTeclas: [String: Int64] = {
     let fs: [Int64] = [122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111,   // F1–F12
                        105, 107, 113, 106, 64, 79, 80, 90]                        // F13–F20
     for (i, c) in fs.enumerated() { m["F\(i + 1)"] = c }
+    // Botões do mouse (v4): códigos sintéticos fora da faixa de keycodes (0–127).
+    m["Mouse3"] = 1002; m["Mouse4"] = 1003; m["Mouse5"] = 1004
     return m
 }()
+/// Códigos sintéticos dos botões do mouse: 1000 + buttonNumber (2 = meio, 3 = Mouse4, 4 = Mouse5).
+let codigosMouse: Set<Int64> = [1002, 1003, 1004]
 let ehTeclaF: (Int64) -> Bool = { c in [122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111,
                                          105, 107, 113, 106, 64, 79, 80, 90].contains(c) }
 
@@ -440,7 +859,7 @@ func interpretarAtalhos(_ bruto: Any?) -> (lista: [AtalhoCfg], erro: String?) {
             }
         }
         // Tecla comum sozinha (ex.: só "A" ou só "Space") engoliria a digitação normal.
-        if tecla != nil && mods.isEmpty && !ehTeclaF(tecla!) {
+        if tecla != nil && mods.isEmpty && !ehTeclaF(tecla!) && !codigosMouse.contains(tecla!) {
             return ([], "Atalho '\(id)': a tecla \(nomeTecla) precisa de ao menos um modificador.")
         }
         lista.append(AtalhoCfg(id: id, mods: mods, tecla: tecla))
@@ -457,7 +876,8 @@ private let kVKEscape: Int64 = 53     // kVK_Escape
 private let kVKGlobo: Int64 = 179
 private let kVKKeypadEnter: Int64 = 76
 private let kVKReturn: Int64 = 36
-private let kVKV: Int64 = 9           // kVK_ANSI_V (usado em simularCmdV)
+private let kVKV: Int64 = 9           // kVK_ANSI_V (padrão se o layout não tiver o V)
+private let kVKC: Int64 = 8           // kVK_ANSI_C (idem, para copiar)
 
 /// Estado do tap (somente main thread).
 var tap: CFMachPort? = nil
@@ -572,8 +992,11 @@ func tratarFlags(_ evento: CGEvent) {
 func tratarKeyDown(_ evento: CGEvent) -> Bool {
     var codigo = evento.getIntegerValueField(.keyboardEventKeycode)
     if codigo == kVKKeypadEnter { codigo = kVKReturn }
-    let repeticao = evento.getIntegerValueField(.keyboardEventAutorepeat) != 0
+    return tratarDesce(codigo, repeticao: evento.getIntegerValueField(.keyboardEventAutorepeat) != 0)
+}
 
+/// Tecla comum (ou botão do mouse, v4) desceu. Retorna true se deve ser engolida.
+func tratarDesce(_ codigo: Int64, repeticao: Bool) -> Bool {
     if repeticao && teclasEngolidas.contains(codigo) { return true }   // auto-repetição de tecla engolida
     teclasEngolidas.remove(codigo)                                      // keyDown novo: keyUp anterior se perdeu
 
@@ -601,6 +1024,10 @@ func tratarKeyDown(_ evento: CGEvent) -> Bool {
 func tratarKeyUp(_ evento: CGEvent) -> Bool {
     var codigo = evento.getIntegerValueField(.keyboardEventKeycode)
     if codigo == kVKKeypadEnter { codigo = kVKReturn }
+    return tratarSobe(codigo)
+}
+
+func tratarSobe(_ codigo: Int64) -> Bool {
     duploTeclaSobe(codigo)   // fim do 1º toque ou do 2º desce do toque duplo
     guard teclasEngolidas.remove(codigo) != nil else { return false }
     for a in atalhos where a.tecla == codigo && a.ativo {
@@ -635,6 +1062,21 @@ let callbackTeclado: CGEventTapCallBack = { _, tipo, evento, _ in
         if evento.getIntegerValueField(.keyboardEventKeycode) == kVKGlobo { break }
         if let cap = captura { return capturaTeclaSobe(cap, evento) ? nil : Unmanaged.passUnretained(evento) }
         if tratarKeyUp(evento) { return nil }
+    case .otherMouseDown, .otherMouseUp:
+        // Botões extras do mouse como atalho (v4). Esquerdo/direito não chegam aqui.
+        if evento.getIntegerValueField(.eventSourceUserData) == marcaInjetada { break }
+        let botao = evento.getIntegerValueField(.mouseEventButtonNumber)
+        guard botao >= 2 && botao <= 4 else { break }
+        let codigo = 1000 + botao
+        let desce = tipo == .otherMouseDown
+        if let cap = captura {
+            let engolir = desce ? capturaDesceCodigo(cap, codigo, repeticao: false) : capturaSobeCodigo(cap, codigo)
+            return engolir ? nil : Unmanaged.passUnretained(evento)
+        }
+        // Nenhum atalho usa este botão: passa intacto, sem contar como "outra tecla".
+        let usado = atalhos.contains { $0.tecla == codigo } || duplos.contains { $0.tecla == codigo }
+        if !usado { break }
+        if (desce ? tratarDesce(codigo, repeticao: false) : tratarSobe(codigo)) { return nil }
     default:
         break
     }
@@ -647,6 +1089,8 @@ func iniciarTeclado() -> Bool {
     let mascara: CGEventMask = (1 << CGEventType.flagsChanged.rawValue)
                              | (1 << CGEventType.keyDown.rawValue)
                              | (1 << CGEventType.keyUp.rawValue)
+                             | (1 << CGEventType.otherMouseDown.rawValue)
+                             | (1 << CGEventType.otherMouseUp.rawValue)
     guard let novo = CGEvent.tapCreate(
         tap: .cgSessionEventTap,
         place: .headInsertEventTap,
@@ -960,8 +1404,12 @@ func capturaAcordeConcluido(_ cap: Captura) {
 func capturaTeclaDesce(_ cap: Captura, _ evento: CGEvent) -> Bool {
     var codigo = evento.getIntegerValueField(.keyboardEventKeycode)
     if codigo == kVKKeypadEnter { codigo = kVKReturn }
+    return capturaDesceCodigo(cap, codigo, repeticao: evento.getIntegerValueField(.keyboardEventAutorepeat) != 0)
+}
+
+func capturaDesceCodigo(_ cap: Captura, _ codigo: Int64, repeticao: Bool) -> Bool {
     cap.engolidas.insert(codigo)
-    if evento.getIntegerValueField(.keyboardEventAutorepeat) != 0 { return true }
+    if repeticao { return true }
     if nomeDoCodigo(codigo) != nil { capturaApertou(cap, codigo) }   // teclas sem nome são engolidas e ignoradas
     return true
 }
@@ -969,6 +1417,10 @@ func capturaTeclaDesce(_ cap: Captura, _ evento: CGEvent) -> Bool {
 func capturaTeclaSobe(_ cap: Captura, _ evento: CGEvent) -> Bool {
     var codigo = evento.getIntegerValueField(.keyboardEventKeycode)
     if codigo == kVKKeypadEnter { codigo = kVKReturn }
+    return capturaSobeCodigo(cap, codigo)
+}
+
+func capturaSobeCodigo(_ cap: Captura, _ codigo: Int64) -> Bool {
     guard cap.engolidas.remove(codigo) != nil else { return false }
     capturaSoltou(cap, codigo)
     return true
@@ -991,8 +1443,10 @@ func salvarAreaDeTransferencia(_ pb: NSPasteboard) -> [ItemSalvo] {
     return salvos
 }
 
+/// Devolve o conteúdo guardado. `.currentHostOnly`: nada vai pela Área de Transferência Universal
+/// (Handoff) para os outros aparelhos do usuário.
 func restaurarAreaDeTransferencia(_ pb: NSPasteboard, _ salvos: [ItemSalvo]) {
-    pb.clearContents()
+    _ = pb.prepareForNewContents(with: .currentHostOnly)
     if salvos.isEmpty { return }
     let itens: [NSPasteboardItem] = salvos.map { tipos in
         let novo = NSPasteboardItem()
@@ -1002,15 +1456,45 @@ func restaurarAreaDeTransferencia(_ pb: NSPasteboard, _ salvos: [ItemSalvo]) {
     pb.writeObjects(itens)
 }
 
-/// Simula Cmd+V (somente Command; não herda Fn nem outros modificadores).
-func simularCmdV() {
+/// Keycode da tecla que produz `caractere` (minúsculo) no layout de teclado ATUAL, com Command
+/// segurado: em layouts como "Dvorak - QWERTY ⌘" o Cmd usa a posição QWERTY, e é essa que o app lê.
+/// Devolve o menor keycode que serve. nil se o layout não tem dados Unicode (ex.: método de entrada).
+/// Main thread (as funções TIS exigem). O layout muda em tempo de execução: não guarde o resultado.
+func codigoDaTecla(_ caractere: String) -> CGKeyCode? {
+    guard let fonte = TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue(),
+          let ptr = TISGetInputSourceProperty(fonte, kTISPropertyUnicodeKeyLayoutData) else { return nil }
+    let dados = Unmanaged<CFData>.fromOpaque(ptr).takeUnretainedValue()   // pertence à fonte (não é nosso)
+    guard let bytes = CFDataGetBytePtr(dados) else { return nil }
+    let layout = UnsafeRawPointer(bytes).assumingMemoryBound(to: UCKeyboardLayout.self)
+    let tipoTeclado = UInt32(LMGetKbdType())
+    let comCommand = UInt32((cmdKey >> 8) & 0xFF)   // estado de modificadores no formato do UCKeyTranslate
+    for codigo in 0..<128 {
+        var mortas: UInt32 = 0
+        var tamanho = 0
+        var letras = [UniChar](repeating: 0, count: 4)
+        let st = UCKeyTranslate(layout, UInt16(codigo), UInt16(kUCKeyActionDown), comCommand, tipoTeclado,
+                                OptionBits(kUCKeyTranslateNoDeadKeysBit), &mortas, letras.count, &tamanho, &letras)
+        if st == noErr, tamanho > 0, String(utf16CodeUnits: letras, count: tamanho).lowercased() == caractere {
+            return CGKeyCode(codigo)
+        }
+    }
+    return nil
+}
+
+/// Posta Cmd + `tecla` (somente Command; não herda Fn nem outros modificadores).
+func simularCmd(_ tecla: CGKeyCode, marcar: Bool = false) {
     let fonte = CGEventSource(stateID: .combinedSessionState)
-    let tecla = CGKeyCode(kVKV)
     for descendo in [true, false] {
         guard let e = CGEvent(keyboardEventSource: fonte, virtualKey: tecla, keyDown: descendo) else { continue }
         e.flags = .maskCommand
+        if marcar { e.setIntegerValueField(.eventSourceUserData, value: marcaInjetada) }
         e.post(tap: .cghidEventTap)
     }
+}
+
+/// Simula Cmd+V na tecla que o layout atual usa para o "v" (padrão: ANSI).
+func simularCmdV() {
+    simularCmd(codigoDaTecla("v") ?? CGKeyCode(kVKV))
 }
 
 /// Aperta Enter no app em foco (envio automático depois de colar). Evento marcado: o tap o ignora,
@@ -1048,17 +1532,19 @@ func restaurarPendente() {
 /// (senão a área de transferência do usuário ficaria com o texto colado, ou o som mudo).
 func encerrar() -> Never {
     capturaTerminar(erro: "Auxiliar encerrando.")
+    encerrarCopia()
     restaurarPendente()
     desfazerMute()
     descarregarSaida()
     exit(0)
 }
 
-func colar(id: Any, texto: String) {
+func colar(id: Any, texto: String, html: String? = nil) {
     guard AXIsProcessTrusted() else {
         responderErro(id, "Sem permissão de Acessibilidade para colar.")
         return
     }
+    encerrarCopia()   // uma cópia em andamento termina (restaura e responde null) antes de colar
     let pb = NSPasteboard.general
     // Duas colagens seguidas (ex.: ditado e logo depois Ctrl+Cmd+V): se a anterior ainda não
     // restaurou e ninguém mexeu, o "original" continua sendo o do usuário, não o texto colado.
@@ -1069,10 +1555,14 @@ func colar(id: Any, texto: String) {
         original = salvarAreaDeTransferencia(pb)
     }
 
-    pb.clearContents()
-    pb.setString(texto, forType: .string)
-    // Marca como transitório para gerenciadores de área de transferência ignorarem.
-    pb.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.TransientType"))
+    // Um item só: texto, html (se vier) e a marca de transitório (gerenciadores de área de
+    // transferência a ignoram). `.currentHostOnly`: não sai por Handoff para outros aparelhos.
+    let item = NSPasteboardItem()
+    item.setString(texto, forType: .string)
+    if let h = html { item.setString(h, forType: .html) }
+    item.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.TransientType"))
+    _ = pb.prepareForNewContents(with: .currentHostOnly)
+    pb.writeObjects([item])
     let contagem = pb.changeCount
     colagemPendente = ColagemPendente(original: original, contagem: contagem)
 
@@ -1083,6 +1573,77 @@ func colar(id: Any, texto: String) {
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
         if colagemPendente?.contagem == contagem { restaurarPendente() }
     }
+}
+
+// MARK: - Copiar a seleção (v4)
+
+/// Cópia em andamento (somente main thread). Só uma por vez.
+final class CopiaEmAndamento {
+    let id: Any
+    let original: [ItemSalvo]
+    let c0: Int                  // changeCount logo depois de limparmos (antes do Cmd+C)
+    var ultima: Int              // último changeCount visto (a cópia do app)
+    let limite: DispatchTime
+    init(id: Any, original: [ItemSalvo], c0: Int, limite: DispatchTime) {
+        self.id = id; self.original = original; self.c0 = c0; self.ultima = c0; self.limite = limite
+    }
+}
+var copiaAtual: CopiaEmAndamento? = nil
+
+func copiarSelecao(id: Any, prazoMs: Int) {
+    guard AXIsProcessTrusted() else {
+        responderErro(id, "Sem permissão de Acessibilidade para copiar a seleção.")
+        return
+    }
+    if copiaAtual != nil {
+        responderErro(id, "Já há uma cópia em andamento.")
+        return
+    }
+    restaurarPendente()   // colagem anterior ainda pendente: devolve a área do usuário primeiro
+    let pb = NSPasteboard.general
+    let original = salvarAreaDeTransferencia(pb)
+    _ = pb.prepareForNewContents(with: .currentHostOnly)
+    let c0 = pb.changeCount
+    let cop = CopiaEmAndamento(id: id, original: original, c0: c0,
+                               limite: .now() + .milliseconds(max(50, min(prazoMs, 1000))))
+    copiaAtual = cop
+    simularCmd(codigoDaTecla("c") ?? CGKeyCode(kVKC), marcar: true)
+    verificarCopia(cop)
+}
+
+/// A cada 15 ms olha se o app copiou; sem dormir (a main segue livre).
+func verificarCopia(_ cop: CopiaEmAndamento) {
+    guard copiaAtual === cop else { return }
+    let pb = NSPasteboard.general
+    var texto: String? = nil
+    if pb.changeCount != cop.c0 {
+        cop.ultima = pb.changeCount
+        texto = pb.string(forType: .string)
+    }
+    if texto != nil || DispatchTime.now() >= cop.limite {
+        finalizarCopia(cop, texto)
+        return
+    }
+    // Mudou mas ainda sem texto (o app limpou e vai gravar): continua olhando até o prazo.
+    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(15)) { verificarCopia(cop) }
+}
+
+/// Devolve a área do usuário (se ninguém mexeu depois) e responde ao `copiar_selecao`.
+func finalizarCopia(_ cop: CopiaEmAndamento, _ texto: String?) {
+    guard copiaAtual === cop else { return }
+    copiaAtual = nil
+    let pb = NSPasteboard.general
+    // Se o usuário copiou outra coisa no meio, não pisa nela.
+    if pb.changeCount == cop.c0 || pb.changeCount == cop.ultima {
+        restaurarAreaDeTransferencia(pb, cop.original)
+    }
+    let vazio = texto?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+    responderOk(cop.id, ["texto": vazio ? NSNull() : (texto as Any)])
+}
+
+/// Termina uma cópia em andamento sem texto (chegou um `colar`, ou o auxiliar vai sair).
+func encerrarCopia() {
+    if let cop = copiaAtual { finalizarCopia(cop, nil) }
 }
 
 // MARK: - Comandos
@@ -1141,7 +1702,19 @@ func tratarLinha(_ linha: String) {
         responderOk(id)
 
     case "contexto":
-        filaAX.async { responderOk(id, montarContexto()) }
+        let pid = (msg["pid"] as? NSNumber).map { pid_t($0.int32Value) }
+        let extras = ExtrasContexto(msg["extras"])
+        filaAX.async { responderOk(id, montarContexto(pid: pid, extras: extras)) }
+
+    case "dispositivos_audio":
+        filaAX.async { responderOk(id, montarDispositivosAudio()) }
+
+    case "teclados":
+        filaAX.async { responderOk(id, ["teclados": listarTeclados()]) }
+
+    case "copiar_selecao":
+        let ms = (msg["prazoMs"] as? NSNumber)?.intValue ?? 300
+        copiarSelecao(id: id, prazoMs: ms)
 
     case "ler_campo":
         filaAX.async { responderOk(id, montarLerCampo()) }
@@ -1158,7 +1731,7 @@ func tratarLinha(_ linha: String) {
             responderErro(id, "Campo 'texto' ausente.")
             return
         }
-        colar(id: id, texto: texto)
+        colar(id: id, texto: texto, html: msg["html"] as? String)
 
     case "apertar_enter":
         guard AXIsProcessTrusted() else {
@@ -1186,7 +1759,7 @@ signal(SIGPIPE, SIG_IGN)
 let app = NSApplication.shared
 app.setActivationPolicy(.prohibited)
 
-emitir(["evento": "pronto", "versao": 3])
+emitir(["evento": "pronto", "versao": 4])
 
 // Leitura do stdin em background; cada comando é tratado na main queue.
 let threadStdin = Thread {
