@@ -8,6 +8,7 @@ A primeira análise (só o JavaScript) está em [../design/DESIGN_FALAAI.md](../
 
 O Daniel aprovou fazer **todos** os itens, na sequência proposta abaixo (18/10/2026).
 Os relatórios completos dos agentes ficaram na pasta temporária da sessão (some ao reiniciar); o que importa está aqui.
+Como repetir a análise (comandos, scripts e regras): [../operacao/ENGENHARIA_REVERSA.md](../operacao/ENGENHARIA_REVERSA.md).
 
 ## O que o Typeless faz e o FalaAi não fazia
 

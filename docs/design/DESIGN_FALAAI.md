@@ -2,6 +2,10 @@
 
 > Documento histórico (17/10/2026), escrito quando o app só falava com a Lovable. Hoje há 8 provedores de IA e 5 serviços de transcrição (ver [../modulos/configuracoes-ia.md](../modulos/configuracoes-ia.md)); a tabela de decisões e as fases abaixo descrevem o ponto de partida. O visual está em [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md).
 
+> **18/10/2026:** segunda conferência, agora das bibliotecas nativas com o Ghidra: o que faltava e o que foi feito em
+> [../planos/CONFERENCIA_TYPELESS_2026-10-18.md](../planos/CONFERENCIA_TYPELESS_2026-10-18.md); como repetir em
+> [../operacao/ENGENHARIA_REVERSA.md](../operacao/ENGENHARIA_REVERSA.md).
+
 **Data:** 17/10/2026. **Base:** engenharia reversa do Typeless 2.8.2 instalado
 (`/Applications/Typeless.app`) com o REA (MCP) e leitura do pacote. Serve como referência de
 funcionalidades e arquitetura; **nenhum código, ícone, som ou servidor do Typeless é reutilizado**.
