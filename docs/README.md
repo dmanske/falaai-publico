@@ -43,6 +43,7 @@ Versão 1.1.1 (20/10/2026; o que mudou em cada versão: página Novidades do app
 
 | Documento | Para quê |
 |---|---|
+| [planos/ATUALIZACAO_AUTOMATICA_2026-10-20.md](planos/ATUALIZACAO_AUTOMATICA_2026-10-20.md) | Pendente: o FalaAi baixar e instalar a versão nova sozinho no Mac (comparação com o Typeless, desenho, testes) e como programar/publicar a partir de outro computador |
 | [planos/CONFERENCIA_TYPELESS_2026-10-18.md](planos/CONFERENCIA_TYPELESS_2026-10-18.md) | Segunda engenharia reversa do Typeless (Ghidra): o que faltava no FalaAi, decisões e etapas |
 
 ## Correções feitas

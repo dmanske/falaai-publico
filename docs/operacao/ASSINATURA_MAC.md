@@ -31,6 +31,13 @@ Depois de ligar a Acessibilidade uma vez para um build assinado assim, as próxi
 Rodar `bash scripts/criar-assinatura-mac.sh`, empacotar (`npm run empacotar:mac`) e ligar a Acessibilidade de
 novo uma vez (certificado novo = identidade nova).
 
+## Usar em dois Macs
+
+Para empacotar em outro Mac **com a mesma identidade**, copie o chaveiro e o arquivo da senha para os mesmos caminhos
+(meio seguro; nunca pelo git) em vez de rodar `criar-assinatura-mac.sh` de novo. Detalhes em
+[../planos/ATUALIZACAO_AUTOMATICA_2026-10-20.md](../planos/ATUALIZACAO_AUTOMATICA_2026-10-20.md), seção "Programar e
+publicar a partir do outro computador".
+
 ## Limite
 
 Não é um certificado da Apple: o app não é notarizado e outro Mac ainda vê o aviso do Gatekeeper na

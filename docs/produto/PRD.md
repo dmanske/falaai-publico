@@ -102,6 +102,8 @@ depois (itens com "—" e 33 em diante). Ficam de fora: veja "Fora do escopo".
 - **Transcrição com chaves reais** dos outros provedores e serviços (só a Lovable foi testada de ponta a ponta).
 - **Modo escuro do tema do clube**: falta revisar visualmente.
 - **Pílula dos clubes durante um ditado real**: conferida só nas miniaturas e em prints.
+- **Atualização automática de verdade** (baixar e instalar sozinho; hoje o "Baixar" só abre a Release): plano pronto,
+  não implementado ([../planos/ATUALIZACAO_AUTOMATICA_2026-10-20.md](../planos/ATUALIZACAO_AUTOMATICA_2026-10-20.md)).
 - **Notarização da Apple**: o app é assinado com certificado local; em outro Mac o Gatekeeper avisa na primeira
   abertura.
 - Teclas físicas (mãos livres, Esc, colar a última, toque duplo), o Enter do envio automático e a atualização
