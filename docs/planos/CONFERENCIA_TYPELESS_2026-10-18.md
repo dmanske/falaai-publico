@@ -46,7 +46,10 @@ toque duplo e mãos livres resolvidos no nativo, religar o monitor de teclado.
 - **Acessibilidade de apps Electron**: `AXManualAccessibility` (a forma documentada pelo Electron) nos apps com
   `Electron Framework.framework`; `AXEnhancedUserInterface` só em navegador Chromium e só quando o campo não pôde
   ser lido. **Nunca** nos editores de código (VS Code, Kiro, Cursor, Windsurf, Orca): neles pode ligar o "modo leitor
-  de tela". Lista em `src/shared/config.ts`.
+  de tela". Lista em `src/shared/config.ts`. Consequência vista em 20/10/2026: nesses apps o campo nunca é lido, e o
+  aviso do item 7 aparecia em todo ditado no Kiro. O Typeless não exclui nenhum app (0x678c só compara com o próprio
+  bundle id). Desde a 1.1.1 o aviso não aparece nesses apps
+  ([../correcoes/CORRECAO_AVISO_SEM_CAMPO_KIRO_2026-10-20.md](../correcoes/CORRECAO_AVISO_SEM_CAMPO_KIRO_2026-10-20.md)).
 - **Microfone mudo**: só avisa com silêncio digital absoluto (amostras exatamente 0) por 5 s. O critério do
   Typeless (byte de 8 bits sem variação) dispara numa sala silenciosa antes de a pessoa falar.
 - **Mãos livres por toque duplo**: vira opção; o padrão continua o toque rápido, que é o que o Daniel usa hoje.

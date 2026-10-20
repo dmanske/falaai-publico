@@ -1,5 +1,6 @@
 // Medição do ritmo da fala no próprio computador (sem IA): onde a pessoa parou, por quanto tempo
 // e quanto do áudio é fala. O resultado vira dica no prompt (ver bloco.ts). Função pura, sem rede.
+import { FALA_MINIMA_IA_S } from "../../../../shared/config.ts";
 
 // ── Valores ajustáveis ───────────────────────────────────────────────────────
 /** Tamanho do quadro de análise (energia RMS por quadro). */
@@ -147,4 +148,9 @@ export function analisarRitmo(wav: Buffer): Ritmo {
     }
   }
   return { duracaoS, falaS: arred(falaS), pausas };
+}
+
+/** Quase nada de fala no áudio (clique, respiração, toque sem querer): não vale mandar para a IA. WAV ilegível não conta. */
+export function poucaFala(r: Ritmo): boolean {
+  return r.duracaoS > 0 && r.falaS < FALA_MINIMA_IA_S;
 }

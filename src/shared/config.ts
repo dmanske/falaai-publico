@@ -55,6 +55,18 @@ export const TOQUE_RAPIDO_MS = 300;
 export const TOQUE_DUPLO_MS = 400;
 /** Gravações mais curtas que isso (ms) são descartadas (toque sem fala). */
 export const GRAVACAO_MINIMA_MS = 400;
+/**
+ * Com menos fala que isso (s), medida no próprio computador (ia/ritmo), o áudio nem vai para a IA:
+ * "Não entendi nenhuma fala". Com quase nada de fala, a IA inventava um texto a partir da tela (20/10/2026).
+ */
+export const FALA_MINIMA_IA_S = 0.2;
+/**
+ * Texto com mais palavras que isso por segundo de áudio (mais a folga) foi inventado pela IA e não é colado.
+ * Histórico do Daniel em 20/10/2026: de 1 a 4 palavras/s; o texto inventado deu 46 (39 palavras em 0,84 s).
+ */
+export const PALAVRAS_POR_SEGUNDO_MAX = 6;
+/** Palavras a mais toleradas pela conta acima, para áudios muito curtos ("Ok, valeu." em 0,5 s). */
+export const FOLGA_PALAVRAS = 2;
 /** Limite de uma gravação (s). 6 min de WAV 16 kHz ≈ 11,5 MB. */
 export const GRAVACAO_MAXIMA_S = 360;
 /** Nos últimos segundos antes do limite, a pílula mostra o tempo que falta. */

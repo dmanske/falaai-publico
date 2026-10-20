@@ -1,7 +1,7 @@
 // Rodar: npm test
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { analisarRitmo } from "./index.ts";
+import { analisarRitmo, poucaFala } from "./index.ts";
 import { blocoRitmo, MAX_PAUSAS_NO_BLOCO } from "./bloco.ts";
 
 const TAXA = 16000;
@@ -106,6 +106,19 @@ describe("analisarRitmo", () => {
     const w = montarWav(gerarPcm([["fala", 1], ["sil", 1], ["fala", 1]]));
     w.writeUInt32LE(0xffffffff, w.indexOf("data") + 4);
     assert.equal(analisarRitmo(w).pausas.length, 1);
+  });
+});
+
+describe("poucaFala (áudio nem vai para a IA)", () => {
+  it("silêncio e estalo curto: pouca fala", () => {
+    assert.equal(poucaFala(analisarRitmo(montarWav(gerarPcm([["sil", 0.84]])))), true);
+    assert.equal(poucaFala(analisarRitmo(montarWav(gerarPcm([["sil", 0.4], ["fala", 0.05], ["sil", 0.4]])))), true);
+  });
+  it("uma palavra curta já basta", () => {
+    assert.equal(poucaFala(analisarRitmo(montarWav(gerarPcm([["sil", 0.3], ["fala", 0.3], ["sil", 0.3]])))), false);
+  });
+  it("WAV ilegível não bloqueia (fica com a IA)", () => {
+    assert.equal(poucaFala(analisarRitmo(Buffer.from("isto não é um wav"))), false);
   });
 });
 

@@ -19,7 +19,7 @@ import {
 } from "./prompts";
 import { limparResposta } from "./audio";
 import { blocoRitmo } from "./ritmo/bloco";
-import { analisarRitmo } from "./ritmo";
+import { analisarRitmo, poucaFala } from "./ritmo";
 
 export interface PedidoModo {
   wav: Buffer;
@@ -52,13 +52,16 @@ export function lerRespostaPergunta(bruto: string): { pergunta: string; resposta
 
 export async function executarModo(p: PedidoModo): Promise<ResultadoModo> {
   const prefs = lerPreferencias();
+  // Quase sem fala medida no áudio: nem chama a IA, que inventava um texto a partir da tela (20/10/2026).
+  const ritmo = analisarRitmo(p.wav);
+  if (poucaFala(ritmo)) return { ok: true, acao: "colar", texto: "", ms: 0 };
 
   const comSelecao = p.modo === "pergunte" && p.selecionado.trim() !== "";
   let sistema: string;
   let instrucaoAudio: string;
   let instrucaoTexto: (transcricao: string) => string = mensagemTranscricao;
   if (p.modo === "traducao") {
-    sistema = promptTraducao(p.idiomaDestino ?? prefs.idiomaTraducao) + blocoContexto({ ...p.contexto, antes: "", depois: "" }) + blocoRitmo(analisarRitmo(p.wav));
+    sistema = promptTraducao(p.idiomaDestino ?? prefs.idiomaTraducao) + blocoContexto({ ...p.contexto, antes: "", depois: "" }) + blocoRitmo(ritmo);
     instrucaoAudio = "Traduza este áudio.";
   } else if (comSelecao) {
     sistema = PROMPT_COMANDO_SELECAO + blocoContexto({ ...p.contexto, antes: "", depois: "" });
@@ -69,7 +72,7 @@ export async function executarModo(p: PedidoModo): Promise<ResultadoModo> {
     instrucaoAudio = "Responda à pergunta deste áudio.";
   } else {
     // O ritmo (pausas) é medido aqui no computador e vai como dica, nos dois caminhos (1 ou 2 chamadas).
-    sistema = PROMPT_DITADO + blocoContexto(p.contexto) + blocoRitmo(analisarRitmo(p.wav));
+    sistema = PROMPT_DITADO + blocoContexto(p.contexto) + blocoRitmo(ritmo);
     instrucaoAudio = "Transcreva e limpe este ditado.";
   }
 

@@ -49,6 +49,7 @@ import { extrairComandoEnviar } from "./lib/comandoEnviar";
 import { deveCopiarSelecao } from "./lib/copiarSelecao";
 import { ajustarEspacoInicial, limparInicio } from "./lib/espacamento";
 import { textoParaHtml } from "./lib/html";
+import { pareceInventado } from "./lib/textoInventado";
 
 /** Tempo máximo para a pílula devolver o áudio depois do "parar" (ms). */
 const TIMEOUT_AUDIO_MS = 8000;
@@ -64,6 +65,7 @@ const NOTA_OCUPADO = "Ainda no ditado anterior · Esc cancela";
 const AVISO_CANCELADO = "Cancelado. Está no Histórico.";
 const AVISO_CANCELADO_SEM_HISTORICO = "Cancelado.";
 const AVISO_SEM_CAMPO = "Não achei um campo de texto aqui.";
+const ERRO_TEXTO_INVENTADO = "Não entendi, fale de novo.";
 const ERRO_MICROFONE_MUDO = "O microfone não está mandando som. Veja se ele está mudo ou escolha outro em Configurações > Áudio.";
 const ACAO_TENTAR_DE_NOVO: AcaoMensagemPilula = { id: "tentar-de-novo", rotulo: "Tentar de novo" };
 const ACAO_COPIAR: AcaoMensagemPilula = { id: "copiar", rotulo: "Copiar" };
@@ -545,6 +547,8 @@ async function aposIa(dados: DadosSessao, r: Extract<ResultadoModo, { ok: true }
   }
 
   if (!r.texto) return terminarComErro("Não entendi nenhuma fala.");
+  // Mais palavras do que dá para falar nesse tempo de áudio: a IA inventou. Não cola nem guarda.
+  if (meuModo !== "pergunte" && pareceInventado(r.texto, dados.duracaoMs)) return terminarComErro(ERRO_TEXTO_INVENTADO);
   const antes = ctx?.campo?.antes ?? "";
   const prefs = lerPreferencias();
   // Envio automático: comando de voz no fim da fala ("…Enviar.") ou app marcado nas Configurações.

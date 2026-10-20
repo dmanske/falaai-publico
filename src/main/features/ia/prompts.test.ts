@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { blocoContexto, type DadosContexto } from "./prompts.ts";
+import { blocoContexto, PROMPT_DITADO, promptTraducao, type DadosContexto } from "./prompts.ts";
 
 const base: DadosContexto = {
   app: null,
@@ -38,5 +38,19 @@ describe("blocoContexto: conversa e texto da janela", () => {
   it("a conversa vem depois de 'Onde o texto vai entrar'", () => {
     const b = blocoContexto({ ...base, app: "Slack", conversa: { antes: "oi", depois: "" } });
     assert.ok(b.indexOf("Onde o texto vai entrar") < b.indexOf("Conversa em volta"));
+  });
+});
+
+describe("nunca completar nem inventar (20/10/2026)", () => {
+  it("o texto antes do cursor não pede mais para continuar a frase", () => {
+    const b = blocoContexto({ ...base, antes: "Amanhã a gente vai" });
+    assert.doesNotMatch(b, /continue a frase/);
+    assert.match(b, /NÃO é pedido para completar nada/);
+  });
+  it("ditado e tradução proíbem completar e inventar a partir do contexto", () => {
+    for (const p of [PROMPT_DITADO, promptTraducao("en")]) {
+      assert.match(p, /nunca complete/i);
+      assert.match(p, /nunca invente um texto a partir do contexto/);
+    }
   });
 });

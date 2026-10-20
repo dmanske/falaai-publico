@@ -12,6 +12,16 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    versao: "1.1.1",
+    data: "2026-10-20",
+    itens: [
+      "A IA não completa mais o que você fala nem inventa um texto a partir do que está na tela.",
+      "Se a gravação quase não tem fala (um clique, uma respiração), nada é colado.",
+      "Se o texto que voltou tem mais palavras do que dá para falar naquele tempo, ele não é colado e a pílula pede para falar de novo.",
+      "O aviso \"Não achei um campo de texto aqui\" não aparece mais a cada ditado no Kiro, no VS Code e nos outros editores de código.",
+    ],
+  },
+  {
     versao: "1.1.0",
     data: "2026-10-18",
     itens: [

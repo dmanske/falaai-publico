@@ -24,6 +24,10 @@ describe("deveAvisarCampoNaoEditavel", () => {
     assert.equal(deveAvisarCampoNaoEditavel(semCampo, "com.tinyspeck.slackmacgap", null), false);
     assert.equal(deveAvisarCampoNaoEditavel(semCampo, "com.microsoft.Excel", null), false);
   });
+  it("não avisa nos editores de código, onde a acessibilidade não é ligada (Kiro, VS Code)", () => {
+    assert.equal(deveAvisarCampoNaoEditavel(semCampo, "dev.kiro.desktop", null), false);
+    assert.equal(deveAvisarCampoNaoEditavel(naoEditavel, "com.microsoft.VSCode", null), false);
+  });
   it("não avisa nas URLs das listas (por prefixo)", () => {
     assert.equal(deveAvisarCampoNaoEditavel(semCampo, "com.google.Chrome", "https://docs.google.com/document/d/abc/edit"), false);
     assert.equal(deveAvisarCampoNaoEditavel(semCampo, "com.google.Chrome", "https://www.figma.com/design/xyz"), false);

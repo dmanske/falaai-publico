@@ -1,6 +1,6 @@
 # Documentação do FalaAi: índice
 
-Versão 1.1.0 (18/10/2026; o que mudou em cada versão: página Novidades do app, `src/shared/novidades.ts`). Repositório privado `dmanske/falaai-oficial`; cópia pública `dmanske/falaai-publico`.
+Versão 1.1.1 (20/10/2026; o que mudou em cada versão: página Novidades do app, `src/shared/novidades.ts`). Repositório privado `dmanske/falaai-oficial`; cópia pública `dmanske/falaai-publico`.
 
 ## Geral
 
@@ -50,6 +50,8 @@ Versão 1.1.0 (18/10/2026; o que mudou em cada versão: página Novidades do app
 |---|---|
 | [correcoes/CORRECAO_CHAVE_LOVABLE_COLADA_2026-10-17.md](correcoes/CORRECAO_CHAVE_LOVABLE_COLADA_2026-10-17.md) | Chave colada com a linha do `.env` junto |
 | [correcoes/CORRECAO_IDIOMAS_MISTURADOS_2026-10-17.md](correcoes/CORRECAO_IDIOMAS_MISTURADOS_2026-10-17.md) | Inglês no meio do português; pedido ditado não é executado |
+| [correcoes/CORRECAO_TEXTO_INVENTADO_2026-10-20.md](correcoes/CORRECAO_TEXTO_INVENTADO_2026-10-20.md) | A IA inventava ou completava o texto (0,84 s viraram 39 palavras): travas antes e depois da IA e prompt |
+| [correcoes/CORRECAO_AVISO_SEM_CAMPO_KIRO_2026-10-20.md](correcoes/CORRECAO_AVISO_SEM_CAMPO_KIRO_2026-10-20.md) | "Não achei um campo de texto" em todo ditado no Kiro e nos editores de código |
 
 ## Arquivo (documentos substituídos, nunca apagados)
 
