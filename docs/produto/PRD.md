@@ -78,8 +78,8 @@ depois (itens com "—" e 33 em diante). Ficam de fora: veja "Fora do escopo".
 | — | Contagem regressiva no último minuto antes do limite de 6 min | — | construído |
 | — | "Ainda no ditado anterior · Esc cancela" quando o atalho é apertado durante o processamento | — | construído |
 | — | "Tentar de novo" na pílula quando a IA falha (atualiza o mesmo item do histórico) | — | construído |
-| — | "Não achei um campo de texto aqui" + Copiar, quando o foco não era editável (nunca nos editores de código, onde o campo não é lido: correção de 20/10/2026) | — | construído — falta conferir no Kiro |
-| — | Texto inventado pela IA: áudio com menos de 0,2 s de fala nem vai para a IA; texto com mais palavras do que dá para falar não é colado; o prompt proíbe completar (ver correcoes/CORRECAO_TEXTO_INVENTADO_2026-10-20.md) | — | construído em 20/10/2026 — falta uso real |
+| — | "Não achei um campo de texto aqui" + Copiar, quando o foco não era editável (nunca nos editores de código, onde o campo não é lido: correção de 20/10/2026) | — | ✅ conferido no Kiro pelo Daniel (20/10/2026) |
+| — | Texto inventado pela IA: áudio com menos de 0,2 s de fala nem vai para a IA; texto com mais palavras do que dá para falar não é colado; o prompt proíbe completar (ver correcoes/CORRECAO_TEXTO_INVENTADO_2026-10-20.md) | — | em uso desde 20/10/2026 (1.1.1); primeiros ditados ok, acompanhar se o texto inventado parou |
 | — | Colar só neste Mac (sem Área de Transferência Universal), tecla V pelo layout, listas formatadas (HTML) | — | construído — falta testar colando |
 | — | Botões extras do mouse como atalho (Mac) e dica de teclado externo sem Fn | — | construído — falta testar com mouse e teclado externo |
 | — | Esc/✕: "Cancelado" com **Desfazer** por 6 s (o áudio fica só na memória; funciona com "Guardar o áudio" desligado) | — | ✅ testado pelo Daniel (18/10/2026; antes, com o áudio desligado, não havia como recuperar) |

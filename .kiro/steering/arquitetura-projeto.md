@@ -19,4 +19,5 @@ Documento completo: `docs/ARQUITETURA.md`. Índice: `docs/README.md`.
 - Não mexer em sons/áudio do app sem pedido explícito.
 - Comentários, textos e commits em português.
 - Subiu a versão no `package.json`? Acrescente no topo de `src/shared/novidades.ts` a data e o que mudou (página
-  Novidades do app); o teste `novidades.test.ts` falha se faltar. Tag `vX.Y.Z` no git.
+  Novidades do app); o teste `novidades.test.ts` falha se faltar. Tag `vX.Y.Z` no git. Empacotar, instalar e
+  publicar: `docs/operacao/PUBLICAR_VERSAO.md`.

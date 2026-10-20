@@ -31,8 +31,10 @@ quando o aviso aparecia), como era antes da 1.1.0.
 
 ## Verificação
 
-`npm test` (209 passando), `npm run typecheck` e `npm run build` sem erros. **Falta o uso real:** ditar no Kiro e
-ver que o aviso não aparece mais.
+`npm test` (209 passando), `npm run typecheck` e `npm run build` sem erros.
+
+**Uso real (20/10/2026, versão 1.1.1):** 6 ditados no Kiro, todos colados (histórico), e segundo o Daniel o aviso não
+apareceu mais. A linha `"editor.accessibilitySupport": "on"` continua fora do `settings.json` do Kiro.
 
 ## Como reverter
 

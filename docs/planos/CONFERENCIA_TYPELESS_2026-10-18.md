@@ -75,6 +75,13 @@ eles); fica como pendência.
   áudio ligado). Virou o botão **Desfazer** na pílula, e funcionou.
 - Página **Novidades** e o aviso depois de atualizar: funcionaram.
 
+## Testado pelo Daniel (20/10/2026, versão 1.1.1)
+
+- Aviso "Não achei um campo de texto aqui" (item 7): aparecia em todo ditado no Kiro; corrigido na 1.1.1 e conferido
+  (ver [../correcoes/CORRECAO_AVISO_SEM_CAMPO_KIRO_2026-10-20.md](../correcoes/CORRECAO_AVISO_SEM_CAMPO_KIRO_2026-10-20.md)).
+- Texto da janela (item 4): no Kiro em modo leitor de tela, ajudou a IA a inventar um texto; travas na 1.1.1
+  ([../correcoes/CORRECAO_TEXTO_INVENTADO_2026-10-20.md](../correcoes/CORRECAO_TEXTO_INVENTADO_2026-10-20.md)).
+
 ## O que falta conferir no uso real (18/10/2026)
 
 Nada disto pôde ser testado sem mexer nos apps, no teclado ou na área de transferência do Daniel:

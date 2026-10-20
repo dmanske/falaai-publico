@@ -36,6 +36,7 @@ Versão 1.1.1 (20/10/2026; o que mudou em cada versão: página Novidades do app
 |---|---|
 | [integracoes/PROVEDORES_IA.md](integracoes/PROVEDORES_IA.md) | Pesquisa dos provedores de IA e de transcrição (endpoints, formatos, preços) |
 | [operacao/ASSINATURA_MAC.md](operacao/ASSINATURA_MAC.md) | Certificado local para o Mac não esquecer as permissões a cada versão |
+| [operacao/PUBLICAR_VERSAO.md](operacao/PUBLICAR_VERSAO.md) | Lançar uma versão: empacotar, instalar no Mac (com `env -u ELECTRON_RUN_AS_NODE`), espelhar no repositório público e criar a Release |
 | [operacao/ENGENHARIA_REVERSA.md](operacao/ENGENHARIA_REVERSA.md) | Como conferir o Typeless com o REA + Ghidra (bibliotecas nativas e JavaScript), com os scripts de `scripts/engenharia-reversa/` |
 
 ## Planos e pendências

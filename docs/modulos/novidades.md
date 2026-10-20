@@ -19,5 +19,6 @@ saber a data e o que foi arrumado".
 2. Acrescentar a entrada no topo de `src/shared/novidades.ts`. O teste `src/shared/novidades.test.ts` falha se a versão
    do `package.json` não tiver entrada, se a ordem estiver errada ou se a data for inválida.
 3. Commit e tag `vX.Y.Z`.
+4. Empacotar, instalar no Mac e publicar: [../operacao/PUBLICAR_VERSAO.md](../operacao/PUBLICAR_VERSAO.md).
 
 Regra também em [../ARQUITETURA.md](../ARQUITETURA.md) (seção Git) e em `.kiro/steering/arquitetura-projeto.md`.

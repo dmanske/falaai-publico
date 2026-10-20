@@ -52,8 +52,15 @@ Conta do caso real: 0,84 s × 6 = 5,04 → 6 + 2 = 8 palavras permitidas; vieram
   bloqueia (`ritmo/index.test.ts`); o prompt não tem mais "continue a frase" (`prompts.test.ts`).
 - A amostra de voz `resources/amostra-teste.wav` mede 2,38 s de fala em 3,28 s: passa pela trava.
 - `npm run typecheck` e `npm run build` sem erros.
-- **Não testado com a IA de verdade** nem no uso real: falta o Daniel ditar no dia a dia e ver se o texto inventado
-  some e se nenhum ditado curto de verdade é barrado.
+- Não testado com a IA de verdade antes de publicar.
+
+## Uso real (20/10/2026, versão 1.1.1)
+
+Primeiros 6 ditados do Daniel no Kiro depois de instalar a 1.1.1: todos colados, de 0,9 a 4,2 palavras/s, nenhum
+barrado pelas travas (inclusive "Ok, valeu.", 2 palavras em 2,2 s). O Daniel: "até agora tá funcionando normalmente".
+
+Falta: acompanhar por mais dias se o texto inventado parou (era raro: 1 em 150) e se algum ditado curto de verdade
+é barrado.
 
 ## Como reverter
 
