@@ -2,6 +2,9 @@
 // NUNCA pode roubar o foco — o texto tem que ser colado no app onde o usuário estava.
 // Tem botões (✕ cancelar, ✓ terminar), então recebe cliques; a janela tem o tamanho exato da
 // pílula para não bloquear cliques em volta.
+// A janela nunca é escondida: sem ditado ela encolhe para 1×1 px e ignora o mouse (como o Typeless 2.8.3).
+// Escondida e mostrada a cada ditado, ela chegou a voltar "em nenhuma mesa" do macOS depois de dias de
+// repousos e não aparecia mais (docs/correcoes/CORRECAO_PILULA_SEM_MESA_2026-10-27.md).
 import { BrowserWindow, screen, session } from "electron";
 import { join } from "node:path";
 import { CANAIS_PILULA, type ComandoPilula, type EstadoPilula } from "@shared/ipc";
@@ -27,10 +30,14 @@ const EXTRA_CONTAGEM = 44;
 const LIMITE_MENSAGEM_CURTA = 60;
 /** Distância da pílula até a borda de baixo da área útil da tela, logo acima do Dock (px). */
 const MARGEM_INFERIOR = 20;
+/** Tamanho da janela sem ditado: 1×1 px no canto da área útil, transparente e sem receber cliques. */
+const RECOLHIDA = { largura: 1, altura: 1 };
 
 let janela: BrowserWindow | null = null;
 /** Último estado mostrado, para reposicionar a janela quando o estilo (escudo) muda com a pílula na tela. */
 let ultimoEstado: EstadoPilula = { estado: "oculta" };
+/** A pílula está aparecendo (fora isso a janela fica recolhida em 1×1). */
+let expandida = false;
 
 export function criarPilula(): void {
   janela = new BrowserWindow({
@@ -60,7 +67,12 @@ export function criarPilula(): void {
     },
   });
   janela.setAlwaysOnTop(true, "screen-saver");
-  janela.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  // skipTransformProcessType: sem ele o Electron troca o tipo do processo (app de barra ↔ app normal) a cada
+  // chamada, o que esconde as janelas e o Dock por um instante.
+  janela.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
+  if (process.platform === "darwin") janela.setHiddenInMissionControl(true);
+  recolher();
+  janela.showInactive();
 
   // Microfone liberado só para as páginas do próprio app (pílula grava; Configurações lista os
   // microfones; onboarding testa). Nada de fora é carregado nas janelas.
@@ -72,7 +84,7 @@ export function criarPilula(): void {
   // Trocar para (ou de) um estilo de clube muda a largura (o escudo ocupa 26 px): reposiciona na hora.
   aoMudarPreferencias((nova, anterior) => {
     if (larguraExtraEscudo(nova.estiloPilula) === larguraExtraEscudo(anterior.estiloPilula)) return;
-    if (janela?.isVisible() && ultimoEstado.estado !== "oculta") posicionar(tamanhoDoEstado(ultimoEstado));
+    if (expandida) posicionar(tamanhoDoEstado(ultimoEstado));
   });
 
   if (process.env.ELECTRON_RENDERER_URL) void janela.loadURL(`${process.env.ELECTRON_RENDERER_URL}/pilula.html`);
@@ -87,7 +99,7 @@ export function idWebContentsPilula(): number | null {
 function posicionar(tamanho: { largura: number; altura: number }): void {
   if (!janela) return;
   // Mantém a tela onde a pílula já está; só escolhe pela posição do mouse quando aparece.
-  const referencia = janela.isVisible()
+  const referencia = expandida
     ? screen.getDisplayMatching(janela.getBounds())
     : screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
   const tela = referencia.workArea;
@@ -97,6 +109,15 @@ function posicionar(tamanho: { largura: number; altura: number }): void {
     width: tamanho.largura,
     height: tamanho.altura,
   });
+}
+
+/** Encolhe a janela para 1×1 px no canto da área útil, sem receber cliques (no lugar de esconder). */
+function recolher(): void {
+  if (!janela) return;
+  expandida = false;
+  janela.setIgnoreMouseEvents(true);
+  const tela = screen.getDisplayMatching(janela.getBounds()).workArea;
+  janela.setBounds({ x: tela.x, y: tela.y, width: RECOLHIDA.largura, height: RECOLHIDA.altura });
 }
 
 /** Tamanho da janela no estado dado; com escudo (estilo de clube) gravando/processando ficam 26 px mais largos. */
@@ -117,10 +138,15 @@ export function mostrarEstadoPilula(estado: EstadoPilula): void {
   ultimoEstado = estado;
   janela.webContents.send(CANAIS_PILULA.ESTADO, estado);
   if (estado.estado === "oculta") {
-    janela.hide();
+    recolher();
     return;
   }
   posicionar(tamanhoDoEstado(estado));
+  if (!expandida) {
+    expandida = true;
+    janela.setIgnoreMouseEvents(false);
+  }
+  // Nunca é escondida, mas se o sistema a tirou da tela (ex.: "Ocultar os outros"), volta.
   if (!janela.isVisible()) janela.showInactive();
 }
 

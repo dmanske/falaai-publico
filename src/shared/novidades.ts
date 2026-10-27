@@ -12,6 +12,14 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    versao: "1.1.2",
+    data: "2026-10-27",
+    itens: [
+      "A pílula não some mais depois de dias com o Mac dormindo e acordando: o ditado funcionava, mas ela parava de aparecer.",
+      "O cartão de resposta do Pergunte também ficou protegido contra o mesmo problema.",
+    ],
+  },
+  {
     versao: "1.1.1",
     data: "2026-10-20",
     itens: [

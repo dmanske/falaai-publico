@@ -8,6 +8,10 @@ Ainda não conferidos: mãos livres, Esc, Ctrl+Cmd+V e o clique nos botões da p
 cópia da seleção no Pergunte, ditado cancelado recuperável, avisos na pílula, botões do mouse. Seções
 "Contexto" e "Avisos e recuperação" abaixo. Testes automáticos passam; o uso real ainda não foi feito.
 
+**27/10/2026 (1.1.2):** a pílula parou de sumir depois de dias de repousos do Mac: a janela fica sempre na tela,
+encolhida em 1×1 px entre ditados (seção do visual abaixo e
+[../correcoes/CORRECAO_PILULA_SEM_MESA_2026-10-27.md](../correcoes/CORRECAO_PILULA_SEM_MESA_2026-10-27.md)).
+
 **20/10/2026 (1.1.1):** travas contra texto inventado pela IA (antes e depois da IA, e prompt) e o aviso de "campo não
 encontrado" deixou de aparecer nos editores de código. Ver [../correcoes/CORRECAO_TEXTO_INVENTADO_2026-10-20.md](../correcoes/CORRECAO_TEXTO_INVENTADO_2026-10-20.md)
 e [../correcoes/CORRECAO_AVISO_SEM_CAMPO_KIRO_2026-10-20.md](../correcoes/CORRECAO_AVISO_SEM_CAMPO_KIRO_2026-10-20.md).
@@ -67,6 +71,15 @@ tecla 🌐 para" em **Não fazer nada**. A tela de Configurações mostra os tr�
 A pílula é um painel que **não ativa o app** (`type: "panel"`, `focusable: false`, `showInactive`,
 `acceptFirstMouse`), para o texto cair no app onde o usuário estava. O microfone só é liberado para ela.
 Os botões novos da pílula (Tentar de novo, Copiar) usam a mesma janela.
+
+**A janela nunca é escondida (1.1.2, como o Typeless 2.8.3):** é mostrada uma vez ao abrir o app e, sem ditado,
+encolhe para **1×1 px** no canto de cima da área útil da tela, transparente e sem receber cliques
+(`setIgnoreMouseEvents(true)`); no ditado volta ao tamanho da pílula. Fica em todas as mesas e por cima de apps em
+tela cheia (`setVisibleOnAllWorkspaces` com `skipTransformProcessType`) e fora do Mission Control. Até a 1.1.1 ela
+era escondida e mostrada a cada ditado e, depois de dias de repousos do Mac, voltou "em nenhuma mesa" e parou de
+aparecer ([../correcoes/CORRECAO_PILULA_SEM_MESA_2026-10-27.md](../correcoes/CORRECAO_PILULA_SEM_MESA_2026-10-27.md)).
+Exame da janela a qualquer momento: `swift scripts/diagnostico/pilula-mesas.swift` (saudável = `OK`, na tela e na
+mesa ativa). O cartão do Pergunte é fechado de verdade ao sair e recriado no próximo, também como o Typeless.
 
 Visual (referência `docs/design/referencias/typeless-pilula.png`): pílula preta com **✕** à esquerda
 (cancelar; também cancela durante o "processando"), **onda simétrica** mais alta no meio e **✓** à direita

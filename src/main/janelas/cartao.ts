@@ -54,7 +54,9 @@ function criar(): BrowserWindow {
     },
   });
   j.setAlwaysOnTop(true, "screen-saver");
-  j.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  // skipTransformProcessType: ver pilula.ts.
+  j.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
+  if (process.platform === "darwin") j.setHiddenInMissionControl(true);
   carregada = false;
   j.webContents.on("did-finish-load", () => {
     carregada = true;
@@ -80,7 +82,9 @@ export function mostrarCartao(c: ConteudoCartao): void {
 
 export function registrarIpcCartao(): void {
   // fecharCartao() na ponte usa ipcRenderer.send.
+  // Fecha de verdade (o próximo cartão cria outra janela), como o Typeless: esconder e mostrar de novo a
+  // mesma janela pode deixá-la "em nenhuma mesa" (ver pilula.ts).
   ipcMain.on(CANAIS_JANELAS.CARTAO_FECHAR, () => {
-    if (janela && !janela.isDestroyed()) janela.hide();
+    if (janela && !janela.isDestroyed()) janela.close();
   });
 }

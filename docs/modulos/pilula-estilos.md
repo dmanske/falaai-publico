@@ -25,7 +25,9 @@ app" ligado, o destaque do app (hub) também ganha a cor dele. Protótipo aprova
 - **Janela.** Tem o tamanho exato da pílula, então não há sombra para fora (contornos são `inset`). Com
   estilo de clube que tem escudo a janela fica **26 px mais larga** nos estados gravando/processando
   (170×38, tradução 214×38); erro/aviso não mudam (300×38) e usam sempre a pílula preta, para o texto
-  ficar legível. Ao trocar o estilo com a pílula na tela, `src/main/janelas/pilula.ts` reposiciona.
+  ficar legível. Ao trocar o estilo com a pílula na tela, `src/main/janelas/pilula.ts` reposiciona. Sem ditado a
+  janela não é escondida: encolhe para 1×1 px, transparente e sem receber cliques (1.1.2, ver
+  [ditado.md](ditado.md)).
 - **Variantes do clube.**
   - *camisa*: o padrão (`liso`, `listras-verticais`, `listras-horizontais`, `faixa-diagonal`,
     `faixa-horizontal`, `meio-a-meio`) com as duas primeiras cores, e um véu preto mais forte nas laterais

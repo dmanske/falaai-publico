@@ -183,7 +183,8 @@ Janela flutuante, transparente, que não rouba o foco (ver [../modulos/ditado.md
 
 Peças: botões ✕ e ✓ de 28 px (ícone de 14 px), onda de até 20 px de altura com barras de 3 px e vão de 3 px,
 escudo de 20×25 px, sigla do idioma com bandeira de 16×12 px. Os contornos são `inset` e não há sombra para
-fora, porque a janela tem o tamanho exato da pílula.
+fora, porque a janela tem o tamanho exato da pílula. Entre ditados a janela fica encolhida em 1×1 px, transparente
+(1.1.2): a pílula some na hora, sem o esmaecer de ~0,2 s que o macOS fazia quando a janela era escondida.
 
 **Estados:** gravando (onda acompanha o volume; no último minuto, o tempo que falta), processando (três pontos
 pulando, ou uma nota de 12 px no lugar deles), erro e aviso (sempre pílula preta `#0A0A0A` com texto de 12 px, em

@@ -10,6 +10,10 @@ O Daniel aprovou fazer **todos** os itens, na sequência proposta abaixo (18/10/
 Os relatórios completos dos agentes ficaram na pasta temporária da sessão (some ao reiniciar); o que importa está aqui.
 Como repetir a análise (comandos, scripts e regras): [../operacao/ENGENHARIA_REVERSA.md](../operacao/ENGENHARIA_REVERSA.md).
 
+**Depois (27/10/2026, Typeless 2.8.3):** o processo principal passou a ser legível (`desembaralhar.py`) e foi
+comparada a janela da pílula: o Typeless nunca a esconde (1×1 px entre ditados) e usa `skipTransformProcessType`.
+Ver [../correcoes/CORRECAO_PILULA_SEM_MESA_2026-10-27.md](../correcoes/CORRECAO_PILULA_SEM_MESA_2026-10-27.md).
+
 ## O que o Typeless faz e o FalaAi não fazia
 
 Evidência: endereço na fatia arm64 descompilada pelo Ghidra, ou valor lido no JavaScript.

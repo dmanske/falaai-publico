@@ -52,8 +52,13 @@ python3 -I scripts/engenharia-reversa/i18n.py typeless-asar/dist/renderer/static
   funções que existem.
 - **Lógica da pílula:** `dist/renderer/static/js/<pacote do floating-bar.html>` (na 2.8.2, `DFvLNtQv.mjs`). Procure
   pelas propriedades em claro (`need_merge`, `taking_longer_alert_delay_ms`, `app_blacklist`, `MAX_DURATION_MS`…).
-- O processo principal (`dist/main/index.js`) tem a tabela de textos embaralhada; dá para achar nomes de funções
-  nativas (`libSetFocusedWindowEnhancedUserInterface`…), mas não a lógica.
+- O processo principal (`dist/main/index.js`) tem a tabela de textos embaralhada (obfuscator.io). Desde 27/10/2026
+  dá para ler a lógica: `python3 -I scripts/engenharia-reversa/desembaralhar.py typeless-asar/dist/main/index.js
+  main-legivel.js` acha a tabela, o deslocamento e a conta de verificação, gira a tabela até a conta bater e põe os
+  textos no lugar (2.8.3: 2.906 textos, 306 giros). Só lê o arquivo; nada do Typeless roda. Os nomes de variáveis
+  continuam `_0x…`: procure pelas chamadas em claro (`setVisibleOnAllWorkspaces`, `powerMonitor`, `'setBounds'`…).
+  Usado na [correção da pílula sem mesa](../correcoes/CORRECAO_PILULA_SEM_MESA_2026-10-27.md) (janela do floating
+  bar, classe `yg`).
 
 ## Comparar com o FalaAi
 

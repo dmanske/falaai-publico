@@ -1,6 +1,6 @@
 # Documentação do FalaAi: índice
 
-Versão 1.1.1 (20/10/2026; o que mudou em cada versão: página Novidades do app, `src/shared/novidades.ts`). Repositório privado `dmanske/falaai-oficial`; cópia pública `dmanske/falaai-publico`.
+Versão 1.1.2 (27/10/2026; o que mudou em cada versão: página Novidades do app, `src/shared/novidades.ts`). Repositório privado `dmanske/falaai-oficial`; cópia pública `dmanske/falaai-publico`.
 
 ## Geral
 
@@ -54,6 +54,7 @@ Versão 1.1.1 (20/10/2026; o que mudou em cada versão: página Novidades do app
 | [correcoes/CORRECAO_IDIOMAS_MISTURADOS_2026-10-17.md](correcoes/CORRECAO_IDIOMAS_MISTURADOS_2026-10-17.md) | Inglês no meio do português; pedido ditado não é executado |
 | [correcoes/CORRECAO_TEXTO_INVENTADO_2026-10-20.md](correcoes/CORRECAO_TEXTO_INVENTADO_2026-10-20.md) | A IA inventava ou completava o texto (0,84 s viraram 39 palavras): travas antes e depois da IA e prompt |
 | [correcoes/CORRECAO_AVISO_SEM_CAMPO_KIRO_2026-10-20.md](correcoes/CORRECAO_AVISO_SEM_CAMPO_KIRO_2026-10-20.md) | "Não achei um campo de texto" em todo ditado no Kiro e nos editores de código |
+| [correcoes/CORRECAO_PILULA_SEM_MESA_2026-10-27.md](correcoes/CORRECAO_PILULA_SEM_MESA_2026-10-27.md) | A pílula parou de aparecer depois de dias de repousos (janela "em nenhuma mesa" do macOS); agora fica sempre na tela em 1×1 px, como o Typeless. Exame: `scripts/diagnostico/pilula-mesas.swift` |
 
 ## Arquivo (documentos substituídos, nunca apagados)
 
