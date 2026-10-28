@@ -154,6 +154,14 @@ bandeja (Windows), e o ditado já funciona. A preferência é `abrirJanelaAoInic
 Configurações > Geral > "Abrir a janela ao iniciar". Fechar a janela também não encerra o app; para sair, use
 "Sair do FalaAi" no menu do ícone (`src/main/index.ts`, `src/main/bandeja.ts`).
 
+No Mac o ícone também **não aparece no Dock** por padrão (`mostrarNoDock`, desligado desde a 1.1.3, 28/10/2026; até a
+1.1.2 vinha ligado), em Configurações > Geral > "Mostrar no Dock". Como o `preferencias.json` guarda o valor de cada
+opção, um padrão novo não chegaria a quem já tinha o FalaAi configurado; por isso a 1.1.3 traz um **ajuste único**
+(`dock-desligado-1.1.3`, em `src/main/features/preferencias/lib/ajustes.ts`): no primeiro início depois de atualizar,
+desliga o Dock e grava o id em `ajustesAplicados`. Se a pessoa ligar o Dock de novo, a escolha fica (o ajuste não roda
+outra vez). O mesmo mecanismo serve para os próximos padrões que mudarem. No Windows a opção não faz nada (sem
+janela aberta, o app já fica só na bandeja).
+
 ## Compilar o auxiliar
 
 `npm run nativo:mac` gera um binário universal (arm64 + x86_64). Não vai para o git (`resources/bin/`).

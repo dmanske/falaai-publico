@@ -70,7 +70,7 @@ Tudo em `app.getPath("userData")` (Mac: `~/Library/Application Support/FalaAi/`)
 | Arquivo | Conteúdo |
 |---|---|
 | `chaves.json` | Chaves cifradas pelo sistema (base64) |
-| `preferencias.json` | Provedor, modelos, atalhos, tema, estilo da pílula etc. |
+| `preferencias.json` | Provedor, modelos, atalhos, tema, estilo da pílula etc. Quando o padrão de uma opção muda numa versão, quem já tinha o arquivo recebe o valor novo uma vez por um **ajuste único** (`features/preferencias/lib/ajustes.ts`; ids aplicados em `ajustesAplicados`) |
 | `falaai.db` | Banco SQLite (`node:sqlite`): histórico, dicionário, estatísticas |
 | `audios/` | Áudios guardados dos ditados (preferência `guardarAudio`) |
 | `openrouter-modelos.json` | Cache de 24 h da lista de modelos do OpenRouter |

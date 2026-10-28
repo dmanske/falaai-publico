@@ -96,6 +96,8 @@ export interface Preferencias {
   onboardingConcluido: boolean;
   /** Última versão cujas novidades foram mostradas (aviso na pílula ou página Novidades); null = nenhuma ainda. */
   novidadesVistas: string | null;
+  /** Ids dos ajustes únicos já aplicados nas preferências salvas (main/features/preferencias/lib/ajustes.ts). */
+  ajustesAplicados: string[];
 }
 
 export interface PontePreferencias {

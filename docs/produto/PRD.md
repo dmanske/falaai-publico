@@ -1,6 +1,6 @@
 # PRD — FalaAi
 
-**Versão do produto:** 1.1.2 (27/10/2026). O que mudou em cada versão: página Novidades do app (`src/shared/novidades.ts`).
+**Versão do produto:** 1.1.3 (28/10/2026). O que mudou em cada versão: página Novidades do app (`src/shared/novidades.ts`).
 
 **Problema:** digitar é lento. Falar é 3–4× mais rápido, mas o ditado comum sai cru (com "é…",
 "tipo", sem pontuação, sem parágrafos) e não sabe onde você está escrevendo.
@@ -63,7 +63,7 @@ depois (itens com "—" e 33 em diante). Ficam de fora: veja "Fora do escopo".
 | 22b | Estatísticas permanentes: apagar o histórico não zera os números (tabela `estatisticas_dia`, ver modulos/estatisticas.md) | F3 | construído, testado só com banco em memória |
 | 22a | Números do Início sobem contando (animação como no Typeless) | F3 | construído, conferir no app |
 | 23 | Insights (gráficos por app e por dia) | F3 | ✅ pronto (calendário e apps mais usados) |
-| 24 | Configurações gerais: abrir com o sistema, **iniciar só na barra de menus** (padrão; a janela não abre sozinha), Dock, tema claro/escuro/sistema com botão de troca rápida no menu, fundo (ondas no topo, completo ou nenhum) | F3 | construído |
+| 24 | Configurações gerais: abrir com o sistema, **iniciar só na barra de menus** (padrão; a janela não abre sozinha), Dock (padrão desligado desde a 1.1.3, 28/10/2026: o ícone fica só na barra de menus; quem atualiza recebe o ajuste uma vez), tema claro/escuro/sistema com botão de troca rápida no menu, fundo (ondas no topo, completo ou nenhum) | F3 | construído |
 | 25 | Onboarding (permissões, teste de microfone e atalho) | F4 | ✅ pronto (6 passos; concluído) |
 | 26 | Menu na barra de cima | F0/F4 | ✅ pronto |
 | 27 | Atualização automática (GitHub Releases) | F4 | construído — procura em `dmanske/falaai-publico` (`REPO_ATUALIZACOES`); falta testar quando houver uma versão publicada lá |

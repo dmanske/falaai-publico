@@ -6,6 +6,7 @@ import { modeloPadrao, type IdProvedor } from "@shared/provedores";
 import { atalhosPadrao } from "@shared/atalhos";
 import type { Preferencias } from "@shared/ipc";
 import { gravarJson, lerJson } from "../../lib/arquivoJson";
+import { ajustesPendentes } from "./lib/ajustes";
 
 const ARQUIVO = "preferencias.json";
 
@@ -35,13 +36,15 @@ const PADRAO: Preferencias = {
   retencaoDias: null,
   abrirComSistema: true,
   abrirJanelaAoIniciar: false,
-  mostrarNoDock: true,
+  mostrarNoDock: false,
   tema: "sistema",
   fundo: "topo",
   estiloPilula: { tipo: "estilo", id: "original" },
   coresDoClubeNoApp: true,
   onboardingConcluido: false,
   novidadesVistas: null,
+  // Sempre vazia: arquivos salvos sem a lista recebem esta, e os ajustes pendentes rodam.
+  ajustesAplicados: [],
 };
 
 const eventos = new EventEmitter<{ mudou: [nova: Preferencias, anterior: Preferencias] }>();
@@ -57,6 +60,12 @@ export function lerPreferencias(): Preferencias {
   const favoritos = prefs.idiomasTraducao?.length ? prefs.idiomasTraducao : [prefs.idiomaTraducao];
   prefs.idiomasTraducao = favoritos.includes(prefs.idiomaTraducao) ? favoritos : [prefs.idiomaTraducao, ...favoritos];
   return prefs;
+}
+
+/** Grava os ajustes únicos que faltam (lib/ajustes.ts). Chamar ao iniciar, antes de quem lê as preferências. */
+export function aplicarAjustesUnicos(): void {
+  const mudar = ajustesPendentes(lerPreferencias());
+  if (mudar) salvarPreferencias(mudar);
 }
 
 export function salvarPreferencias(parcial: Partial<Preferencias>): Preferencias {

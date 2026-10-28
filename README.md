@@ -3,7 +3,7 @@
 Ditado por voz com IA, 100% local: segura a tecla, fala, solta, e o texto já limpo aparece onde
 o cursor está. Inspirado nas funcionalidades do Typeless, com código próprio.
 
-- **App:** Electron + React + TypeScript (electron-vite), Mac e Windows. Versão 1.1.2 (o que mudou em cada versão: página **Novidades** do app, `src/shared/novidades.ts`).
+- **App:** Electron + React + TypeScript (electron-vite), Mac e Windows. Versão 1.1.3 (o que mudou em cada versão: página **Novidades** do app, `src/shared/novidades.ts`).
 - **IA com a sua chave:** Lovable, Google Gemini, OpenRouter, OpenAI, Claude (Anthropic), Groq,
   Mistral ou DeepSeek, colada na tela de Configurações e guardada criptografada pelo sistema.
   Quando o modelo não ouve áudio, um serviço de transcrição (OpenAI, Groq, ElevenLabs, Deepgram,

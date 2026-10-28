@@ -16,7 +16,7 @@ import { registrarIpcIa } from "./features/ia/ipc";
 import { auxiliar } from "./features/nativo";
 import { iniciarAvisoNovidades } from "./features/novidades";
 import { registrarIpcPermissoes } from "./features/permissoes/ipc";
-import { lerPreferencias } from "./features/preferencias";
+import { aplicarAjustesUnicos, lerPreferencias } from "./features/preferencias";
 import { registrarIpcPreferencias } from "./features/preferencias/ipc";
 import { iniciarSistema } from "./features/sistema";
 import { registrarIpcSistema } from "./features/sistema/ipc";
@@ -40,7 +40,8 @@ if (!app.requestSingleInstanceLock()) {
     // traz o ícone em build/icon.png).
     if (process.platform === "darwin" && !app.isPackaged) app.dock?.setIcon(nativeImage.createFromPath(caminhoRecurso("icone-app.png")));
 
-    // Dados
+    // Dados (os ajustes únicos das preferências vêm antes de tudo que as lê)
+    aplicarAjustesUnicos();
     iniciarHistorico();
     iniciarEstatisticas();
     iniciarDicionario();

@@ -12,6 +12,13 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    versao: "1.1.3",
+    data: "2026-10-28",
+    itens: [
+      "O FalaAi fica só com o ícone na barra de menus, fora do Dock, inclusive ao ligar o Mac. Se preferir o ícone no Dock, ligue em Configurações > Geral > Mostrar no Dock.",
+    ],
+  },
+  {
     versao: "1.1.2",
     data: "2026-10-27",
     itens: [

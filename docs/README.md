@@ -1,6 +1,6 @@
 # Documentação do FalaAi: índice
 
-Versão 1.1.2 (27/10/2026; o que mudou em cada versão: página Novidades do app, `src/shared/novidades.ts`). Repositório privado `dmanske/falaai-oficial`; cópia pública `dmanske/falaai-publico`.
+Versão 1.1.3 (28/10/2026; o que mudou em cada versão: página Novidades do app, `src/shared/novidades.ts`). Repositório privado `dmanske/falaai-oficial`; cópia pública `dmanske/falaai-publico`.
 
 ## Geral
 
