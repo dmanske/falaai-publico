@@ -162,6 +162,11 @@ desliga o Dock e grava o id em `ajustesAplicados`. Se a pessoa ligar o Dock de n
 outra vez). O mesmo mecanismo serve para os próximos padrões que mudarem. No Windows a opção não faz nada (sem
 janela aberta, o app já fica só na bandeja).
 
+Conferido em 28/10/2026 no Mac com chip Apple, com a 1.1.3 instalada: com o FalaAi fechado, o `preferencias.json`
+foi posto como numa versão antiga (`mostrarNoDock: true`, sem `ajustesAplicados`); ao abrir, ficou
+`mostrarNoDock: false` e `ajustesAplicados: ["dock-desligado-1.1.3"]`, e `lsappinfo list` mostrou o FalaAi como
+`type="UIElement"` (fora do Dock). Para repetir: copiar o arquivo antes e devolver depois.
+
 ## Compilar o auxiliar
 
 `npm run nativo:mac` gera um binário universal (arm64 + x86_64). Não vai para o git (`resources/bin/`).
