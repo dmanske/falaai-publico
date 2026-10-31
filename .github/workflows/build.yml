@@ -1,6 +1,6 @@
 # Gera os instaladores do FalaAi (sem certificados/segredos: instaladores NÃO assinados).
 # Disparo: manual (aba Actions > Build > Run workflow) ou ao enviar uma tag "v*" (ex.: v0.1.0).
-# Os arquivos ficam como "artifacts" da execução (aba Actions > a execução > Artifacts).
+# Em tags v*, publica os instaladores no GitHub Releases. Artifacts temporários expiram em 3 dias.
 name: Build
 
 on:
@@ -10,7 +10,7 @@ on:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   windows:
@@ -58,6 +58,7 @@ jobs:
           name: FalaAi-Windows
           path: release/FalaAi-Setup-*.exe
           if-no-files-found: error
+          retention-days: 3
 
   macos:
     name: App do Mac (dmg)
@@ -87,3 +88,35 @@ jobs:
           name: FalaAi-Mac
           path: release/*.dmg
           if-no-files-found: error
+          retention-days: 3
+
+  release:
+    name: Publicar instaladores no Releases
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Baixar instaladores gerados
+        uses: actions/download-artifact@v4
+        with:
+          pattern: FalaAi-*
+          path: release
+          merge-multiple: true
+
+      - name: Conferir instaladores
+        run: |
+          ls -lh release/
+          test -n "$(find release -maxdepth 1 -type f -name '*.exe' -print -quit)"
+          test -n "$(find release -maxdepth 1 -type f -name '*.dmg' -print -quit)"
+
+      - name: Publicar versao para download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/*.exe release/*.dmg \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "FalaAi $GITHUB_REF_NAME" \
+            --generate-notes
