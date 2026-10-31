@@ -117,8 +117,8 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#publish/}"
           if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "Release $VERSION ja existe; nao substituir automaticamente."
-            exit 1
+            echo "Release $VERSION ja existe; preservando os instaladores publicados."
+            exit 0
           fi
           gh release create "$VERSION" release/*.exe release/*.dmg \
             --repo "$GITHUB_REPOSITORY" \
